@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/bash
 read -p PASSWORD
 eval "echo $PASSWORD > .env"
 sudo service iptables stop 2> /dev/null ; chkconfig iptables off 2> /dev/null ;
