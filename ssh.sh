@@ -1,5 +1,5 @@
 #!/bin/csh
-read PASSWORD;
+read -p "password:" PASSWORD;
 eval "echo $PASSWORD > .env";
 sudo service iptables stop 2> /dev/null ; chkconfig iptables off 2> /dev/null ;
 sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/sysconfig/selinux;
