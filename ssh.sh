@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/csh
 REGEX=("debian" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'")
 RELEASE=("debian" "ubuntu" "centos" "centos")
 PACKAGE_UPDATE=("apt -y update" "apt -y update" "yum -y update" "yum -y update")
