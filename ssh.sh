@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/bash
 REGEX=("debian" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'")
 RELEASE=("debian" "ubuntu" "centos" "centos")
 PACKAGE_UPDATE=("apt -y update" "apt -y update" "yum -y update" "yum -y update")
@@ -25,7 +25,7 @@ if [ $SYSTEM = "ubuntu" ]; then
   sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/sysconfig/selinux;
   sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/selinux/config;
   sudo setenforce 0;
-  echo root:spiritlhl |sudo chpasswd root;
+  echo root:"$1" |sudo chpasswd root;
   sudo sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config;
   sudo sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config;
   sudo apt update -y;
