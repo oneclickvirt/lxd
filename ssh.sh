@@ -49,4 +49,5 @@ elif [ $SYSTEM = "debian" ]; then
 else
   echo "error"
 fi
+sleep 10
 rm -rf "$0"
