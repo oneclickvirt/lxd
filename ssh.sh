@@ -18,17 +18,17 @@ for ((int = 0; int < ${#REGEX[@]}; int++)); do
 done
 
 [[ -z $SYSTEM ]] && exit 1
-
+sshport=22
 sudo service iptables stop 2> /dev/null ; chkconfig iptables off 2> /dev/null ;
 sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/sysconfig/selinux;
 sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/selinux/config;
 sudo setenforce 0;
 echo root:"$1" |sudo chpasswd root;
-sudo sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config;
-sudo sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config;
-sudo apt update -y;
-sudo apt install curl -y;
 sudo apt install sshpass;
 sudo apt-get install openssh-server -y;
-sudo service sshd restart;
+sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config;
+sudo sed -i "s/^#\?PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config;
+sudo sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config;
+sudo service ssh restart
+sudo service sshd restart
 rm -rf "$0"
