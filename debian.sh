@@ -3,8 +3,8 @@ lxc init images:debian/bullseye "$1" -c limits.cpu=1 -c limits.memory=1024MiB
 lxc config device override "$1" root size=10GB
 lxc config device set "$1" root limits.read 100MB
 lxc config device set "$1" root limits.write 100MB
-lxc config device set "$1" root limits.read 20Iops
-lxc config device set "$1" root limits.write 10Iops
+lxc config device set "$1" root limits.read 150iops
+lxc config device set "$1" root limits.write 100iops
 lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.network.priority 0
 lxc config set "$1" limits.memory.swap false
