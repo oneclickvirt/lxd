@@ -6,7 +6,6 @@ lxc config device set "$1" root limits.write 100MB
 lxc config device set "$1" root limits.read 20Iops
 lxc config device set "$1" root limits.write 10Iops
 lxc config set "$1" limits.cpu.priority 0
-lxc config set "$1" limits.disk.priority 0
 lxc config set "$1" limits.network.priority 0
 lxc config set "$1" limits.memory.swap false
 lxc start "$1"
