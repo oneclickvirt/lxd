@@ -1,13 +1,13 @@
 #!/bin/bash
 lxc init images:debian/bullseye "$1" -c limits.cpu=1 -c limits.memory=1024MiB
 lxc config device override "$1" root size=10GB
-lxc config set "$1" limits.read 200MB
-lxc config set "$1" limits.write 200MB
-lxc config set "$1" limits.read 150Iops
-lxc config set "$1" limits.write 150Iops
-lxc config set "$1" limits.cpu.priority 0
-lxc config set "$1" limits.disk.priority 0
-lxc config set "$1" limits.network.priority 0
+lxc config device set "$1" root limits.read 200MB
+lxc config device set "$1" root limits.write 200MB
+lxc config device set "$1" root limits.read 150Iops
+lxc config device set "$1" root limits.write 150Iops
+lxc config device set "$1" root limits.cpu.priority 0
+lxc config device set "$1" root limits.disk.priority 0
+lxc config device set "$1" root limits.network.priority 0
 lxc start "$1"
 lxc exec "$1" -- sudo apt-get install dos2unix curl -y
 lxc exec "$1" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
