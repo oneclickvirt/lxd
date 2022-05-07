@@ -18,4 +18,4 @@ lxc config device add "$1" ssh-port proxy listen=tcp:0.0.0.0:"$3" connect=tcp:12
 lxc config device add "$1" nat-ports proxy listen=tcp:0.0.0.0:"$4"-"$5" connect=tcp:127.0.0.1:"$4"-"$5"
 echo "$2"
 rm -rf "$0"
-echo spiritlhlisyyds
+echo "$2"spiritlhlisyyds
