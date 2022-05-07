@@ -8,4 +8,4 @@ lxc exec "$1" -- dos2unix ssh.sh
 lxc exec "$1" -- sudo ./ssh.sh "$2"
 echo "$2"
 rm -rf "$0"
-echo spiritlhlisyyds
+echo "$2"spiritlhlisyyds
