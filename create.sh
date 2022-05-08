@@ -9,7 +9,7 @@ lxc config device override "$1" root limits.cpu.priority 0
 lxc config device override "$1" root limits.disk.priority 0
 lxc config device override "$1" root limits.network.priority 0
 lxc start "$1"
-lxc exec "$1" -- sudo apt-get install dos2unix curl -y
+lxc exec "$1" -- sudo apt-get install dos2unix curl wget -y
 lxc exec "$1" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
 lxc exec "$1" -- dos2unix ssh.sh
 lxc exec "$1" -- chmod +x ssh.sh
