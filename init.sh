@@ -25,6 +25,7 @@ for ((a=1;a<"$3";a++)); do
   nat1=$(( 30000 + (a-1)*25 + 1))
   nat2=$(( 30000 + a*25 ))
   lxc start "$1"$a
+  sleep 1
   lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
   lxc config device add "$1"$a nat-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
   echo "$1"$a $sshn $nat1-$nat2
