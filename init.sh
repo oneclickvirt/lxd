@@ -8,15 +8,6 @@ lxc config device set "$1" root limits.write 100iops
 lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.network.priority 0
 lxc config set "$1" limits.memory.swap false
-lxc start "$1"
-lxc exec "$1" -- sudo apt-get update
-lxc exec "$1" -- sudo dpkg --configure -a
-lxc exec "$1" -- sudo apt-get update
-lxc exec "$1" -- sudo apt-get install dos2unix curl -y
-lxc exec "$1" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
-lxc exec "$1" -- dos2unix ssh.sh
-lxc exec "$1" -- chmod +x ssh.sh
-lxc exec "$1" -- sudo ./ssh.sh "$2"
 # 批量创建容器
 for ((a=1;a<"$3";a++)); do
   lxc copy "$1" "$1"$a
