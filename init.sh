@@ -26,6 +26,15 @@ for ((a=1;a<"$3";a++)); do
   nat2=$(( 30000 + a*25 ))
   lxc start "$1"$a
   sleep 1
+  lxc exec "$1"$a -- apt update -y
+  lxc exec "$1"$a -- sudo dpkg --configure -a
+  lxc exec "$1"$a -- sudo apt-get update
+  lxc exec "$1"$a -- sudo apt-get install dos2unix curl -y
+  lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
+  lxc exec "$1"$a -- chmod 777 ssh.sh
+  lxc exec "$1"$a -- dos2unix ssh.sh
+  lxc exec "$1"$a -- sudo ./ssh.sh "$2"
+  echo "$2"
   lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
   lxc config device add "$1"$a nat-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
   echo "$1"$a $sshn $nat1-$nat2
