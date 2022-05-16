@@ -9,7 +9,7 @@ lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.network.priority 0
 lxc config set "$1" limits.memory.swap false
 # 批量创建容器
-for ((a=1;a<"$3";a++)); do
+for ((a=1;a<"$2";a++)); do
   lxc copy "$1" "$1"$a
   name="$1"$a
   sshn=$(( 22222 + a ))
