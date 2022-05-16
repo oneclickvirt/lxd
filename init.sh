@@ -1,4 +1,5 @@
 #!/bin/bash
+rm -rf log
 lxc init images:debian/bullseye "$1" -c limits.cpu=1 -c limits.memory=1024MiB
 lxc config device override "$1" root size=5GB
 lxc config device set "$1" root limits.read 100MB
