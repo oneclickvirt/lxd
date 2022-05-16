@@ -9,7 +9,6 @@ lxc config device set "$1" root limits.write 100iops
 lxc config set "$1" limits.cpu.priority 1
 lxc config set "$1" limits.cpu.allowance 50%
 lxc config set "$1" limits.network.priority 1
-lxc config set "$1" limits.disk.priority 1
 lxc config set "$1" limits.memory.swap true
 lxc config set "$1" limits.memory.swap.priority 1
 # 批量创建容器
