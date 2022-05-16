@@ -1,14 +1,17 @@
 #!/bin/bash
 rm -rf log
-lxc init images:debian/bullseye "$1" -c limits.cpu=1 -c limits.memory=1024MiB
-lxc config device override "$1" root size=5GB
+lxc init images:debian/bullseye "$1" -c limits.cpu=1 -c limits.memory=512MiB
+lxc config device override "$1" root size=4GB
 lxc config device set "$1" root limits.read 100MB
 lxc config device set "$1" root limits.write 100MB
-lxc config device set "$1" root limits.read 150iops
+lxc config device set "$1" root limits.read 100iops
 lxc config device set "$1" root limits.write 100iops
-lxc config set "$1" limits.cpu.priority 0
-lxc config set "$1" limits.network.priority 0
-lxc config set "$1" limits.memory.swap false
+lxc config set "$1" limits.cpu.priority 1
+lxc config set "$1" limits.cpu.allowance 50%
+lxc config set "$1" limits.network.priority 1
+lxc config set "$1" limits.disk.priority 1
+lxc config set "$1" limits.memory.swap true
+lxc config set "$1" limits.memory.swap.priority 1
 # 批量创建容器
 for ((a=1;a<"$2";a++)); do
   lxc copy "$1" "$1"$a
