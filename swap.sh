@@ -21,7 +21,7 @@ ovz_no(){
 }
 
 add_swap(){
-swapsize=$(($(cat /proc/meminfo | grep MemTotal | sed "s/[^0-9]*//g")*2/1024))
+swapsize=$(($(cat /proc/meminfo | grep MemTotal | sed "s/[^0-9]*//g")/1024))
 
 #检查是否存在swapfile
 grep -q "swapfile" /etc/fstab
