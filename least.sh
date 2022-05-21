@@ -28,6 +28,7 @@ for ((a=1;a<"$2";a++)); do
   lxc exec "$1"$a -- chmod 777 ssh.sh
   lxc exec "$1"$a -- dos2unix ssh.sh
   lxc exec "$1"$a -- sudo ./ssh.sh $passwd
+  lxc exec "$1"$a -- sudo apt-get autoremove
   lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
   echo "$name $sshn $passwd" >> log
 done
