@@ -23,7 +23,7 @@ for ((a=1;a<"$2";a++)); do
   lxc exec "$1"$a -- apt update -y
   lxc exec "$1"$a -- sudo dpkg --configure -a
   lxc exec "$1"$a -- sudo apt-get update
-  lxc exec "$1"$a -- sudo apt-get install dos2unix curl wget-y
+  lxc exec "$1"$a -- sudo apt-get install dos2unix curl wget -y
   lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
   lxc exec "$1"$a -- chmod 777 ssh.sh
   lxc exec "$1"$a -- dos2unix ssh.sh
