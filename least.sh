@@ -1,14 +1,18 @@
 #!/bin/bash
 rm -rf log
 lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory=512MiB
-lxc config device override "$1" root size=400MB
+lxc config device override "$1" root size=300MB
 lxc config device set "$1" root limits.read 100MB
 lxc config device set "$1" root limits.write 100MB
 lxc config device set "$1" root limits.read 100iops
 lxc config device set "$1" root limits.write 100iops
+lxc config device set "$1" eth0 limits.max 200Mbit
+lxc config device set "$1" eth0 limits.ingress 200Mbit
+lxc config device set "$1" eth0 limits.egress 200Mbit
+lxc config device set "$1" eth0 0
 lxc config set "$1" limits.cpu.priority 1
 lxc config set "$1" limits.cpu.allowance 50%
-lxc config set "$1" limits.network.priority 1
+lxc config set "$1" limits.cpu.allowance 25ms/100ms
 lxc config set "$1" limits.memory.swap true
 lxc config set "$1" limits.memory.swap.priority 1
 # 批量创建容器
