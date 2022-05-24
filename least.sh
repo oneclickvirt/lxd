@@ -16,9 +16,9 @@ lxc config set "$1" limits.memory.swap.priority 1
 for ((a=1;a<"$2";a++)); do
   lxc copy "$1" "$1"$a
   name="$1"$a
-  sshn=$(( 22222 + a ))
-  nat1=$(( 30000 + (a-1)*25 + 1))
-  nat2=$(( 30000 + a*25 ))
+  sshn=$(( 20000 + a ))
+  nat1=$(( 30000 + (a-1)*10 + 1))
+  nat2=$(( 30000 + a*10 ))
   ori=$(date | md5sum)
   passwd=${ori: 2: 9}
   lxc start "$1"$a
