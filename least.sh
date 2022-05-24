@@ -6,11 +6,10 @@ lxc config device set "$1" root limits.read 100MB
 lxc config device set "$1" root limits.write 100MB
 lxc config device set "$1" root limits.read 100iops
 lxc config device set "$1" root limits.write 100iops
-lxc config device set "$1" eth0 limits.max 200Mbit
-lxc config device set "$1" eth0 limits.ingress 200Mbit
-lxc config device set "$1" eth0 limits.egress 200Mbit
-lxc config device set "$1" eth0 0
-lxc config set "$1" limits.cpu.priority 1
+lxc config device set "$1" root limits.max 200Mbit
+lxc config device set "$1" root limits.ingress 200Mbit
+lxc config device set "$1" root limits.egress 200Mbit
+lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.cpu.allowance 50%
 lxc config set "$1" limits.cpu.allowance 25ms/100ms
 lxc config set "$1" limits.memory.swap true
