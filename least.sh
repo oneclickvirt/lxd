@@ -17,8 +17,6 @@ for ((a=1;a<"$2";a++)); do
   lxc copy "$1" "$1"$a
   name="$1"$a
   sshn=$(( 20000 + a ))
-  nat1=$(( 30000 + (a-1)*10 + 1))
-  nat2=$(( 30000 + a*10 ))
   ori=$(date | md5sum)
   passwd=${ori: 2: 9}
   lxc start "$1"$a
@@ -32,6 +30,5 @@ for ((a=1;a<"$2";a++)); do
   lxc exec "$1"$a -- dos2unix ssh.sh
   lxc exec "$1"$a -- sudo ./ssh.sh $passwd
   lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
-  lxc config device add "$1"$a nat-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
-  echo "$name $sshn $passwd $nat1 $nat2" >> log
+  echo "$name $sshn $passwd" >> log
 done
