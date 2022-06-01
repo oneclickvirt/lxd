@@ -26,6 +26,8 @@ snap install lxd
 /snap/bin/lxd init
 ```
 
+![](https://i.bmp.ovh/imgs/2022/06/01/76dd73f43e138c88.png)
+
 一般的选项回车默认即可
 
 选择配置物理盘大小(提示默认最小1GB那个选项)，一般我填比总硬盘大小更小一点点
@@ -75,9 +77,11 @@ snap install lxd
 /snap/bin/lxd init
 ```
 
+![](https://i.bmp.ovh/imgs/2022/06/01/76dd73f43e138c88.png)
+
 一般的选项回车默认即可
 
-选择配置物理盘大小(提示默认最小1GB那个选项)，一般我填比总硬盘大小更小一点点
+选择配置物理盘大小(提示默认最小1GB那行)，一般我填比总硬盘大小更小一点点
 
 提示带auto的更新image的选项记得选no，避免更新占用
 
