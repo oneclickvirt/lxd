@@ -2,6 +2,8 @@
 
 # 一键开小鸡
 
+只进行tcp转发，且只适用于Ubuntu或Debian，推荐Ubuntu20和Debian11或10
+
 ### 普通版本(带1个SSH端口，25个外网端口)
 
 默认开swap：内存 = 1：1
