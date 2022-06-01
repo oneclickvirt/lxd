@@ -93,3 +93,5 @@ apt install dos2unix -y
 dos2unix init.sh
 ./least.sh tj 11
 ```
+
+# 开完小鸡后，具体信息会生成在当前目录下的log文件中，格式 服务器名称 密码 ssh端口 外网端口起始 外网端口终止
