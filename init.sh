@@ -22,8 +22,8 @@ lxc config set "$1" limits.memory.swap.priority 1
 for ((a=1;a<"$2";a++)); do
   lxc copy "$1" "$1"$a
   name="$1"$a
-  # 容器SSH端口 22222起  外网nat端口 30000起 每个25个端口
-  sshn=$(( 22222 + a ))
+  # 容器SSH端口 20000起  外网nat端口 30000起 每个25个端口
+  sshn=$(( 20000 + a ))
   nat1=$(( 30000 + (a-1)*25 + 1))
   nat2=$(( 30000 + a*25 ))
   ori=$(date | md5sum)
