@@ -114,7 +114,7 @@ dos2unix init.sh
 
 对应的机器人
 
-@Status_of_Spiritlhl_Server_bot
+[@Status_of_Spiritlhl_Server_bot](https://t.me/Status_of_Spiritlhl_Server_bot)
 
 分发母鸡开的小鸡，免费送点开出来的小鸡(免费服务器)(免费NAT服务器)
 
