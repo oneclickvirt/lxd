@@ -116,4 +116,4 @@ dos2unix init.sh
 
 @Status_of_Spiritlhl_Server_bot
 
-分发母鸡开的小鸡
+分发母鸡开的小鸡，免费送点开出来的小鸡(免费NAT服务器)
