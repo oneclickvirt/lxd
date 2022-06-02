@@ -117,3 +117,5 @@ dos2unix init.sh
 @Status_of_Spiritlhl_Server_bot
 
 分发母鸡开的小鸡，免费送点开出来的小鸡(免费服务器)(免费NAT服务器)
+
+# 不要拿该脚本开出的小鸡当生产环境，lxc虚拟化不支持换内核，dd，开启bbr等操作
