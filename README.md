@@ -34,7 +34,13 @@ snap install lxd
 
 提示带auto的更新image的选项记得选no，避免更新占用
 
-测试lxc命令，显示不存在命令，则
+测试lxc命令
+
+```bash
+lxc -h
+```
+
+若显示不存在lxc命令，则
 
 ```bash
 # 无lxc命令
@@ -85,7 +91,13 @@ snap install lxd
 
 提示带auto的更新image的选项记得选no，避免更新占用
 
-测试lxc命令，显示不存在命令，则
+测试lxc命令
+
+```bash
+lxc -h
+```
+
+若显示不存在lxc命令，则
 
 ```bash
 # 无lxc命令
@@ -118,4 +130,32 @@ dos2unix init.sh
 
 分发母鸡开的小鸡，免费送点开出来的小鸡(免费服务器)(免费NAT服务器)
 
-# 不要拿该脚本开出的小鸡当生产环境，lxc虚拟化不支持换内核，dd，开启bbr等操作
+# 不要拿该脚本开出的小鸡当生产环境，lxc虚拟化不支持换内核，dd，开启bbr，探针鸡挂载warp等操作
+
+本仓库不提供lxc虚拟化使用的其他问题的解答，非脚本相关问题请自行解决
+
+虚拟小鸡想要查看是否在线
+
+查看所有
+
+```bash
+lxc list
+```
+
+查看个例
+
+```bash
+lxc info 服务器名字
+```
+
+启动个例
+
+```bash
+lxc start 服务器名字
+```
+
+停止个例
+
+```bash
+lxc stop 服务器名字
+```
