@@ -112,11 +112,11 @@ lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后�
 
 ```
 # 初始化
-rm -rf init.sh
+rm -rf least.sh
 wget https://github.com/spiritLHLS/lxc/raw/main/least.sh
-chmod 777 init.sh
+chmod 777 least.sh
 apt install dos2unix -y
-dos2unix init.sh
+dos2unix least.sh
 ./least.sh tj 11
 ```
 
