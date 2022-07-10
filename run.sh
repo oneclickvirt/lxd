@@ -19,3 +19,5 @@ apt install dos2unix -y
 dos2unix init.sh
 # 生成的小鸡服务器名称前缀 数量
 ./init.sh "$2" "$3"
+# 删除母本
+lxc delete -f "$2"
