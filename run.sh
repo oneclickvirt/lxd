@@ -9,7 +9,9 @@ snap install lxd
 # 存储盘大小
 SIZE = "$1"
 /snap/bin/lxd init --auto --storage-backend=zfs --storage-create-loop="SIZE"
-# 这块差个校验，如果没有软连接上增加快捷方式
+# 判断是否安装成功lxc
+! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+! lxc -h >/dev/null 2>&1 && echo 'Failed install lxc' && exit
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
 rm -rf init.sh
