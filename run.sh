@@ -11,6 +11,7 @@ SIZE = "$1"
 /snap/bin/lxd init --auto --storage-backend=zfs --storage-create-loop="SIZE"
 # 判断是否安装成功lxc
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+sleep 1
 ! lxc -h >/dev/null 2>&1 && echo 'Failed install lxc' && exit
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
