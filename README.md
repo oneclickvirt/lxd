@@ -22,7 +22,7 @@ wget https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh
 chmod 777 swap.sh
 sudo ./swap.sh
 apt install snapd -y
-snap install lxd
+snap install lxd --channel=5.2/stable 
 /snap/bin/lxd init
 ```
 
@@ -79,7 +79,7 @@ wget https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh
 chmod 777 swap.sh
 sudo ./swap.sh
 apt install snapd -y
-snap install lxd
+snap install lxd --channel=5.2/stable
 /snap/bin/lxd init
 ```
 
