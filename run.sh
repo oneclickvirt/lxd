@@ -5,7 +5,7 @@ ufw disable
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap2.sh -o swap2.sh && chmod +x swap2.sh && bash swap2.sh
 apt -y install zfsutils || apt -y install zfs
 apt install snapd -y
-snap install lxd
+snap install lxd --channel=5.2/stable
 # 存储盘大小
 SIZE = "$1"
 /snap/bin/lxd init --auto --storage-backend=zfs --storage-create-loop="SIZE"
