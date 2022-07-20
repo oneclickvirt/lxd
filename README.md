@@ -159,3 +159,9 @@ lxc start 服务器名字
 ```bash
 lxc stop 服务器名字
 ```
+
+删除个例
+
+```bash
+lxc rm -f 服务器名字
+```
