@@ -34,10 +34,16 @@ snap install lxd --channel=5.2/stable
 
 提示带auto的更新image的选项记得选no，避免更新占用
 
-测试lxc命令
+软连接lxc命令
 
 ```bash
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+```
+
+测试lxc有没有软连接上
+
+```
+lxc -h
 ```
 
 lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
@@ -82,10 +88,16 @@ snap install lxd --channel=5.2/stable
 
 提示带auto的更新image的选项记得选no，避免更新占用
 
-测试lxc命令
+软连接lxc命令
 
 ```bash
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+```
+
+测试lxc有没有软连接上
+
+```
+lxc -h
 ```
 
 lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
