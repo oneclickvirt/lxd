@@ -37,16 +37,7 @@ snap install lxd --channel=5.2/stable
 测试lxc命令
 
 ```bash
-lxc -h
-```
-
-若显示不存在lxc命令，则
-
-```bash
-# 无lxc命令
-vim /root/.bashrc
-alias lxc="/snap/bin/lxc"
-source /root/.bashrc
+! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 ```
 
 lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
@@ -94,16 +85,7 @@ snap install lxd --channel=5.2/stable
 测试lxc命令
 
 ```bash
-lxc -h
-```
-
-若显示不存在lxc命令，则
-
-```bash
-# 无lxc命令
-vim /root/.bashrc
-alias lxc="/snap/bin/lxc"
-source /root/.bashrc
+! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 ```
 
 lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
