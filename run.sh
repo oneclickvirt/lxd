@@ -45,15 +45,15 @@ lxc config unset images.auto_update_interval
 sleep 0.5
 lxc config set images.auto_update_interval 0
 sleep 0.5
-rm -rf init.sh
-wget https://github.com/spiritLHLS/lxc/raw/main/init.sh
-chmod 777 init.sh
+rm -rf init2.sh
+curl -L https://github.com/spiritLHLS/lxc/raw/main/init.sh -o init2.sh
+chmod 777 init2.sh
 apt install dos2unix -y
-dos2unix init.sh
+dos2unix init2.sh
 sleep 0.5
 # 生成的小鸡服务器名称前缀 数量
-./init.sh "$QJ" "$NUM"
+./init2.sh "$QJ" "$NUM"
 # 删除母本
 lxc delete -f "$QJ"
 rm -rf swap2.sh
-rm -rf init.sh
+rm -rf init2.sh
