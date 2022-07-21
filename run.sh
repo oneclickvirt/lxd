@@ -1,4 +1,5 @@
 #!/bin/bash
+reading(){ read -rp "$(green "$1")" "$2"; }
 [ -z $SIZE ] && reading "请输入磁盘大小:（空闲磁盘大小的90%比较好）" SIZE
 [ -z $QJ ] && reading "请输入生成小鸡的名称前缀：" QJ
 [ -z $NUM ] && reading "请输入生成小鸡的数量：" NUM
