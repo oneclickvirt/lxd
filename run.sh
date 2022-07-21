@@ -1,5 +1,10 @@
 #!/bin/bash
+
+red(){ echo -e "\033[31m\033[01m$1$2\033[0m"; }
+green(){ echo -e "\033[32m\033[01m$1$2\033[0m"; }
+yellow(){ echo -e "\033[33m\033[01m$1$2\033[0m"; }
 reading(){ read -rp "$(green "$1")" "$2"; }
+
 [ -z $SIZE ] && reading "请输入磁盘大小:（空闲磁盘大小的90%比较好）" SIZE
 [ -z $QJ ] && reading "请输入生成小鸡的名称前缀：" QJ
 [ -z $NUM ] && reading "请输入生成小鸡的数量：" NUM
