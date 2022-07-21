@@ -4,8 +4,7 @@ red(){ echo -e "\033[31m\033[01m$1$2\033[0m"; }
 green(){ echo -e "\033[32m\033[01m$1$2\033[0m"; }
 yellow(){ echo -e "\033[33m\033[01m$1$2\033[0m"; }
 reading(){ read -rp "$(green "$1")" "$2"; }
-
-[ -z $SIZE ] && reading "请输入磁盘大小，带单位:（空闲磁盘大小的90%比较好,例如20GB）" SIZE
+[ -z $SIZE ] && reading "请输入磁盘大小，无单位:（空闲磁盘大小的90%比较好）" SIZE
 [ -z $QJ ] && reading "请输入生成小鸡的名称前缀：" QJ
 [ -z $NUM ] && reading "请输入生成小鸡的数量：" NUM
 [ -z $OP ] && reading "确认是否填写正确，选择N将退出安装程序：(y/n)" OP
@@ -16,6 +15,7 @@ case "$OP" in
     y ) echo "Start";;
     * ) exit 1;;
 esac
+snap remove lxd >/dev/null 2>&1
 apt update
 sleep 0.5
 apt install curl wget sudo dos2unix ufw -y
@@ -31,7 +31,7 @@ sleep 0.5
 snap install lxd --channel=5.2/stable
 sleep 0.5
 # 存储盘大小
-/snap/bin/lxd init --auto --storage-backend=zfs --storage-create-loop="$SIZE"
+/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$SIZE" --storage-pool default --auto
 # 判断是否安装成功lxc
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 sleep 1
