@@ -14,7 +14,7 @@ lxc config set "$1" limits.cpu.allowance 25ms/100ms
 lxc config set "$1" limits.memory.swap true
 lxc config set "$1" limits.memory.swap.priority 1
 # 批量创建容器
-for ((a=1;a<"$2";a++)); do
+for ((a=1;a<="$2";a++)); do
   lxc copy "$1" "$1"$a
   name="$1"$a
   sshn=$(( 20000 + a ))
