@@ -37,7 +37,7 @@ apt -y install zfsutils || apt -y install zfs
 sleep 0.5
 apt install snapd -y
 sleep 0.5
-snap install lxd --channel=5.2/stable
+snap install lxd
 sleep 0.5
 # 存储盘大小
 /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$SIZE" --storage-pool default --auto
