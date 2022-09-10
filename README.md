@@ -4,7 +4,7 @@
 
 # -由频道 https://t.me/VPS_spiders 提供
 
-只进行tcp转发，且只适用于Ubuntu或Debian，推荐Ubuntu20或Ubuntu更低版本，debian系列多半有问题
+同时进行TCP和UDP转发，除了SSH端口其他的映射内网外网端口一致，且只适用于Ubuntu或Debian，推荐Ubuntu20或Ubuntu更低版本，debian系列多半有问题
 
 ### 普通版本(带1个SSH端口，25个外网端口)
 
