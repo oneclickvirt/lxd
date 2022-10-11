@@ -60,6 +60,8 @@ dos2unix init.sh
 ./init.sh tj 10
 ```
 
+有时候init.sh的运行路径有问题，此时建议前面加上sudo强制根目录执行
+
 ## 纯探针版本(只有一个SSH端口)
 
 开出的小鸡配置：1核128MB内存300MB硬盘限速200MB
@@ -113,6 +115,8 @@ apt install dos2unix -y
 dos2unix least.sh
 ./least.sh tj 10
 ```
+
+有时候least.sh的运行路径有问题，此时建议前面加上sudo强制根目录执行
 
 # 开完小鸡后，具体信息会生成在当前目录下的log文件中，格式 服务器名称 密码 ssh端口 外网端口起始 外网端口终止
 
