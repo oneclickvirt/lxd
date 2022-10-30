@@ -1,4 +1,5 @@
 #!/bin/bash
+cd /root
 rm -rf log
 lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory=256MiB
 # 硬盘大小
