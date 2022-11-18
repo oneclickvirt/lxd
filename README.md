@@ -12,17 +12,25 @@
 
 开出的小鸡配置：1核256MB内存1GB硬盘限速250MB
 
-默认开swap：内存 = 1：1
-
 自动关闭防火墙
 
 ```bash
 apt update
 apt install curl wget sudo dos2unix ufw -y
 ufw disable
-wget https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh
-chmod 777 swap.sh
-sudo ./swap.sh
+```
+
+内存看你开多少小鸡，这里如果要开8个，换算需要2G内存，实际内存如果是512MB内存，还需要开1.5G，保守点开2G虚拟内存即可
+
+执行下面命令，输入1，再输入2048，代表开2G虚拟内存
+
+```
+curl -L https://www.moerats.com/usr/shell/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+```
+
+实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，上面我描述的情况属于超开了
+
+```
 apt install snapd -y
 snap install lxd
 /snap/bin/lxd init
@@ -68,17 +76,25 @@ dos2unix init.sh
 
 开出的小鸡配置：1核128MB内存300MB硬盘限速200MB
 
-默认开swap：内存 = 1：1
-
 自动关闭防火墙
 
 ```bash
 apt update
 apt install curl wget sudo dos2unix ufw -y
 ufw disable
-wget https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh
-chmod 777 swap.sh
-sudo ./swap.sh
+```
+
+内存看你开多少小鸡，这里如果要开10个，换算需要1G内存，实际内存如果是512MB内存，还需要开0.5G，保守点开1G虚拟内存即可
+
+执行下面命令，输入1，再输入1024，代表开1G虚拟内存
+
+```bash
+curl -L https://www.moerats.com/usr/shell/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+```
+
+实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，再多就超开了
+
+```
 apt install snapd -y
 snap install lxd
 /snap/bin/lxd init
