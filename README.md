@@ -58,7 +58,7 @@ lxc -h
 
 lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
 
-下列命令最后一行为开小鸡名字前缀为**tj**的**10**个小鸡
+执行下面命令加载开机脚本
 
 ```
 # 初始化
@@ -67,6 +67,11 @@ wget https://github.com/spiritLHLS/lxc/raw/main/init.sh
 chmod 777 init.sh
 apt install dos2unix -y
 dos2unix init.sh
+```
+
+下面命令为开小鸡名字前缀为**tj**的**10**个小鸡
+
+```
 ./init.sh tj 10
 ```
 
@@ -122,7 +127,7 @@ lxc -h
 
 lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
 
-下列命令最后一行为开小鸡名字前缀为**tj**的**10**个小鸡
+加载开机脚本
 
 ```
 # 初始化
@@ -131,6 +136,11 @@ wget https://github.com/spiritLHLS/lxc/raw/main/least.sh
 chmod 777 least.sh
 apt install dos2unix -y
 dos2unix least.sh
+```
+
+下列命令最后一行为开小鸡名字前缀为**tj**的**10**个小鸡
+
+```
 ./least.sh tj 10
 ```
 
