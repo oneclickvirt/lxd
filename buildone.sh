@@ -1,6 +1,11 @@
 #!/bin/bash
+# from
+# https://github.com/spiritLHLS/lxc
+
+
 # cd /root
-# 名字 上一个的SSH端口 上一个的外网截止的端口
+# 输入
+# ./buildone.sh 名字 SSH端口 外网起始端口
 rm -rf log
 lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory=256MiB
 # 硬盘大小
@@ -23,8 +28,8 @@ lxc config set "$1" limits.memory.swap.priority 1
 # 批量创建容器
 name="$1"
 # 容器SSH端口 外网nat端口起 止
-sshn=$(( "$2" + 1 ))
-nat1=$(( "$3" + 1))
+sshn="$2"
+nat1="$3"
 nat2=$(( "$3" + 25 ))
 ori=$(date | md5sum)
 passwd=${ori: 2: 9}
