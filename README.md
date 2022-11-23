@@ -146,7 +146,34 @@ dos2unix least.sh
 
 有时候least.sh的运行路径有问题，此时建议前面加上sudo强制根目录执行
 
-# 开完小鸡后，具体信息会生成在当前目录下的log文件中，格式 服务器名称 密码 ssh端口 外网端口起始 外网端口终止
+# 开完小鸡后，具体信息会生成在当前目录下的log文件中，格式如下
+
+```
+1号服务器名称 密码 ssh端口 外网端口起始 外网端口终止
+2号服务器名称 密码 ssh端口 外网端口起始 外网端口终止
+```
+
+### 只开一个小鸡
+
+预装环境如上面的那些一样
+
+加载开机脚本
+
+```
+# 初始化
+rm -rf least.sh
+wget https://github.com/spiritLHLS/lxc/raw/main/buildone.sh
+chmod 777 buildone.sh
+apt install dos2unix -y
+dos2unix buildone.sh
+```
+
+开鸡
+
+```
+./buildone.sh 小鸡名字 SSH端口 外网起始端口
+```
+
 
 ### ps:原始用途是将频道测评剩余的VPS当母鸡开小鸡，避免浪费
 
