@@ -161,7 +161,7 @@ dos2unix least.sh
 
 ```
 # 初始化
-rm -rf least.sh
+rm -rf buildone.sh
 wget https://github.com/spiritLHLS/lxc/raw/main/buildone.sh
 chmod 777 buildone.sh
 apt install dos2unix -y
