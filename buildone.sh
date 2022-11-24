@@ -47,5 +47,5 @@ lxc config device add "$1" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:1
 lxc config device add "$1" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
 lxc config device add "$1" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
 # 生成的小鸡信息写入log并打印
-echo "$name $sshn $passwd $nat1 $nat2" >> log
+echo "$name $sshn $passwd $nat1 $nat2" >> "$1"
 echo "$name $sshn $passwd $nat1 $nat2"
