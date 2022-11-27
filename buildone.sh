@@ -5,12 +5,12 @@
 
 # cd /root
 # 输入
-# ./buildone.sh 名字 SSH端口 外网起始端口
+# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
 rm -rf log
-lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory=256MiB
+lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory="$2"MiB
 # 硬盘大小
-lxc config device override "$1" root size=1GB
-lxc config device set "$1" root limits.max 1GB
+lxc config device override "$1" root size="$3"GB
+lxc config device set "$1" root limits.max "$3"GB
 # IO
 lxc config device set "$1" root limits.read 100MB
 lxc config device set "$1" root limits.write 100MB
@@ -28,9 +28,9 @@ lxc config set "$1" limits.memory.swap.priority 1
 # 批量创建容器
 name="$1"
 # 容器SSH端口 外网nat端口起 止
-sshn="$2"
-nat1="$3"
-nat2=$(( "$3" + 25 ))
+sshn="$4"
+nat1="$5"
+nat2="$6"
 ori=$(date | md5sum)
 passwd=${ori: 2: 9}
 lxc start "$1"
