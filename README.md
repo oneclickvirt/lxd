@@ -170,8 +170,10 @@ dos2unix buildone.sh
 
 开鸡
 
+内存大小以MB计算，硬盘大小以GB计算
+
 ```
-./buildone.sh 小鸡名字 SSH端口 外网起始端口
+./buildone.sh 小鸡名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
 ```
 
 
