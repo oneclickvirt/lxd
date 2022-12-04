@@ -60,6 +60,7 @@ snap install core
 
 ```bash
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+export PATH=$PATH:/snap/bin
 ```
 
 测试lxc有没有软连接上
@@ -141,6 +142,7 @@ snap install core
 
 ```bash
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+export PATH=$PATH:/snap/bin
 ```
 
 测试lxc有没有软连接上
