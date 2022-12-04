@@ -36,6 +36,18 @@ snap install lxd
 /snap/bin/lxd init
 ```
 
+如果上面的命令中出现下面的错误
+
+(snap "lxd" assumes unsupported features: snapd2.39 (try to update snapd and refresh the core snap))
+
+使用命令修补后再进行lxd的安装
+
+```
+snap install core
+```
+
+如果无异常，上面三行命令执行结果如下
+
 ![](https://i.bmp.ovh/imgs/2022/06/01/76dd73f43e138c88.png)
 
 一般的选项回车默认即可
@@ -104,6 +116,18 @@ apt install snapd -y
 snap install lxd
 /snap/bin/lxd init
 ```
+
+如果上面的命令中出现下面的错误
+
+(snap "lxd" assumes unsupported features: snapd2.39 (try to update snapd and refresh the core snap))
+
+使用命令修补后再进行lxd的安装
+
+```
+snap install core
+```
+
+如果无异常，上面三行命令执行结果如下
 
 ![](https://i.bmp.ovh/imgs/2022/06/01/76dd73f43e138c88.png)
 
