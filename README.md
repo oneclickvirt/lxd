@@ -257,8 +257,12 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 
 设置母鸡内存虚拟化大小以及资源池硬盘大小
 
-
-
 ```
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
+```
+
+安装vnstat环境
+
+```
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
 ```
