@@ -261,7 +261,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 ```
 
-一键安装vnstat环境
+一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境
 
 ```
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
