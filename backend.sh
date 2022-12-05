@@ -10,7 +10,7 @@ wget https://github.com/vergoh/vnstat/releases/download/v2.10/vnstat-2.10.tar.gz
 sudo apt-get install build-essential gd gd-devel libsqlite3-dev
 tar -xvf vnstat-2.10.tar.gz
 cd vnstat-2.10/
-sudo ./configure –prefix=/usr –sysconfdir=/etc
+sudo ./configure --prefix=/usr --sysconfdir=/etc
 sudo make
 sudo make install
 cp -v examples/systemd/vnstat.service /etc/systemd/system/
