@@ -246,3 +246,19 @@ lxc stop 服务器名字
 ```bash
 lxc rm -f 服务器名字
 ```
+
+### 实验性
+
+一键安装lxd环境
+
+```
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
+```
+
+设置母鸡内存虚拟化大小以及资源池硬盘大小
+
+
+
+```
+./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
+```
