@@ -1,8 +1,10 @@
 # lxc
 
+更新时间：2022.12.05
+
 # 一键母鸡开小鸡
 
-# -由频道 https://t.me/VPS_spiders 提供
+### -由频道 https://t.me/VPS_spiders 提供
 
 同时进行TCP和UDP转发，除了SSH端口其他的映射内网外网端口一致，且只适用于Ubuntu或Debian，推荐Ubuntu20或Ubuntu更低版本，debian系列多半有问题
 
