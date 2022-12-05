@@ -17,6 +17,7 @@ cp -v examples/systemd/vnstat.service /etc/systemd/system/
 systemctl enable vnstat
 systemctl start vnstat
 cp -v examples/init.d/redhat/vnstat /etc/init.d/
+sudo sed -i '/deb http:\/\/archive.ubuntu.com\/ubuntu\/ trusty main universe restricted multiverse/d' /etc/apt/sources.list
 grep -q "deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse" /etc/apt/sources.list || echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse" >> /etc/apt/sources.list
 apt install chkconfig -y
 if [ $? -ne 0 ]; then
