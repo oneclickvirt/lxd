@@ -5,7 +5,7 @@
 # 安装vnstat
 apt update
 apt install wget sudo curl -y
-sudo apt install linux-headers-$(uname -r)
+sudo apt install linux-headers-$(uname -r) -y
 wget https://github.com/vergoh/vnstat/releases/download/v2.10/vnstat-2.10.tar.gz
 sudo apt-get install build-essential gd gd-devel libsqlite3-dev
 tar -xvf vnstat-2.10.tar.gz
