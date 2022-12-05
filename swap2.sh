@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#./swap2.sh 内存大小(以MB计算)
+
+swapsize="$1"
+
 Green="\033[32m"
 Font="\033[0m"
 Red="\033[31m" 
@@ -21,7 +25,7 @@ ovz_no(){
 }
 
 add_swap(){
-swapsize=$(($(cat /proc/meminfo | grep MemTotal | sed "s/[^0-9]*//g")/1024))
+#swapsize=$(($(cat /proc/meminfo | grep MemTotal | sed "s/[^0-9]*//g")/1024))
 
 #检查是否存在swapfile
 grep -q "swapfile" /etc/fstab
@@ -34,9 +38,9 @@ if [ $? -ne 0 ]; then
 	mkswap /swapfile
 	swapon /swapfile
 	echo '/swapfile none swap defaults 0 0' >> /etc/fstab
-         echo -e "${Green}swap创建成功，并查看信息：${Font}"
-         cat /proc/swaps
-         cat /proc/meminfo | grep Swap
+        echo -e "${Green}swap创建成功，并查看信息：${Font}"
+        cat /proc/swaps
+        cat /proc/meminfo | grep Swap
 else
 	echo -e "${Red}swapfile已存在，swap设置失败，请先运行脚本删除swap后重新设置！${Font}"
 fi
@@ -55,7 +59,7 @@ if [ $? -eq 0 ]; then
 	rm -f /swapfile
     echo -e "${Green}swap已删除！${Font}"
 else
-	echo -e "${Red}swapfile未发现，swap删除失败！${Font}"
+    echo -e "${Red}swapfile未发现，swap删除失败！${Font}"
 fi
 }
 
