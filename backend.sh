@@ -5,9 +5,10 @@
 # 安装vnstat
 apt update
 apt install wget sudo curl -y
-sudo apt install linux-headers-$(uname -r) -y
+apt install linux-headers-$(uname -r) -y
 wget https://github.com/vergoh/vnstat/releases/download/v2.10/vnstat-2.10.tar.gz
-sudo apt-get install build-essential gd gd-devel libsqlite3-dev
+# gd gd-devel 
+apt install build-essential libsqlite3-dev -y
 tar -xvf vnstat-2.10.tar.gz
 cd vnstat-2.10/
 sudo ./configure --prefix=/usr --sysconfdir=/etc
@@ -17,7 +18,8 @@ cp -v examples/systemd/vnstat.service /etc/systemd/system/
 systemctl enable vnstat
 systemctl start vnstat
 cp -v examples/init.d/redhat/vnstat /etc/init.d/
-chkconfig vnstat on
+! apt install chkconfig -y && ! apt install sysv-rc-conf -y && echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse" >> /etc/apt/sources.list && apt update && apt install sysv-rc-conf -y
+! chkconfig vnstat on && sysv-rc-conf vnstat on 
 service vnstat start
 
 # # 内存设置
