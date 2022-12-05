@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#Blog:https://www.moerats.com/
 
 Green="\033[32m"
 Font="\033[0m"
@@ -21,7 +22,8 @@ ovz_no(){
 }
 
 add_swap(){
-swapsize=$(($(cat /proc/meminfo | grep MemTotal | sed "s/[^0-9]*//g")/1024))
+echo -e "${Green}请输入需要添加的swap，建议为内存的2倍！${Font}"
+read -p "请输入swap数值:" swapsize
 
 #检查是否存在swapfile
 grep -q "swapfile" /etc/fstab
@@ -69,7 +71,7 @@ echo -e "${Green}Linux VPS一键添加/删除swap脚本${Font}"
 echo -e "${Green}1、添加swap${Font}"
 echo -e "${Green}2、删除swap${Font}"
 echo -e "———————————————————————————————————————"
-num=1
+read -p "请输入数字 [1-2]:" num
 case "$num" in
     1)
     add_swap
