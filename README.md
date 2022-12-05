@@ -25,7 +25,7 @@ ufw disable
 执行下面命令，输入1，再输入2048，代表开2G虚拟内存
 
 ```
-curl -L https://www.moerats.com/usr/shell/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
 ```
 
 实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，上面我描述的情况属于超开了
@@ -107,7 +107,7 @@ ufw disable
 执行下面命令，输入1，再输入1024，代表开1G虚拟内存
 
 ```bash
-curl -L https://www.moerats.com/usr/shell/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
 ```
 
 实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，再多就超开了
