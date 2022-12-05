@@ -19,7 +19,7 @@ systemctl enable vnstat
 systemctl start vnstat
 cp -v examples/init.d/redhat/vnstat /etc/init.d/
 ! apt install chkconfig -y && ! apt install sysv-rc-conf -y && echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse" >> /etc/apt/sources.list && apt update && apt install sysv-rc-conf -y
-! chkconfig vnstat on && sysv-rc-conf vnstat on 
+! chkconfig vnstat on && echo "replace chkconfig with sysv-rc-conf" && sysv-rc-conf vnstat on 
 service vnstat start
 
 # # 内存设置
