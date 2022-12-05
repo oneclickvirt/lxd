@@ -18,7 +18,14 @@ cp -v examples/systemd/vnstat.service /etc/systemd/system/
 systemctl enable vnstat
 systemctl start vnstat
 cp -v examples/init.d/redhat/vnstat /etc/init.d/
-! apt install chkconfig -y && ! apt install sysv-rc-conf -y && echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse" >> /etc/apt/sources.list && apt update && apt install sysv-rc-conf -y
+grep -q "deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse" /etc/apt/sources.list || echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse" >> /etc/apt/sources.list
+apt install chkconfig -y
+if [ $? -ne 0 ]; then
+    apt install sysv-rc-conf -y
+    if [ $? -ne 0 ]; then
+        apt update && apt install sysv-rc-conf -y
+    fi
+fi
 ! chkconfig vnstat on && echo "replace chkconfig with sysv-rc-conf" && sysv-rc-conf vnstat on 
 service vnstat start
 
