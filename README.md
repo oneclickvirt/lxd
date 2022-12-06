@@ -4,7 +4,7 @@
 
 # 一键母鸡开小鸡
 
-### -由频道 https://t.me/VPS_spiders 提供
+### -由频道 https://t.me/VPS_spiders 提供实验用服务器
 
 同时进行TCP和UDP转发，除了SSH端口其他的映射内网外网端口一致，且只适用于Ubuntu或Debian，推荐Ubuntu20或Ubuntu更低版本，debian系列多半有问题
 
