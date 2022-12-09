@@ -31,5 +31,5 @@ service vnstat start
 # apt install vnstati -y
 vnstat -v
 vnstatd -v
-vnstati -v
+! vnstati -v && echo "vnstat 编译安装无vnstati工具，如需使用请使用命令 apt install vnstati -y 覆盖安装apt源版本"
 
