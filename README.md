@@ -1,6 +1,6 @@
 # lxc
 
-更新时间：2022.12.05
+更新时间：2022.12.09
 
 # 一键母鸡开小鸡
 
@@ -251,7 +251,7 @@ lxc rm -f 服务器名字
 
 ### 实验性
 
-环境要求：必须为Ubuntu系统
+环境要求：推荐为Ubuntu系统，Debian系统可能出现某些问题，但一般也能装
 
 一键安装lxd环境
 
@@ -265,7 +265,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 ```
 
-一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境(多按两回车，否则还需要交互)
+一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境
 
 ```
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
