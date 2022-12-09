@@ -28,3 +28,8 @@ if [ $? -ne 0 ]; then
 fi
 ! chkconfig vnstat on && echo "replace chkconfig with sysv-rc-conf" && sysv-rc-conf vnstat on 
 service vnstat start
+apt install vnstati -y
+vnstat -v
+vnstatd -v
+vnstati -v
+
