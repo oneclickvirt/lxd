@@ -10,8 +10,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap2.sh -o swap2.
 apt -y install zfsutils || apt -y install zfs
 apt install snapd -y
 snap remove lxd -y >/dev/null 2>&1
-! snap install lxd && snap install core
-snap install lxd
+! snap install lxd && snap install core && snap install lxd
 # 资源池设置-硬盘
 /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$2" --storage-pool default --auto
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
