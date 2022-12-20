@@ -283,3 +283,11 @@ dos2unix buildone.sh
 ./buildone.sh 小鸡名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
 ```
 
+### 致谢
+
+https://lxdware.com/
+
+https://discuss.linuxcontainers.org/
+
+https://discuss.linuxcontainers.org/t/how-to-run-docker-inside-lxc-container/13017/4
+
