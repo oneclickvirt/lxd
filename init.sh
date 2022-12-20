@@ -1,5 +1,8 @@
 #!/bin/bash
+# by https://github.com/spiritLHLS/lxc
 # cd /root
+# ./init.sh NAT服务器前缀 数量
+
 rm -rf log
 lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory=256MiB
 # 硬盘大小
