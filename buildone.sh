@@ -26,6 +26,7 @@ lxc config set "$1" limits.memory.swap true
 lxc config set "$1" limits.memory.swap.priority 1
 # 支持docker虚拟化
 lxc config set "$1" security.nesting true
+# 安全性防范设置
 lxc config set "$1" security.syscalls.intercept.mknod true
 lxc config set "$1" security.syscalls.intercept.setxattr true
 # 创建容器
