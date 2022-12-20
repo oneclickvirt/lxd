@@ -237,15 +237,17 @@ lxc rm -f 服务器名字
 
 环境要求：推荐为Ubuntu系统，Debian系统可能出现某些问题，但一般也能装
 
-一键安装lxd环境
+#### 一键安装lxd环境
 
-```
+下载文件
+
+```bash
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 ```
 
 设置母鸡内存虚拟化大小以及资源池硬盘大小
 
-```
+```bash
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 ```
 
@@ -255,12 +257,11 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
 ```
 
-只开一个小鸡
+#### 只开一个NAT服务器
 
 下载开机脚本
 
 ```
-# 初始化
 rm -rf buildone.sh
 wget https://github.com/spiritLHLS/lxc/raw/main/buildone.sh
 chmod 777 buildone.sh
@@ -268,7 +269,7 @@ apt install dos2unix -y
 dos2unix buildone.sh
 ```
 
-开鸡
+开NAT服务器
 
 内存大小以MB计算，硬盘大小以GB计算
 
