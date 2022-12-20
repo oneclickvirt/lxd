@@ -19,6 +19,10 @@ lxc config set "$1" limits.cpu.allowance 25ms/100ms
 # 内存
 lxc config set "$1" limits.memory.swap true
 lxc config set "$1" limits.memory.swap.priority 1
+# 支持docker虚拟化
+lxc config set "$1" security.nesting true
+lxc config set "$1" security.syscalls.intercept.mknod true
+lxc config set "$1" security.syscalls.intercept.setxattr true
 # 批量创建容器
 for ((a=1;a<="$2";a++)); do
   lxc copy "$1" "$1"$a
