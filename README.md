@@ -18,6 +18,8 @@
 
 - 一定要在 ```/root``` 的路径下运行本仓库脚本
 
+## 手动安装(新手推荐，避免有bug不知道怎么修)
+
 ### 普通版本(带1个SSH端口，25个外网端口)
 
 开出的小鸡配置：1核256MB内存1GB硬盘限速250MB
@@ -84,7 +86,6 @@ lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后�
 执行下面命令加载开机脚本
 
 ```
-# 初始化
 rm -rf init.sh
 wget https://github.com/spiritLHLS/lxc/raw/main/init.sh
 chmod 777 init.sh
@@ -166,7 +167,6 @@ lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后�
 加载开机脚本
 
 ```
-# 初始化
 rm -rf least.sh
 wget https://github.com/spiritLHLS/lxc/raw/main/least.sh
 chmod 777 least.sh
