@@ -20,6 +20,8 @@ if ! command -v zfs > /dev/null; then
   # Install zfs if it is not installed
   apt-get update
   apt-get install -y zfsutils-linux
+  echo "zfs 安装后需要重启服务器才会启用，请重启服务器再运行本脚本"
+  exit 0
 fi
 /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$2" --storage-pool default --auto
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
