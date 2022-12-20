@@ -1,4 +1,8 @@
 #!/bin/bash
+# by https://github.com/spiritLHLS/lxc
+# cd /root
+# ./least.sh NAT服务器前缀 数量
+
 rm -rf log
 lxc init images:debian/9 "$1" -c limits.cpu=1 -c limits.memory=128MiB
 lxc config device override "$1" root size=200MB
