@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# by https://github.com/spiritLHLS/lxc
 #./swap2.sh 内存大小(以MB计算)
 
 swapsize="$1"
