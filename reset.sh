@@ -1,4 +1,6 @@
 #!/bin/bash
+# by https://github.com/spiritLHLS/lxc
+
 lxc start "$1"
 lxc exec "$1" -- apt update -y
 lxc exec "$1" -- sudo dpkg --configure -a
