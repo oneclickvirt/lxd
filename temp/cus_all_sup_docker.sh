@@ -1,4 +1,5 @@
 #!/bin/bash
+# by https://github.com/spiritLHLS/lxc
 
 # Check if lxd is installed
 if ! command -v lxd > /dev/null 2>&1; then
@@ -26,4 +27,7 @@ while read -r container; do
 
   # Restart the container
   lxc restart "$container"
+
+  # Print a success message
+  echo "Successfully set configuration for container $container"
 done <<< "$containers"
