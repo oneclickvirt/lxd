@@ -18,8 +18,11 @@ lxc config set "$1" limits.cpu.allowance 25ms/100ms
 lxc config set "$1" limits.memory.swap true
 lxc config set "$1" limits.memory.swap.priority 1
 lxc config set "$1" security.nesting true
-lxc config set "$1" security.syscalls.intercept.mknod true
-lxc config set "$1" security.syscalls.intercept.setxattr true
+if [ "$(uname -a | grep -i ubuntu)" ]; then
+  # Set the security settings
+  lxc config set "$1" security.syscalls.intercept.mknod true
+  lxc config set "$1" security.syscalls.intercept.setxattr true
+fi
 # 批量创建容器
 for ((a=1;a<="$2";a++)); do
   lxc copy "$1" "$1"$a
