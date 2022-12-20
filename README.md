@@ -10,13 +10,13 @@
 
 ### -由频道 https://t.me/VPS_spiders 提供实验用服务器
 
-同时进行TCP和UDP转发，除了SSH端口其他的映射内网外网端口一致，且只适用于Ubuntu或Debian
+- 已设置同时进行TCP和UDP转发，除了SSH端口其他的映射内网外网端口一致，且只适用于Ubuntu或Debian
 
-已设置支持使LXC容器支持docker嵌套虚拟，开出的NAT服务器支持使用docker嵌套虚拟
+- 已设置支持开出的LXC容器进行docker嵌套虚拟
 
-本套脚本开发使用的Ubuntu20，Ubuntu别的长期维护版本应该也没问题，但debian系列多半有```zfs```的问题，自行解决
+- 本套脚本开发使用的Ubuntu20，Ubuntu别的长期维护版本应该也没问题，但debian系列多半有```zfs```的问题，自行解决
 
-一定要在 /root 的路径下运行本仓库脚本！
+- 一定要在 ```/root``` 的路径下运行本仓库脚本
 
 ### 普通版本(带1个SSH端口，25个外网端口)
 
