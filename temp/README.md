@@ -3,3 +3,9 @@
 ```bash
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/temp/cus_all_sup_docker.sh -o cus_all_sup_docker.sh && chmod +x cus_all_sup_docker.sh && bash cus_all_sup_docker.sh
 ```
+
+一键在lxc容器中安装docker环境
+
+```bash
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/temp/debian_docker_support.sh -o debian_docker_support.sh && chmod +x debian_docker_support.sh && bash debian_docker_support.sh
+```
