@@ -285,6 +285,8 @@ dos2unix buildone.sh
 
 ### 致谢
 
+https://github.com/lxc/lxd
+
 https://lxdware.com/
 
 https://discuss.linuxcontainers.org/
