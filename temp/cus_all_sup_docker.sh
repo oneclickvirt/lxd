@@ -1,5 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
+# 2022.12.20
 
 # Check if lxd is installed
 if ! command -v lxd > /dev/null 2>&1; then
