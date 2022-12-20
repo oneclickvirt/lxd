@@ -9,3 +9,9 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/temp/cus_all_sup_d
 ```bash
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/temp/debian_docker_support.sh -o debian_docker_support.sh && chmod +x debian_docker_support.sh && bash debian_docker_support.sh
 ```
+
+测试doker是否安装成功
+
+```bash
+docker run hello-world
+```
