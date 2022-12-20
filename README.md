@@ -2,6 +2,12 @@
 
 更新时间：2022.12.09
 
+## 待解决的问题
+
+1.使LXC容器支持docker嵌套虚拟
+
+2.使得母鸡支持更多的系统版本
+
 # 一键母鸡开小鸡
 
 ### -由频道 https://t.me/VPS_spiders 提供实验用服务器
@@ -181,30 +187,6 @@ dos2unix least.sh
 2号服务器名称 密码 ssh端口 外网端口起始 外网端口终止
 ```
 
-### 只开一个小鸡
-
-预装环境如上面的那些一样
-
-加载开机脚本
-
-```
-# 初始化
-rm -rf buildone.sh
-wget https://github.com/spiritLHLS/lxc/raw/main/buildone.sh
-chmod 777 buildone.sh
-apt install dos2unix -y
-dos2unix buildone.sh
-```
-
-开鸡
-
-内存大小以MB计算，硬盘大小以GB计算
-
-```
-./buildone.sh 小鸡名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
-```
-
-
 ### ps:原始用途是将频道测评剩余的VPS当母鸡开小鸡，避免浪费
 
 对应的机器人
@@ -270,3 +252,25 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 ```
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
 ```
+
+只开一个小鸡
+
+下载开机脚本
+
+```
+# 初始化
+rm -rf buildone.sh
+wget https://github.com/spiritLHLS/lxc/raw/main/buildone.sh
+chmod 777 buildone.sh
+apt install dos2unix -y
+dos2unix buildone.sh
+```
+
+开鸡
+
+内存大小以MB计算，硬盘大小以GB计算
+
+```
+./buildone.sh 小鸡名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
+```
+
