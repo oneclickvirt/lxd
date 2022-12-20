@@ -1,4 +1,6 @@
 #!/bin/bash
+# by https://github.com/spiritLHLS/lxc
+
 REGEX=("debian" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'")
 RELEASE=("debian" "ubuntu" "centos" "centos")
 PACKAGE_UPDATE=("apt -y update" "apt -y update" "yum -y update" "yum -y update")
@@ -29,8 +31,6 @@ sudo apt-get install openssh-server -y;
 sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config;
 sudo sed -i "s/^#\?PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config;
 sudo sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config;
-
 sudo service ssh restart
 sudo service sshd restart
-
 rm -rf "$0"
