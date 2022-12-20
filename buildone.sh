@@ -2,7 +2,6 @@
 # from
 # https://github.com/spiritLHLS/lxc
 
-
 # cd /root
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
@@ -25,7 +24,9 @@ lxc config set "$1" limits.cpu.allowance 25ms/100ms
 # 内存
 lxc config set "$1" limits.memory.swap true
 lxc config set "$1" limits.memory.swap.priority 1
-# 批量创建容器
+# 支持docker虚拟化
+lxc config set "$1" security.nesting true
+# 创建容器
 name="$1"
 # 容器SSH端口 外网nat端口起 止
 sshn="$4"
