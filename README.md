@@ -16,7 +16,27 @@
 
 - 本套脚本开发使用的Ubuntu20，Ubuntu别的长期维护版本应该也没问题，但debian系列多半有```zfs```的问题，自行解决
 
-- 一定要在 ```/root``` 的路径下运行本仓库脚本，且保证你要开的盘为默认的系统盘而不是挂载的盘
+- 一定要在 ```/root``` 的路径下运行本仓库脚本
+
+- 保证你要开的盘为默认的系统盘而不是挂载的盘，如果需要在你挂载的盘上开，则使用以下命令在执行```lxd init```之前挂载
+
+```bash
+sudo lxc storage create zfs-pool zfs source=你要挂载的盘的路径
+```
+
+挂载完毕可以查看
+
+```bash
+sudo lxc storage info zfs-pool
+```
+
+如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填no再回车不用默认的选项
+
+```
+Do you want to configure a new storage pool? (yes/no) [default=yes]: 
+```
+
+再次提醒，本仓库所有脚本均基于系统盘而不是挂载盘开发，除了以上不同之处其他地方流程是一样的
 
 ## 手动安装(新手推荐，避免有bug不知道怎么修)
 
