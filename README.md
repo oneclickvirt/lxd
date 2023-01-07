@@ -258,7 +258,7 @@ lxc stop 服务器名字
 删除个例
 
 ```bash
-lxc rm -f 服务器名字
+lxc delete -f 服务器名字
 ```
 
 进入内部
