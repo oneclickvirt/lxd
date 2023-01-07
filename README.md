@@ -261,6 +261,14 @@ lxc stop 服务器名字
 lxc rm -f 服务器名字
 ```
 
+进入内部
+
+```bash
+lxc exec 服务器名字 /bin/bash
+```
+
+退出则输入```exit```回车即可
+
 ## 实验性一键脚本(不保证无bug)
 
 环境要求：推荐为Ubuntu系统，Debian系统会出现zfs问题，只能使用手动命令解决
