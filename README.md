@@ -32,7 +32,7 @@ sudo apt-get install zfsutils-linux -y
 
 ```bash
 sudo zpool create -f zfs-pool 你要挂载的盘的路径
-sudo lxc storage create zfs-pool zfs source=zfs-pool
+sudo lxc storage create default zfs source=zfs-pool
 ```
 
 上面设置盘名称为zfs-pool
@@ -46,10 +46,10 @@ sudo lxc storage list
 - 查看挂载的路径
 
 ```bash
-sudo lxc storage show zfs-pool
+sudo lxc storage show default
 ```
 
-如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填no再回车不用默认的选项
+如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填***no***再回车不用默认的选项
 
 ```
 Do you want to configure a new storage pool? (yes/no) [default=yes]: 
