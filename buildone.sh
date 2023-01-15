@@ -7,7 +7,7 @@
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
 rm -rf log
-lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory="$2"MiB
+lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory="$2"MiB --storage default
 # 硬盘大小
 lxc config device override "$1" root size="$3"GB
 lxc config device set "$1" root limits.max "$3"GB
