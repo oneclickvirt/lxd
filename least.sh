@@ -5,7 +5,7 @@
 # 2023.01.15
 
 rm -rf log
-lxc init images:debian/9 "$1" -c limits.cpu=1 -c limits.memory=128MiB
+lxc init images:debian/9 "$1" -c limits.cpu=1 -c limits.memory=128MiB --storage default
 lxc config device override "$1" root size=200MB
 lxc config device set "$1" root limits.read 100MB
 lxc config device set "$1" root limits.write 100MB
