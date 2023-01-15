@@ -49,13 +49,13 @@ sudo lxc storage list
 sudo lxc storage show default
 ```
 
-如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填***no***再回车不用默认的选项
+- 如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填***no***再回车不用默认的选项
 
 ```
 Do you want to configure a new storage pool? (yes/no) [default=yes]: 
 ```
 
-再次提醒，本仓库所有脚本均基于系统盘而不是挂载盘开发，除了以上不同之处其他地方流程是一样的
+- 再次提醒，本仓库所有脚本均基于系统盘而不是挂载盘开发，除了以上不同之处其他地方流程是一样的
 
 ## 手动安装(新手推荐，避免有bug不知道怎么修)
 
