@@ -26,10 +26,25 @@
 sudo lxc storage create zfs-pool zfs source=你要挂载的盘的路径
 ```
 
-挂载完毕可以查看
+上面设置盘名称为zfs-pool
+
+- 查看是否创建成功
 
 ```bash
-sudo lxc storage info zfs-pool
+sudo lxc storage list
+```
+
+- 查看挂载的路径
+
+```bash
+sudo lxc storage show zfs-pool
+```
+
+- 设置这个盘为默认的盘
+
+```bash
+sudo lxc storage set zfs-pool source 你要挂载的盘的路径
+sudo lxc profile device set default root disk pool=zfs-pool
 ```
 
 如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填no再回车不用默认的选项
