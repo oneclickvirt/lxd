@@ -49,13 +49,6 @@ sudo lxc storage list
 sudo lxc storage show zfs-pool
 ```
 
-- 设置这个盘为默认的盘
-
-```bash
-sudo lxc storage set zfs-pool source 你要挂载的盘的路径
-sudo lxc profile device set default root disk pool=zfs-pool
-```
-
 如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填no再回车不用默认的选项
 
 ```
