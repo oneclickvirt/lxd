@@ -20,6 +20,8 @@
 
 - 保证你要开的盘为默认的系统盘(sda或者sda1)而不是挂载的盘(sdb之类的)，不确定的使用```fdisk -l```和```df```查看
 
+挂载其他盘的详看 [其他说明](https://github.com/spiritLHLS/lxc/blob/main/README_other.md)
+
 ## 手动安装(新手推荐，避免有bug不知道怎么修)
 
 ### 普通版本(带1个SSH端口，25个外网端口)
