@@ -2,7 +2,7 @@
 # by https://github.com/spiritLHLS/lxc
 # cd /root
 # ./init.sh NAT服务器前缀 数量
-# 2022.12.20
+# 2023.01.15
 
 rm -rf log
 lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory=256MiB
