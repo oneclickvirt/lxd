@@ -28,11 +28,11 @@ lxc config set "$1" limits.memory.swap.priority 1
 # 支持docker虚拟化
 lxc config set "$1" security.nesting true
 # 安全性防范设置 - 只有Ubuntu支持
-if [ "$(uname -a | grep -i ubuntu)" ]; then
-  # Set the security settings
-  lxc config set "$1" security.syscalls.intercept.mknod true
-  lxc config set "$1" security.syscalls.intercept.setxattr true
-fi
+# if [ "$(uname -a | grep -i ubuntu)" ]; then
+#   # Set the security settings
+#   lxc config set "$1" security.syscalls.intercept.mknod true
+#   lxc config set "$1" security.syscalls.intercept.setxattr true
+# fi
 # 创建容器
 name="$1"
 # 容器SSH端口 外网nat端口起 止
