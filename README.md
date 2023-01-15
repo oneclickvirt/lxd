@@ -23,7 +23,7 @@
 - 如果需要在你要挂载的盘上开，则使用以下命令在执行```lxd init```之前挂载(且保证该盘之前未挂载，可使用```umount 盘的路径```取消挂载)
 
 ```bash
-sudo lxc storage create zfs-pool zfs source=你要挂载的盘的路径
+sudo lxc storage create zfs-pool zfs 你要挂载的盘的路径
 ```
 
 上面设置盘名称为zfs-pool
