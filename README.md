@@ -20,43 +20,6 @@
 
 - 保证你要开的盘为默认的系统盘(sda或者sda1)而不是挂载的盘(sdb之类的)，不确定的使用```fdisk -l```和```df```查看
 
-- 如果需要在你要挂载的盘上开，则使用以下命令在执行```lxd init```之前挂载(且保证该盘之前未挂载，可使用```umount 盘的路径```取消挂载)
-
-- 安装驱动
-
-```bash
-sudo apt-get install zfsutils-linux -y
-```
-
-- 存储池新建存储
-
-```bash
-sudo zpool create -f zfs-pool 你要挂载的盘的路径
-sudo lxc storage create default zfs source=zfs-pool
-```
-
-- 上面设置盘名称为default
-
-- 查看是否创建成功
-
-```bash
-sudo lxc storage list
-```
-
-- 查看挂载的路径
-
-```bash
-sudo lxc storage show default
-```
-
-- 如果挂载成功，则执行```lxd init```时不再创建新盘，也即在下面这个选项出现时填***no***再回车不用默认的选项
-
-```
-Do you want to configure a new storage pool? (yes/no) [default=yes]: 
-```
-
-- 再次提醒，本仓库所有脚本均基于系统盘而不是挂载盘开发，除了以上不同之处其他地方流程是一样的
-
 ## 手动安装(新手推荐，避免有bug不知道怎么修)
 
 ### 普通版本(带1个SSH端口，25个外网端口)
