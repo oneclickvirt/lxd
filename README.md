@@ -307,3 +307,8 @@ https://discuss.linuxcontainers.org/t/how-to-run-docker-inside-lxc-container/130
 
 https://discuss.linuxcontainers.org/t/error-seccomp-notify-not-supported-on-container-start/15038/3
 
+### 友链
+
+朋友写的针对不是批量开设服务器使用的(需要有一定的LXD或LXC基础，否则你看不懂部分设置)
+
+https://github.com/MXCCO/lxdpro
