@@ -26,6 +26,9 @@
 
 ### 普通版本(带1个SSH端口，25个外网端口)
 
+<summary>说明</summary>
+<details>
+
 开出的小鸡配置：1核256MB内存1GB硬盘限速250MB
 
 自动关闭防火墙
@@ -105,7 +108,12 @@ dos2unix init.sh
 
 有时候init.sh的运行路径有问题，此时建议前面加上sudo强制根目录执行
 
+</details>
+
 ## 纯探针版本(只有一个SSH端口)
+
+<summary>说明</summary>
+<details>
 
 开出的小鸡配置：1核128MB内存300MB硬盘限速200MB
 
@@ -185,6 +193,8 @@ dos2unix least.sh
 ```
 
 有时候least.sh的运行路径有问题，此时建议前面加上sudo强制根目录执行
+
+</details>
 
 ### 开完小鸡后，具体信息会生成在当前目录下的log文件中，格式如下
 
