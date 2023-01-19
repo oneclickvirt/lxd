@@ -111,7 +111,6 @@ dos2unix init.sh
 
 ## 纯探针版本(只有一个SSH端口)
 
-<summary>说明</summary>
 <details>
 
 开出的小鸡配置：1核128MB内存300MB硬盘限速200MB
