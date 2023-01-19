@@ -26,7 +26,6 @@
 
 ### 普通版本(带1个SSH端口，25个外网端口)
 
-<summary>说明</summary>
 <details>
 
 开出的小鸡配置：1核256MB内存1GB硬盘限速250MB
@@ -198,6 +197,8 @@ dos2unix least.sh
 
 ### 开完小鸡后，具体信息会生成在当前目录下的log文件中，格式如下
 
+<details>
+
 ```
 1号服务器名称 密码 ssh端口 外网端口起始 外网端口终止
 2号服务器名称 密码 ssh端口 外网端口起始 外网端口终止
@@ -208,16 +209,24 @@ dos2unix least.sh
 ```bash
 cat log
 ```
-
+  
+</details>
+ 
 ### ps:原始用途是将频道测评剩余的VPS当母鸡开小鸡，避免浪费
+
+<details>
 
 对应的机器人
 
 [@Status_of_Spiritlhl_Server_bot](https://t.me/Status_of_Spiritlhl_Server_bot)
 
 分发母鸡开的小鸡，免费送点开出来的小鸡(免费服务器)(免费NAT服务器)
+  
+</details>
 
 #### 不要拿该脚本开出的小鸡当生产环境，lxc虚拟化不支持换内核，dd，开启bbr，**探针鸡**(普通版本无问题)挂载warp等操作
+
+<details>
 
 本仓库不提供lxc虚拟化使用的其他问题的解答，非脚本相关问题请自行解决
 
@@ -260,10 +269,12 @@ lxc exec 服务器名字 /bin/bash
 ```
 
 退出则输入```exit```回车即可
+  
+</details>
 
 ## 实验性一键脚本(不保证无bug)
 
-环境要求：推荐为Ubuntu系统，Debian系统会出现zfs问题，只能使用手动命令解决
+环境要求：推荐为Ubuntu系统，Debian系统会出现zfs问题，只能使用手动事先安装zfs解决
 
 #### 一键安装lxd环境
 
