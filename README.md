@@ -334,3 +334,7 @@ https://discuss.linuxcontainers.org/t/error-seccomp-notify-not-supported-on-cont
 朋友写的针对合租服务器使用的(需要有一定的LXD或LXC基础，否则你看不懂部分设置)(更新可能有点缓慢)
 
 https://github.com/MXCCO/lxdpro
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/spiritLHLS/lxc.svg)](https://starchart.cc/spiritLHLS/lxc)
