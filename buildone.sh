@@ -5,7 +5,7 @@
 
 # cd /root
 # 输入
-# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口
+# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度
 rm -rf log
 lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory="$2"MiB
 # 硬盘大小
@@ -17,7 +17,7 @@ lxc config device set "$1" root limits.write 100MB
 lxc config device set "$1" root limits.read 100iops
 lxc config device set "$1" root limits.write 100iops
 # 网速
-lxc config device override "$1" eth0 limits.egress=300Mbit limits.ingress=300Mbit
+lxc config device override "$1" eth0 limits.egress="$8"Mbit limits.ingress="$7"Mbit
 # cpu
 lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.cpu.allowance 50%
