@@ -212,18 +212,6 @@ cat log
 ```
   
 </details>
- 
-### ps:原始用途是将频道测评剩余的VPS当母鸡开小鸡，避免浪费
-
-<details>
-
-对应的机器人
-
-[@Status_of_Spiritlhl_Server_bot](https://t.me/Status_of_Spiritlhl_Server_bot)
-
-分发母鸡开的小鸡，免费送点开出来的小鸡(免费服务器)(免费NAT服务器)
-  
-</details>
 
 ### 不要拿该脚本开出的小鸡当生产环境，lxc虚拟化不支持换内核，dd，开启bbr，**探针鸡**(普通版本无问题)挂载warp等操作
 
