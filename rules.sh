@@ -30,4 +30,12 @@ for port in "${blocked_ports[@]}"; do
     iptables -A OUTPUT -m owner --uid-owner 100000-165536 -d 0.0.0.0/0 -p udp --dport "$port" -j DROP
 done
 
-# 屏蔽仓库访问
+# 屏蔽网站访问
+container_ips=$(lxc list -c 4 | awk '{print $2}')
+for container_ip in $container_ips
+do
+  iptables -A OUTPUT -d zmap.io -j DROP -m comment --comment "Block zmap official website"
+  iptables -A OUTPUT -d nmap.org -j DROP -m comment --comment "Block nmap official website"
+  iptables -A OUTPUT -d masscan.org -j DROP -m comment --comment "Block masscan official website"
+  iptables -A OUTPUT -d foofus.net -j DROP -m comment --comment "Block medusa official website"
+done
