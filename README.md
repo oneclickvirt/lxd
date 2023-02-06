@@ -1,12 +1,10 @@
 # lxc
 
-更新时间：2023.01.15
+更新时间：2023.03.05
 
 ## 待解决的问题
 
 使得母鸡支持更多的系统版本
-
-一键脚本自定义限制网速
 
 # 一键母鸡开小鸡
 
@@ -22,7 +20,9 @@
 
 - 保证你要开的盘为默认的系统盘(sda或者sda1)而不是挂载的盘(sdb之类的)，不确定的使用```fdisk -l```和```df```查看
 
-挂载其他盘的详看 [其他说明](https://github.com/spiritLHLS/lxc/blob/main/README_other.md)
+- 挂载其他盘的详看 [其他说明](https://github.com/spiritLHLS/lxc/blob/main/README_other.md)
+
+- 一键脚本支持自定义限制所有内容
 
 ## 手动安装(新手推荐，避免有bug不知道怎么修)
 
