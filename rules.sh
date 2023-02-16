@@ -1,7 +1,7 @@
 #!/bin/bash
 # from https://github.com/spiritLHLS/lxc
 
-# 屏蔽安装包
+# 容器内屏蔽安装包
 if ! dpkg -s apparmor &> /dev/null; then
   apt-get install apparmor
 fi
@@ -14,10 +14,28 @@ do
     '/usr/bin/masscan Cx,'\
     '/usr/bin/medusa Cx,'"
 done
-sudo bash -c 'cat > /etc/apparmor.d/local/usr.bin.lxc-execute << EOL
-/usr/bin/dpkg-query flags=noconfirm zmap, installzmap, nmap, installnmap, masscan, installmasscan, medusa, installmedusa
-EOL'
-apparmor_parser -r /etc/apparmor.d/local/usr.bin.lxc-execute
+
+# 容器外屏蔽安装包
+divert_install_script() {
+  local package_name=$1
+  local divert_script="/usr/local/sbin/${package_name}-install"
+  local install_script="/var/lib/dpkg/info/${package_name}.postinst"
+  ln -sf "${divert_script}" "${install_script}"
+  sh -c "echo '#!/bin/bash' > ${divert_script}"
+  sh -c "echo 'exit 1' >> ${divert_script}"
+  chmod +x "${divert_script}"
+}
+
+echo "Package: zmap nmap masscan medusa
+Pin: release *
+Pin-Priority: -1" | sudo tee -a /etc/apt/preferences
+apt-get update
+divert_install_script "zmap"
+divert_install_script "nmap"
+divert_install_script "masscan"
+divert_install_script "medusa"
+
+
 
 # 屏蔽流量
 iptables -F
@@ -33,6 +51,5 @@ for container_ip in $container_ips
 do
   iptables -A OUTPUT -d zmap.io -j DROP -m comment --comment "block zmap"
   iptables -A OUTPUT -d nmap.org -j DROP -m comment --comment "block nmap"
-#   iptables -A OUTPUT -d masscan.org -j DROP -m comment --comment "block masscan"
   iptables -A OUTPUT -d foofus.net -j DROP -m comment --comment "block medusa"
 done
