@@ -26,7 +26,7 @@
 
 - 挂载其他盘的详看 [其他说明](https://github.com/spiritLHLS/lxc/blob/main/README_other.md)
 
-- 一键脚本支持自定义限制所有内容，支持IPV6子网自动设置并自动为容器配置IPV6地址
+- 一键脚本支持自定义限制所有内容，支持IPV6子网自动设置并自动为容器配置IPV6地址(无IPV6地址则不配置子网)
 
 ## 手动安装(新手推荐，避免有bug不知道怎么修)
 
