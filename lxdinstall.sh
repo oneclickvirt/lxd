@@ -30,3 +30,11 @@ export PATH=$PATH:/snap/bin
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
+# 设置IPV6子网使容器自动配置IPV6地址
+subnet=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1)
+if [ -z "$subnet" ]; then
+    echo "没有IPV6子网，无法自动配置IPV6子网使容器自动配置IPV6地址"
+    exit 1
+fi
+lxc network set lxdbr0 ipv6.address $subnet
+lxc network set lxdbr0 ipv6.nat true
