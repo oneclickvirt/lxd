@@ -347,6 +347,10 @@ https://discuss.linuxcontainers.org/t/error-seccomp-notify-not-supported-on-cont
 
 https://github.com/MXCCO/lxdpro
 
+VPS融合怪测评脚本
+
+https://github.com/spiritLHLS/ecs
+
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/spiritLHLS/lxc.svg)](https://starchart.cc/spiritLHLS/lxc)
