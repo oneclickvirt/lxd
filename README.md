@@ -317,7 +317,7 @@ dos2unix buildone.sh
 
 这样就是创建一个名为test的小鸡，内存256MB，硬盘2G，SSH端口20001，内外网起止端口20002~20025，下载和上传速度都设置为300Mbit
 
-### 测试中，勿要使用
+### 以下脚本测试中，勿要使用
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
