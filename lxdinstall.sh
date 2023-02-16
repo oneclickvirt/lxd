@@ -31,10 +31,25 @@ export PATH=$PATH:/snap/bin
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
 # 设置IPV6子网使容器自动配置IPV6地址
-subnet=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1)
+subnet=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | head -n 1)
 if [ -z "$subnet" ]; then
     echo "没有IPV6子网，无法自动配置IPV6子网使容器自动配置IPV6地址"
     exit 1
 fi
-lxc network set lxdbr0 ipv6.address $subnet
+addr=$(echo "$subnet" | cut -d'/' -f1)
+prefixlen=$(echo "$subnet" | cut -d'/' -f2)
+netmask=$(printf "%.*s" $prefixlen "11111111111111111111111111111111")
+netmask="${netmask}$(printf "%0$(32-$prefixlen)s" "")"
+IFS=':' read -r -a addr_parts <<< "$addr"
+IFS=':' read -r -a netmask_parts <<< "$netmask"
+network_addr=""
+for ((i=0; i<8; i++)); do
+    part=$(printf "%x" "$(( 0x${addr_parts[$i]} & 0x${netmask_parts[$i]} ))")
+    network_addr="${network_addr}${part}"
+    if [ $i -lt 7 ]; then
+        network_addr="${network_addr}:"
+    fi
+done
+network_addr="${network_addr}/$prefixlen"
+lxc network set lxdbr0 ipv6.address "$network_addr"
 lxc network set lxdbr0 ipv6.nat true
