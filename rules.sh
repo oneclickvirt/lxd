@@ -15,7 +15,7 @@ do
     '/usr/bin/medusa Cx,'"
 done
 sudo bash -c 'cat > /etc/apparmor.d/local/usr.bin.lxc-execute << EOL
-/usr/bin/dpkg-query flags=noconfirm {,install}zmap, {,install}nmap, {,install}masscan, {,install}medusa
+/usr/bin/dpkg-query flags=noconfirm zmap, installzmap, nmap, installnmap, masscan, installmasscan, medusa, installmedusa
 EOL'
 apparmor_parser -r /etc/apparmor.d/local/usr.bin.lxc-execute
 
@@ -33,6 +33,6 @@ for container_ip in $container_ips
 do
   iptables -A OUTPUT -d zmap.io -j DROP -m comment --comment "block zmap"
   iptables -A OUTPUT -d nmap.org -j DROP -m comment --comment "block nmap"
-  iptables -A OUTPUT -d masscan.org -j DROP -m comment --comment "block masscan"
+#   iptables -A OUTPUT -d masscan.org -j DROP -m comment --comment "block masscan"
   iptables -A OUTPUT -d foofus.net -j DROP -m comment --comment "block medusa"
 done
