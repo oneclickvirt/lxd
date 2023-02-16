@@ -61,6 +61,8 @@ container_ip_address=$(lxc list ${container_name} -c 4 | awk 'NR==4 {print $2}')
 for port in "${blocked_ports[@]}"; do
   iptables -A OUTPUT -s ${container_ip_address} -d 0.0.0.0/0 -p tcp --dport ${port} -j DROP
   iptables -A OUTPUT -s ${container_ip_address} -d 0.0.0.0/0 -p udp --dport ${port} -j DROP
+  iptables -A INPUT -d ${container_ip_address} -s 0.0.0.0/0 -p tcp --sport ${port} -j DROP
+  iptables -A INPUT -d ${container_ip_address} -s 0.0.0.0/0 -p udp --sport ${port} -j DROP
 done
 lxc config device add "$1" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
 lxc config device add "$1" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
