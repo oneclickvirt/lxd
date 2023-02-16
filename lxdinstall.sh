@@ -36,7 +36,8 @@ if [ -z "$subnet" ]; then
     echo "没有IPV6子网，无法自动配置IPV6子网使容器自动配置IPV6地址"
     exit 1
 fi
-cidr=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | awk -F':' '{print $1":"$2":"$3":"$4":0:0:0:0/64"}' | head -n 1)
+cidr=$(echo $subnet | awk -F':' '{print $1":"$2":"$3":"$4":1:0:0:0/64"}')
 lxc network set lxdbr0 ipv6.address $cidr
 lxc network set lxdbr0 ipv6.nat true
+
 
