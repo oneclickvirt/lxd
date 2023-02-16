@@ -4,7 +4,7 @@
 # 2023.02.16
 
 # 指定关键词列表
-KEYWORDS=("xmrig" "masscan" "zmap" "nmap")
+KEYWORDS=("xmrig" "masscan" "zmap" "nmap" "medusa")
 while true; do
     # 获取所有运行中的容器名字
     CONTAINERS=$(lxc list --format=json | jq -r '.[] | select(.status == "Running") | .name')
