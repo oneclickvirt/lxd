@@ -31,6 +31,8 @@ sudo apt-get install openssh-server -y;
 sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config;
 sudo sed -i "s/^#\?PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config;
 sudo sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config;
+sudo sed -i 's/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config
+sudo sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config
 sudo service ssh restart
 sudo service sshd restart
 rm -rf "$0"
