@@ -51,7 +51,7 @@ lxc exec "$1" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/s
 lxc exec "$1" -- chmod 777 ssh.sh
 lxc exec "$1" -- dos2unix ssh.sh
 lxc exec "$1" -- sudo ./ssh.sh $passwd
-lxc exec "$1" -- curl -L https://github.com/spiritLHLS/lxc/raw/main/config.sh -o config.sh 
+lxc exec "$1" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
 lxc exec "$1" -- chmod +x config.sh
 lxc exec "$1" -- bash config.sh
 lxc config device add "$1" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
