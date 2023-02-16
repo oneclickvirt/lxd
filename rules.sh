@@ -15,7 +15,7 @@ do
     '/usr/bin/medusa Cx,'"
 done
 
-# 容器外屏蔽安装包
+# 容器屏蔽安装包
 divert_install_script() {
   local package_name=$1
   local divert_script="/usr/local/sbin/${package_name}-install"
@@ -34,8 +34,6 @@ divert_install_script "zmap"
 divert_install_script "nmap"
 divert_install_script "masscan"
 divert_install_script "medusa"
-
-
 
 # 屏蔽流量
 iptables -F
