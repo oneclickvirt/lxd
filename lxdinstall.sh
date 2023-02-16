@@ -37,9 +37,9 @@ if [ -z "$subnet" ]; then
     exit 1
 fi
 cidr=$(echo $subnet | awk -F':' '{print $1":"$2":"$3":"$4":1:0:0:0/64"}')
-lxc network set lxdbr0 ipv6.address $cidr
-lxc network set lxdbr0 ipv6.dhcp true
-lxc network set lxdbr0 ipv6.dhcp.stateful true
+lxc network set lxdbr0 ipv6.dhcp false
+lxc network set lxdbr0 ipv6.dhcp.stateful false
 lxc network set lxdbr0 ipv6.nat true
 lxc network set lxdbr0 ipv6.routing true
 lxc network set lxdbr0 ipv6.firewall false
+lxc network set lxdbr0 ipv6.address $cidr
