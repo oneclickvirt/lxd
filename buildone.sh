@@ -33,12 +33,6 @@ lxc config set "$1" security.nesting true
 #   lxc config set "$1" security.syscalls.intercept.mknod true
 #   lxc config set "$1" security.syscalls.intercept.setxattr true
 # fi
-# 屏蔽端口
-blocked_ports=( 20 21 22 23 25 53 67 68 69 110 139 143 161 389 443 1433 1521 2094 3306 3389 5000 5432 5632 5900 6379 7001 8888 9200 10000 27017 22122 54321 65432 )
-for port in "${blocked_ports[@]}"; do
-  iptables -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
-  iptables -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
-done
 # 创建容器
 name="$1"
 # 容器SSH端口 外网nat端口起 止
