@@ -269,31 +269,35 @@ lxc exec 服务器名字 /bin/bash
 
 #### 一键安装lxd环境
 
-下载文件
+##### 下载文件
 
 ```bash
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 ```
 
-设置母鸡内存虚拟化大小以及资源池硬盘大小
+##### 设置母鸡内存虚拟化大小以及资源池硬盘大小
 
 ```bash
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 ```
 
-屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
+##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
 ```
 
-配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器，如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
+##### 配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器
+
+- 如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
 ```
 
-一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境(***非必须***，该脚本仅仅是为了站点对接监控方便，不装的也没问题)
+##### 一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境
+
+(***非必须***，该脚本仅仅是为了站点对接监控方便，不装的也没问题)
 
 ```
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
@@ -301,7 +305,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o back
 
 #### 只开一个NAT服务器
 
-下载开机脚本
+##### 下载开机脚本
 
 ```
 rm -rf buildone.sh
@@ -311,7 +315,7 @@ apt install dos2unix -y
 dos2unix buildone.sh
 ```
 
-开NAT服务器
+##### 开NAT服务器
 
 内存大小以MB计算，硬盘大小以GB计算，下载速度上传速度以Mbit计算
 
@@ -327,12 +331,6 @@ dos2unix buildone.sh
 
 这样就是创建一个名为test的小鸡，内存256MB，硬盘2G，SSH端口20001，内外网起止端口20002~20025，下载和上传速度都设置为300Mbit
 
-### 以下脚本测试中，勿要使用
-
-```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
-```
-
 ### 致谢
 
 https://github.com/lxc/lxd
@@ -347,13 +345,13 @@ https://discuss.linuxcontainers.org/t/error-seccomp-notify-not-supported-on-cont
 
 ### 友链
 
-朋友写的针对合租服务器使用的(需要有一定的LXD或LXC基础，否则你看不懂部分设置)(更新可能有点缓慢)
-
-https://github.com/MXCCO/lxdpro
-
 VPS融合怪测评脚本
 
 https://github.com/spiritLHLS/ecs
+
+朋友写的针对合租服务器使用的(需要有一定的LXD或LXC基础，否则你看不懂部分设置)(更新可能有点缓慢)
+
+https://github.com/MXCCO/lxdpro
 
 ## Stargazers over time
 
