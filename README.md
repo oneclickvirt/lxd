@@ -289,7 +289,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
 ```
 
-配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器，执行完毕请按CTRRL+A+K键回到原始窗口
+配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器，如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
