@@ -292,7 +292,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod
 配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/monitor.sh -o monitor.sh && chmod +x monitor.sh && nohup ./rules.sh
+curl -L https://github.com/spiritLHLS/lxc/raw/main/monitor.sh -o monitor.sh && chmod +x monitor.sh && nohup ./monitor.sh
 ```
 
 一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境(非必须，该脚本仅仅是为了站点对接监控方便，不装也不是不行)
