@@ -293,7 +293,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod
 curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
 ```
 
-一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境(非必须，该脚本仅仅是为了站点对接监控方便，不装也不是不行)
+一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境(***非必须***，该脚本仅仅是为了站点对接监控方便，不装的也没问题)
 
 ```
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
