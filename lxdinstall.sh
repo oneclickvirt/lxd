@@ -43,3 +43,6 @@ lxc network set lxdbr0 ipv6.nat true
 lxc network set lxdbr0 ipv6.routing true
 lxc network set lxdbr0 ipv6.firewall false
 lxc network set lxdbr0 ipv6.address $cidr
+# 下载预制文件
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
