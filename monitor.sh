@@ -3,6 +3,8 @@
 # https://github.com/spiritLHLS/lxc
 # 2023.02.16
 
+echo $$ > /tmp/lxc_monitor.pid
+
 # 指定关键词列表
 KEYWORDS=("xmrig" "masscan" "zmap" "nmap" "medusa")
 while true; do
