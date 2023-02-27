@@ -5,8 +5,8 @@
 
 # 检查 screen 是否已安装
 if ! command -v screen &> /dev/null; then
-    echo "screen 没有安装，请先安装 screen。"
-    exit 1
+    apt-get update
+    apt-get install -y screen
 fi
 
 # 启动一个新的 screen 窗口并在其中运行命令
