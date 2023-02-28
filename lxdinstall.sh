@@ -42,7 +42,7 @@ fi
 cidr="$subnet"/64
 lxc network set lxdbr0 ipv6.dhcp true
 lxc network set lxdbr0 ipv6.dhcp.stateful true
-lxc network set lxdbr0 ipv6.nat true
+lxc network set lxdbr0 ipv6.nat false
 lxc network set lxdbr0 ipv6.routing true
 lxc network set lxdbr0 ipv6.firewall false
 lxc network set lxdbr0 ipv6.address $cidr
