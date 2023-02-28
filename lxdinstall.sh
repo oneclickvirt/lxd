@@ -34,10 +34,10 @@ lxc config set images.auto_update_interval 0
 subnet=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1)
 if [ -z "$subnet" ]; then
     echo "没有IPV6子网，无法自动配置IPV6子网使容器自动配置IPV6地址"
-    exit 1
     # 下载预制文件
     curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
     curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
+    exit 1
 fi
 cidr=$(echo $subnet | awk -F':' '{print $1":"$2":"$3":"$4":1:0:0:0/64"}')
 lxc network set lxdbr0 ipv6.dhcp false
