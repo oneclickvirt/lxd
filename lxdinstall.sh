@@ -39,7 +39,7 @@ if [ -z "$subnet" ]; then
     curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
     exit 1
 fi
-cidr=$(echo $subnet | awk -F':' '{print $1":"$2":"$3":"$4":1:0:0:0/64"}')
+cidr="$subnet"/64
 lxc network set lxdbr0 ipv6.dhcp true
 lxc network set lxdbr0 ipv6.dhcp.stateful true
 lxc network set lxdbr0 ipv6.nat true
