@@ -63,13 +63,13 @@ for i in $(seq 1 65535); do
     fi
     if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
         echo "3"
-        continue
+        if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
+            echo "4"
+            _green IPV6
+            break
+        fi
     fi
-    if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
-        echo "4"
-        break
-    fi
-    echo IPV6
+    _yellow IPV6
 done
 
 # 检查是否找到未使用的 IPV6 地址
