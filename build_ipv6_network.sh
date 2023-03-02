@@ -2,6 +2,8 @@
 # by https://github.com/spiritLHLS/lxc
 # 2023.03.02
 
+# ./build_ipv6_network.sh LXC容器名称
+
 set -e
 
 # 字体颜色
