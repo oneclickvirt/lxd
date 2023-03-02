@@ -376,6 +376,8 @@ https://discuss.linuxcontainers.org/t/how-to-run-docker-inside-lxc-container/130
 
 https://discuss.linuxcontainers.org/t/error-seccomp-notify-not-supported-on-container-start/15038/3
 
+https://discuss.linuxcontainers.org/t/how-do-i-assign-a-public-ipv6-address-to-a-lxc-container/6028
+
 感谢 [@Ella-Alinda](https://github.com/Ella-Alinda) [@fscarmen](https://github.com/fscarmen) 提供的指导
 
 ### 友链
