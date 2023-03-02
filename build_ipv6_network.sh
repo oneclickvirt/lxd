@@ -31,15 +31,15 @@ if [ -z "$CONTAINER_IPV6" ]; then
 fi
 _blue "$CONTAINER_NAME容器的内网IPV6地址为$CONTAINER_IPV6"
 
-# 获取母鸡子网第一个IP
-SUBNET=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1)
+# 获取母鸡子网
+SUBNET=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1 | cut -d ':' -f1-5):
 
 # 检查是否存在 IPV6 
 if [ -z "$SUBNET" ]; then
     _red "无 IPV6 子网，不进行自动映射"
     exit 1
 fi
-_blue "母鸡的IPV6子网第一个IP地址为$SUBNET"
+_blue "母鸡的IPV6子网地址为$SUBNET"
 
 # 寻找未使用的子网内的一个IPV6地址
 for i in $(seq 1 65535); do
