@@ -337,6 +337,22 @@ dos2unix buildone.sh
 
 这样就是创建一个名为test的小鸡，内存256MB，硬盘2G，SSH端口20001，内外网起止端口20002~20025，下载和上传速度都设置为300Mbit
 
+##### 自动配置IPV6地址
+
+下载脚本
+
+```bash
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh
+```
+
+自动为容器配置IPV6映射地址
+
+```bash
+bash build_ipv6_network.sh 容器名称
+```
+
+映射完毕会打印信息，且写入内外网IPV6地址到名字为容器名称的文件中
+
 ### 致谢
 
 https://github.com/lxc/lxd
