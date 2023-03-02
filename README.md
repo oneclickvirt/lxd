@@ -284,31 +284,6 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 ```
 
-##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
-
-- (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
-
-```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
-```
-
-##### 配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器
-
-- 如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
-- (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
-
-```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
-```
-
-##### 一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境
-
-- (***非必须***，该脚本仅仅是为了站点对接监控方便，不装的也没问题)
-
-```
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
-```
-
 #### 只开一个NAT服务器
 
 ##### 下载开机脚本
@@ -337,7 +312,11 @@ dos2unix buildone.sh
 
 这样就是创建一个名为test的小鸡，内存256MB，硬盘2G，SSH端口20001，内外网起止端口20002~20025，下载和上传速度都设置为300Mbit
 
+### 其他配置
+
 ##### 自动配置IPV6地址
+
+- (***非必须***，该脚本仅适用于母鸡有给IPV6子网，不装的也没问题)
 
 下载脚本
 
@@ -352,6 +331,31 @@ bash build_ipv6_network.sh 容器名称
 ```
 
 映射完毕会打印信息，且写入内外网IPV6地址到名字为容器名称的文件中
+
+##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
+
+- (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
+
+```
+curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
+```
+
+##### 配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器
+
+- 如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
+- (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
+
+```
+curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
+```
+
+##### 一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境
+
+- (***非必须***，该脚本仅仅是为了站点对接监控方便，不装的也没问题)
+
+```
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
+```
 
 ### 致谢
 
