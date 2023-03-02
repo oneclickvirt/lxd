@@ -10,15 +10,6 @@ _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 
-# 获取指定LXC容器的内网IPV6
-CONTAINER_NAME="$1"
-CONTAINER_IPV6=$(lxc list $CONTAINER_NAME --format=json | jq -r '.[0].state.network.eth0.addresses[] | select(.family=="inet6") | select(.scope=="global") | .address')
-if [ -z "$CONTAINER_IPV6" ]; then
-    _red "容器无内网IPV6地址，不进行自动映射"
-    exit 1
-fi
-_blue "$CONTAINER_NAME容器的内网IPV6地址为$CONTAINER_IPV6"
-
 # 检查ip6tables和jq是否存在，如果不存在则安装
 if ! command -v ip6tables &> /dev/null
 then
@@ -30,6 +21,15 @@ then
     apt-get update
     apt-get install -y jq
 fi
+
+# 获取指定LXC容器的内网IPV6
+CONTAINER_NAME="$1"
+CONTAINER_IPV6=$(lxc list $CONTAINER_NAME --format=json | jq -r '.[0].state.network.eth0.addresses[] | select(.family=="inet6") | select(.scope=="global") | .address')
+if [ -z "$CONTAINER_IPV6" ]; then
+    _red "容器无内网IPV6地址，不进行自动映射"
+    exit 1
+fi
+_blue "$CONTAINER_NAME容器的内网IPV6地址为$CONTAINER_IPV6"
 
 # 获取母鸡子网第一个IP
 SUBNET=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1)
