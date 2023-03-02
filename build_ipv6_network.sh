@@ -12,7 +12,7 @@ _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
-    modules=("sudo" "ufw" "lshw" "jq" "net-tools" "ip6tables")
+    modules=("sudo" "ufw" "lshw" "jq" "net-tools")
     for module in "${modules[@]}"
     do
         if dpkg -s $module > /dev/null 2>&1 ; then
