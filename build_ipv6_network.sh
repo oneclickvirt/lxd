@@ -43,8 +43,11 @@ _blue "母鸡的IPV6子网地址为$SUBNET"
 
 # 寻找未使用的子网内的一个IPV6地址
 for i in $(seq 1 65535); do
-    IPV6=$(printf '%s%x' $SUBNET $i)
+    IPV6="${SUBNET_PREFIX}:$i"
     if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
+        continue
+    fi
+    if ip -6 addr show dev eth0 | grep -q $IPV6; then
         continue
     fi
     if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
