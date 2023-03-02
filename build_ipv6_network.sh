@@ -1,5 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
+# 2023.03.02
 
 set -e
 
@@ -47,6 +48,9 @@ for i in $(seq 1 65535); do
         continue
     fi
     if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
+        continue
+    fi
+    if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
         break
     fi
 done
