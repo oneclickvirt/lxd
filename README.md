@@ -286,6 +286,8 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 
 ##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
 
+- (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
+
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
 ```
@@ -293,6 +295,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod
 ##### 配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器
 
 - 如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
+- (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
