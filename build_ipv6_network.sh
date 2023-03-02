@@ -53,17 +53,13 @@ _blue "母鸡的IPV6子网地址为 $SUBNET_PREFIX"
 for i in $(seq 1 65535); do
     IPV6="${SUBNET_PREFIX}$i"
     if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
-        echo "1"
         continue
     fi
     if ip -6 addr show dev "$interface" | grep -q $IPV6; then
-        echo "2"
         continue
     fi
     if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
-        echo "3"
         if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
-            echo "4"
             _green "$IPV6"
             break
         fi
