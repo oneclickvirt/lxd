@@ -10,22 +10,21 @@ _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 
-# 检查 ip6tables jq lshw 是否存在，如果不存在则安装
-if ! command -v ip6tables &> /dev/null
-then
-    apt-get update
-    apt-get install -y ip6tables
-fi
-if ! command -v jq &> /dev/null
-then
-    apt-get update
-    apt-get install -y jq
-fi
-if ! command -v lshw &> /dev/null
-then
-    apt-get update
-    apt-get install -y lshw
-fi
+# 检查所需模块是否存在，如果不存在则安装
+install_required_modules() {
+    modules=("sudo" "ufw" "lshw" "jq" "net-tools" "ip6tables")
+    for module in "${modules[@]}"
+    do
+        if dpkg -s $module > /dev/null 2>&1 ; then
+            _green "$module 已经安装！"
+        else
+            apt-get install -y $module
+            _green "$module 已成功安装！"
+        fi
+    done
+}
+install_required_modules
+ufw disable
 
 # 查询网卡
 interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
