@@ -30,22 +30,8 @@ export PATH=$PATH:/snap/bin
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
-# 设置IPV6子网使容器自动配置IPV6地址
-subnet=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1)
-if [ -z "$subnet" ]; then
-    echo "没有IPV6子网，无法自动配置IPV6子网使容器自动配置IPV6地址"
-    # 下载预制文件
-    curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
-    curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
-    exit 1
-fi
-cidr="$subnet"/64
-lxc network set lxdbr0 ipv6.dhcp true
-lxc network set lxdbr0 ipv6.dhcp.stateful true
-lxc network set lxdbr0 ipv6.nat false
-lxc network set lxdbr0 ipv6.routing true
-lxc network set lxdbr0 ipv6.firewall false
-lxc network set lxdbr0 ipv6.address $cidr
+# 设置自动配置内网IPV6地址
+lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
