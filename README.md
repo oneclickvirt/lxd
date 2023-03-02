@@ -375,6 +375,8 @@ https://discuss.linuxcontainers.org/t/how-to-run-docker-inside-lxc-container/130
 
 https://discuss.linuxcontainers.org/t/error-seccomp-notify-not-supported-on-container-start/15038/3
 
+感谢 [@Ella-Alinda](https://github.com/Ella-Alinda) [@fscarmen](https://github.com/fscarmen) 提供的指导
+
 ### 友链
 
 VPS融合怪测评脚本
