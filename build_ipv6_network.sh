@@ -10,7 +10,7 @@ _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 
-# 检查ip6tables和jq是否存在，如果不存在则安装
+# 检查 ip6tables jq lshw 是否存在，如果不存在则安装
 if ! command -v ip6tables &> /dev/null
 then
     apt-get update
@@ -21,6 +21,15 @@ then
     apt-get update
     apt-get install -y jq
 fi
+if ! command -v lshw &> /dev/null
+then
+    apt-get update
+    apt-get install -y lshw
+fi
+
+# 查询网卡
+interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
+_yellow "网卡 $interface"
 
 # 获取指定LXC容器的内网IPV6
 CONTAINER_NAME="$1"
@@ -47,7 +56,7 @@ for i in $(seq 1 65535); do
     if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
         continue
     fi
-    if ip -6 addr show dev eth0 | grep -q $IPV6; then
+    if ip -6 addr show dev "$interface" | grep -q $IPV6; then
         continue
     fi
     if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
@@ -65,7 +74,7 @@ if [ -z "$IPV6" ]; then
 fi
 
 # 映射 IPV6 地址到容器的私有 IPV6 地址
-ip addr add "$IPV6"/64 dev eth0
+ip addr add "$IPV6"/64 dev "$interface"
 ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
 
 # 打印信息并测试是否通畅
