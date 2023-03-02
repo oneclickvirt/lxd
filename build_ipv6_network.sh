@@ -44,7 +44,7 @@ _blue "$CONTAINER_NAME 容器的内网IPV6地址为 $CONTAINER_IPV6"
 SUBNET_PREFIX=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1 | cut -d ':' -f1-5):
 
 # 检查是否存在 IPV6 
-if [ -z "$SUBNET" ]; then
+if [ -z "$SUBNET_PREFIX" ]; then
     _red "无 IPV6 子网，不进行自动映射"
     exit 1
 fi
