@@ -88,4 +88,4 @@ else
 fi
 
 # 写入信息
-echo "$CONTAINER_NAME $IPV6" >> "$1"
+echo "$IPV6" >> "$1_v6"
