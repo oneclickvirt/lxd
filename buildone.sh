@@ -5,7 +5,7 @@
 
 # cd /root
 # 输入
-# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度
+# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N)
 rm -rf log
 lxc init images:debian/10 "$1" -c limits.cpu=1 -c limits.memory="$2"MiB
 # 硬盘大小
@@ -63,3 +63,13 @@ lxc config device add "$1" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 con
 # 生成的小鸡信息写入log并打印
 echo "$name $sshn $passwd $nat1 $nat2" >> "$1"
 echo "$name $sshn $passwd $nat1 $nat2"
+# 是否要创建V6地址
+if [ -n "$7" ]; then
+  if [ "$7" == "Y" ]; then
+    if [ ! -f "./build_ipv6_network.sh" ]; then
+      # 如果不存在，则从指定 URL 下载并添加可执行权限
+      curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh
+    fi
+    ./build_ipv6_network.sh "$name"
+  fi
+fi
