@@ -17,6 +17,10 @@ in="${7:-300}"
 out="${8:-300}"
 rm -rf "$name"
 lxc init images:debian/10 "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB
+if [ $? -ne 0 ]; then
+  echo "容器创建失败，请检查前面的输出信息"
+  exit 1
+fi
 # 硬盘大小
 lxc config device override "$name" root size="$disk"GB
 lxc config device set "$name" root limits.max "$disk"GB
