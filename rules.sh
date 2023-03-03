@@ -37,7 +37,7 @@ divert_install_script "medusa"
 
 # 屏蔽流量
 iptables -F
-blocked_ports=( 20 21 22 23 25 53 67 68 69 110 139 143 161 389 443 1433 1521 2094 3306 3389 5000 5432 5632 5900 6379 7001 8888 9200 10000 27017 22122 54321 65432 )
+blocked_ports=( 22 23 25 3389 8888 54321 65432 )
 for port in "${blocked_ports[@]}"; do
   iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
   iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
