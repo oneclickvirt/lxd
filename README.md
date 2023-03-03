@@ -331,9 +331,9 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/build_ipv6_network
 bash build_ipv6_network.sh 容器名称
 ```
 
-映射完毕会打印信息，且写入内外网IPV6地址到名字为容器名称的文件中
+映射完毕会打印信息
 
-示例(给test容器自动配置IPV6地址)
+示例(给test容器自动配置IPV6地址，配置完成会写入一个test_v6的文件信息)
 
 ```bash
 bash build_ipv6_network.sh test
