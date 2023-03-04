@@ -32,7 +32,7 @@ lxc config set "$1" security.nesting true
 #   lxc config set "$1" security.syscalls.intercept.setxattr true
 # fi
 # 屏蔽端口
-blocked_ports=( 22 23 25 3389 8888 54321 65432 )
+blocked_ports=( 3389 8888 54321 65432 )
 for port in "${blocked_ports[@]}"; do
   iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
   iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
