@@ -1,6 +1,6 @@
 # lxc
 
-更新时间：2023.03.04
+更新时间：2023.03.22
 
 ## 待解决的问题
 
@@ -345,6 +345,7 @@ bash build_ipv6_network.sh test
 ##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
 
 - (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
+- 事前预防
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
@@ -354,6 +355,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod
 
 - 如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
 - (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
+- 事后停机
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
