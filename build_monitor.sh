@@ -9,5 +9,7 @@ if ! command -v screen &> /dev/null; then
     apt-get install -y screen
 fi
 
+curl -L https://github.com/spiritLHLS/lxc/raw/main/monitor.sh -o monitor.sh && chmod +x monitor.sh
+
 # 启动一个新的 screen 窗口并在其中运行命令
 screen -dmS lxc_moniter bash monitor.sh
