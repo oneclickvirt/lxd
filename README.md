@@ -123,6 +123,14 @@ dos2unix init.sh
 
 有时候init.sh的运行路径有问题，此时建议前面加上sudo强制根目录执行
 
+如果已通过以上方法生成过小鸡，还需要批量生成新的小鸡，可使用
+
+```
+curl -L https://github.com/spiritLHLS/lxc/raw/main/add_more.sh -o add_more.sh && chmod +x add_more.sh && bash add_more.sh
+```
+
+可再次批量生成小鸡，且继承前面已生成的部分在后面添加
+
 </details>
 
 ### 纯探针版本(只有一个SSH端口)
