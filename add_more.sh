@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.04.05
+# 2023.04.06
 
 # cd /root
 
@@ -82,7 +82,8 @@ build_new_containers(){
         public_port_start=$(($public_port_end + 1))
         public_port_end=$(($public_port_start + 25))
         ./buildone.sh $container_name 256 1 $ssh_port $public_port_start $public_port_end 300 300
-        echo "$container_name $ssh_port $password $public_port_start $public_port_end" >> log
+        cat "$container_name" >> log
+        rm -rf $container_name
     done
 }
 
