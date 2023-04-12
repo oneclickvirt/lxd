@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.03.04
+# 2023.04.12
 
 # cd /root
 # 输入
@@ -18,7 +18,7 @@ nat2="${6:-20025}"
 in="${7:-300}"
 out="${8:-300}"
 rm -rf "$name"
-lxc init images:debian/10 "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB
+lxc init images:debian/11 "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB
 if [ $? -ne 0 ]; then
   echo "容器创建失败，请检查前面的输出信息"
   exit 1
