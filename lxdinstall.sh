@@ -24,6 +24,7 @@ if ! command -v zfs > /dev/null; then
   exit 0
 fi
 /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$2" --storage-pool default --auto
+sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 export PATH=$PATH:/snap/bin
 ! lxc -h >/dev/null 2>&1 && echo 'Failed install lxc' && exit
