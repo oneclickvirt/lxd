@@ -2,10 +2,10 @@
 # by https://github.com/spiritLHLS/lxc
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2023.02.16
+# 2023.04.12
 
 rm -rf log
-lxc init images:debian/9 "$1" -c limits.cpu=1 -c limits.memory=128MiB
+lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=128MiB
 lxc config device override "$1" root size=200MB
 lxc config device set "$1" root limits.read 100MB
 lxc config device set "$1" root limits.write 100MB
