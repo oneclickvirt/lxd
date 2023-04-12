@@ -291,7 +291,6 @@ lxc exec 服务器名字 /bin/bash
 
 - 环境要求：必须为Ubuntu系统，Debian系统会出现zfs问题，只能使用手动事先安装zfs解决(不会解决的务必使用Ubuntu)
 - 只生成一个NAT服务器，可自定义限制所有内容
-- 支持批量重复生成(仅限于普通版本的配置)
 
 #### 一键安装lxd环境
 
@@ -337,13 +336,17 @@ dos2unix buildone.sh
 
 这样就是创建一个名为test的小鸡，内存256MB，硬盘2G，SSH端口20001，内外网起止端口20002~20025，下载和上传速度都设置为300Mbit，且不自动设置外网IPV6地址
 
-如果已通过以上方法生成过小鸡，还需要批量生成新的小鸡，可使用
+如果已通过以上方法生成过小鸡，还需要批量生成小鸡，可使用
+
+[批量生成跳转](https://github.com/spiritLHLS/lxc#%E6%99%AE%E9%80%9A%E7%89%88%E6%9C%AC%E5%B8%A61%E4%B8%AAssh%E7%AB%AF%E5%8F%A325%E4%B8%AA%E5%A4%96%E7%BD%91%E7%AB%AF%E5%8F%A3)
+
+对应的脚本重复生成，但注意先删除测试小鸡
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/add_more.sh -o add_more.sh && chmod +x add_more.sh && bash add_more.sh
+lxc delete -f test
+rm -rf test
+ls
 ```
-
-可再次批量生成小鸡，且继承前面已生成的部分在后面添加，但配置都是普通版本的配置，有需要自行修改shell脚本
 
 ### 其他配置
 
