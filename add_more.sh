@@ -56,7 +56,7 @@ check_log(){
     public_port_start="${last_line_array[3]}"
     public_port_end="${last_line_array[4]}"
     if [ -z "$public_port_start" ] || [ -z "$public_port_end" ]; then
-      blue "仅支持普通版本的配置批量重复生成，纯SSH版本的无法使用"
+      blue "仅支持普通版本的配置批量重复生成，纯探针版本或其他的无法使用"
       exit 1
     fi
     container_prefix="${container_name%%[0-9]*}"
