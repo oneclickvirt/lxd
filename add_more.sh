@@ -55,6 +55,10 @@ check_log(){
     password="${last_line_array[2]}"
     public_port_start="${last_line_array[3]}"
     public_port_end="${last_line_array[4]}"
+    if [ -z "$public_port_start" ] || [ -z "$public_port_end" ]; then
+      blue "仅支持普通版本的配置批量重复生成，纯SSH版本的无法使用"
+      exit 1
+    fi
     container_prefix="${container_name%%[0-9]*}"
     container_num="${container_name##*[!0-9]}"
     yellow "目前最后一个小鸡的信息："
