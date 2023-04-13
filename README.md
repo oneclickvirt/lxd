@@ -284,6 +284,12 @@ lxc exec 服务器名字 /bin/bash
 ```
 
 退出则输入```exit```回车即可
+
+删除所有LXC容器
+
+```
+lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
+```
   
 </details>
 
