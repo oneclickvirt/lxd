@@ -2,7 +2,7 @@
 
 一键母鸡开小鸡
 
-更新时间：2023.04.12
+更新时间：2023.04.14
 
 ## 配置要求
 
@@ -307,6 +307,8 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 ```
 
 ##### 设置母鸡内存虚拟化大小以及资源池硬盘大小
+
+这里的内存是说要开的SWAP大小，硬盘则是你所有要开的小鸡占的盘的大小的总和
 
 ```bash
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
