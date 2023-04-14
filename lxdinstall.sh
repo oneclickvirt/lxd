@@ -36,3 +36,16 @@ lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
+# 加载iptables并设置回源且允许NAT端口转发
+apt-get install -y iptables iptables-persistent
+iptables -t nat -A POSTROUTING -j MASQUERADE
+sysctl net.ipv4.ip_forward=1
+sysctl_path=$(which sysctl)
+if grep -q "^net.ipv4.ip_forward=1" /etc/sysctl.conf; then
+  if grep -q "^#net.ipv4.ip_forward=1" /etc/sysctl.conf; then
+    sed -i 's/^#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
+  fi
+else
+  echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+fi
+${sysctl_path} -p
