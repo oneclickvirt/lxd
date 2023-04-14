@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.03.02
+# 2023.04.14
 
 # ./build_ipv6_network.sh LXC容器名称
 
@@ -78,6 +78,12 @@ fi
 # 映射 IPV6 地址到容器的私有 IPV6 地址
 ip addr add "$IPV6"/64 dev "$interface"
 ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
+
+if [ ! -f "/etc/iptables/rules.v6" ]; then
+    touch /etc/iptables/rules.v6
+fi
+ip6tables-save > /etc/iptables/rules.v6
+service netfilter-persistent restart
 
 # 打印信息并测试是否通畅
 if ping6 -c 3 $IPV6 &>/dev/null; then
