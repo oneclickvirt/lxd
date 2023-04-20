@@ -354,7 +354,7 @@ dos2unix buildone.sh
 
 如果已通过以上方法生成过小鸡，还需要批量生成小鸡，可使用
 
-[批量生成跳转](https://github.com/spiritLHLS/lxc/blob/main/README.md#%E5%A4%9A%E6%AC%A1%E6%89%B9%E9%87%8F%E7%94%9F%E6%88%90%E5%B0%8F%E9%B8%A1)
+[批量生成跳转](https://github.com/spiritLHLS/lxc/blob/main/README.md#%E5%A4%9A%E6%AC%A1%E6%89%B9%E9%87%8F%E7%94%9F%E6%88%90lxc%E8%99%9A%E6%8B%9F%E5%8C%96%E7%9A%84%E5%B0%8F%E9%B8%A1%E5%8F%AF%E8%87%AA%E5%AE%9A%E4%B9%89%E5%86%85%E5%AD%98%E5%92%8C%E7%A1%AC%E7%9B%98%E5%A4%A7%E5%B0%8F)
 
 对应的脚本重复生成，但注意先删除测试小鸡
 
