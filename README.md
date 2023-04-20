@@ -48,13 +48,15 @@ PS: 如果硬件非常好资源很多，可使用PVE批量开KVM的[跳转](http
 
 开出的小鸡配置：1核256MB内存1GB硬盘限速250Mbps带宽
 
-自动关闭防火墙
+#### 关闭防火墙
 
 ```bash
 apt update
 apt install curl wget sudo dos2unix ufw -y
 ufw disable
 ```
+
+#### 开设虚拟内存(SWAP)
 
 内存看你开多少小鸡，这里如果要开8个，换算需要2G内存，实际内存如果是512MB内存，还需要开1.5G，保守点开2G虚拟内存即可
 
@@ -63,6 +65,8 @@ ufw disable
 ```
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
 ```
+
+#### 安装LXD
 
 实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，上面我描述的情况属于超开了
 
@@ -84,20 +88,13 @@ snap install core
 
 如果无异常，上面三行命令执行结果如下
 
-![](https://i.bmp.ovh/imgs/2022/06/01/76dd73f43e138c88.png)
+![图片](https://user-images.githubusercontent.com/103393591/233270028-5a43d0f7-45f5-4175-969e-d4d182cb877a.png)
 
 一般的选项回车默认即可
 
-选择配置物理盘大小(提示默认最小1GB那个选项)，一般我填空闲磁盘大小减去内存大小后乘以0.95并向下取整
+选择配置物理盘大小(提示默认最小1GB那个选项)，一般我填空闲磁盘大小减去内存大小后乘以0.95并向下取整，这里我填了10GB
 
-提示带auto的更新image的选项记得选no，避免更新占用
-
-软连接lxc命令
-
-```bash
-! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
-export PATH=$PATH:/snap/bin
-```
+提示带auto的更新image的选项记得选no，避免更新占用系统
 
 测试lxc有没有软连接上
 
@@ -105,7 +102,18 @@ export PATH=$PATH:/snap/bin
 lxc -h
 ```
 
-lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
+如果报错则执行以下命令软连接lxc命令
+
+```bash
+! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+export PATH=$PATH:/snap/bin
+```
+
+连接后再测试lxc命令是否有报错找不到
+
+#### 创建一个LXC虚拟化的小鸡
+
+lxc若命令无问题，执行初始化开小鸡，这一步最好放```screen```中后台挂起执行，开小鸡时长与你开几个和母鸡配置相关
 
 执行下面命令加载开机脚本
 
@@ -125,7 +133,7 @@ dos2unix init.sh
 
 有时候init.sh的运行路径有问题，此时建议前面加上sudo强制根目录执行
 
-#### 多次批量生成小鸡
+#### 多次批量生成LXC虚拟化的小鸡
 
 如果需要多次批量生成小鸡，可使用
 
