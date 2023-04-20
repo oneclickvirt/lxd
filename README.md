@@ -185,7 +185,7 @@ snap install core
 
 如果无异常，上面三行命令执行结果如下
 
-![](https://i.bmp.ovh/imgs/2022/06/01/76dd73f43e138c88.png)
+![图片](https://user-images.githubusercontent.com/103393591/233270028-5a43d0f7-45f5-4175-969e-d4d182cb877a.png)
 
 一般的选项回车默认即可
 
