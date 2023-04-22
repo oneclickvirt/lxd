@@ -29,9 +29,11 @@
 
 ## 配置要求
 
+硬件要求
+
 - 系统：Debian 8+, Ubuntu 18+(推荐)
 
-- 硬件配置要求：内存至少512MB，硬盘至少5G
+- 内存：内存至少512MB，硬盘至少5G
 
 PS: 如果硬件非常好资源很多，可使用PVE批量开KVM的 [跳转](https://github.com/spiritLHLS/pve)
 
