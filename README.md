@@ -73,7 +73,7 @@ ufw disable
 执行下面命令，输入1，再输入2048，代表开2G虚拟内存
 
 ```
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
 ```
 
 #### 安装LXD
@@ -131,7 +131,7 @@ lxc若命令无问题，执行初始化开小鸡，这一步最好放```screen``
 
 ```
 rm -rf init.sh
-wget https://github.com/spiritLHLS/lxc/raw/main/init.sh
+wget https://github.com/spiritLHLS/lxc/raw/main/scripts/init.sh
 chmod 777 init.sh
 apt install dos2unix -y
 dos2unix init.sh
@@ -154,7 +154,7 @@ dos2unix init.sh
 如果需要多次批量生成小鸡，可使用
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/add_more.sh -o add_more.sh && chmod +x add_more.sh && bash add_more.sh
+curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/add_more.sh -o add_more.sh && chmod +x add_more.sh && bash add_more.sh
 ```
 
 可多次运行批量生成小鸡，且继承前面已生成的部分在后面添加，可自定义内存和硬盘大小
@@ -182,7 +182,7 @@ ufw disable
 执行下面命令，输入1，再输入1024，代表开1G虚拟内存
 
 ```bash
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
 ```
 
 实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，再多就超开了
@@ -232,7 +232,7 @@ lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后�
 
 ```
 rm -rf least.sh
-wget https://github.com/spiritLHLS/lxc/raw/main/least.sh
+wget https://github.com/spiritLHLS/lxc/raw/main/scripts/least.sh
 chmod 777 least.sh
 apt install dos2unix -y
 dos2unix least.sh
@@ -333,7 +333,7 @@ lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
 ##### 下载文件
 
 ```bash
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 ```
 
 ##### 设置母鸡内存虚拟化大小以及资源池硬盘大小
@@ -350,7 +350,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o l
 
 ```
 rm -rf buildone.sh
-wget https://github.com/spiritLHLS/lxc/raw/main/buildone.sh
+wget https://github.com/spiritLHLS/lxc/raw/main/scripts/buildone.sh
 chmod 777 buildone.sh
 apt install dos2unix -y
 dos2unix buildone.sh
@@ -395,7 +395,7 @@ ls
 下载脚本
 
 ```bash
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh
 ```
 
 自动为容器配置IPV6映射地址
@@ -418,7 +418,7 @@ bash build_ipv6_network.sh test
 - 事前预防
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
+curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
 ```
 
 ##### 使用screen配置监控屏蔽某些进程的执行，遇到某些进程的出现直接关闭容器
@@ -428,7 +428,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/rules.sh -o rules.sh && chmod
 - 事后停机
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
+curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
 ```
 
 ##### 一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境
@@ -436,7 +436,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/build_monitor.sh -o build_mon
 - (***非必须***，该脚本仅仅是为了站点对接监控方便，不装的也没问题)
 
 ```
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
 ```
 
 ### 致谢
