@@ -21,17 +21,17 @@ pre_check(){
         apt-get install dos2unix -y
     fi
     if [ ! -f ssh.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
         chmod 777 ssh.sh
         dos2unix ssh.sh
     fi
     if [ ! -f config.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
         chmod 777 config.sh
         dos2unix config.sh
     fi
     if [ ! -f buildone.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/buildone.sh -o buildone.sh
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh -o buildone.sh
         chmod 777 buildone.sh
         dos2unix buildone.sh
     fi
