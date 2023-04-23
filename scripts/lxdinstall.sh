@@ -2,12 +2,12 @@
 # by https://github.com/spiritLHLS/lxc
 # 2023.02.27
 
-# curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
+# curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 
 # 内存设置
 apt install dos2unix ufw -y
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/swap2.sh -o swap2.sh && chmod +x swap2.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
 ./swap2.sh "$1"
 # lxd安装
 apt -y install zfsutils || apt -y install zfs
@@ -34,8 +34,8 @@ lxc config set images.auto_update_interval 0
 # 设置自动配置内网IPV6地址
 lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/ssh.sh -o ssh.sh
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
 # 加载iptables并设置回源且允许NAT端口转发
 apt-get install -y iptables iptables-persistent
 iptables -t nat -A POSTROUTING -j MASQUERADE
