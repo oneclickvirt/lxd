@@ -439,6 +439,18 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/build_monitor.sh -o b
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
 ```
 
+##### 一键安装母鸡可视化操作的面板
+
+- (***非必须***，该面板只是为了方便可视化操作，没有也没问题)
+
+```
+lxc config set core.https_address [::]
+lxc config set core.trust_password some-secret-string
+snap install lxdmosaic
+```
+
+安装完毕后打开母鸡IP地址，按照提示设置admin的密码，其他一路默认就能使用面板了
+
 ### 致谢
 
 https://github.com/lxc/lxd
@@ -452,6 +464,8 @@ https://discuss.linuxcontainers.org/t/how-to-run-docker-inside-lxc-container/130
 https://discuss.linuxcontainers.org/t/error-seccomp-notify-not-supported-on-container-start/15038/3
 
 https://discuss.linuxcontainers.org/t/how-do-i-assign-a-public-ipv6-address-to-a-lxc-container/6028
+
+https://github.com/turtle0x1/LxdMosaic
 
 感谢 [@Ella-Alinda](https://github.com/Ella-Alinda) [@fscarmen](https://github.com/fscarmen) 提供的指导
 
