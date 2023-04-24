@@ -162,7 +162,6 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/add_more.sh -o add_mo
 ### 纯探针版本
 
 (只有一个SSH端口)
-
 <details>
 
 开出的小鸡配置：1核128MB内存300MB硬盘限速200Mbps带宽
@@ -251,7 +250,6 @@ dos2unix least.sh
 ### 查看log文件
 
 #### 开完小鸡后，具体信息会生成在当前目录下的log文件中，格式如下
-
 <details>
 
 ```
@@ -270,7 +268,6 @@ cat log
 ### 注意事项
 
 #### 不要拿该脚本开出的小鸡当生产环境，lxc虚拟化不支持换内核，dd，开启bbr，**纯探针版本**(普通版本无问题)挂载warp等操作
-
 <details>
 
 本仓库不提供lxc虚拟化使用的其他问题的解答，非脚本相关问题请自行解决
