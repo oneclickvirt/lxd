@@ -9,7 +9,7 @@ fi
 echo $$ > /tmp/lxc_monitor.pid
 echo "监控PID为 /tmp/lxc_monitor.pid 文件中的内容，可执行 cat /tmp/lxc_monitor.pid 查看"
 # 指定关键词列表
-KEYWORDS=("xmrig" "masscan" "zmap" "nmap" "medusa")
+KEYWORDS=("xmrig" "masscan" "zmap" "nmap" "medusa" "webBenchmark")
 while true; do
     # 获取所有运行中的容器名字
     CONTAINERS=$(lxc list --format=json | jq -r '.[] | select(.status == "Running") | .name')
