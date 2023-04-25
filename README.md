@@ -335,15 +335,15 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall
 
 ##### 设置母鸡内存虚拟化大小以及资源池硬盘大小
 
-这里的内存是说要开的SWAP大小，硬盘则是你所有要开的小鸡占的盘的大小的总和
+这里的虚拟内存是说要开的SWAP大小，存储池则是你所有要开的小鸡占的盘的大小的总和
 
 ```bash
-./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
+./lxdinstall.sh 虚拟内存大小以MB计算 存储池大小以GB计算
 ```
 
 例子：
 
-如果你系统盘除去已占用还有18G硬盘空余，你想开2G虚拟内存，15G的存储池，则
+如果你系统盘除去已占用还有18G硬盘空余，你想开2G虚拟内存(2048MB的SWAP)，15G的存储池，则输入
 
 ```
 ./lxdinstall.sh 2048 16
