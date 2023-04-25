@@ -341,6 +341,14 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall
 ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 ```
 
+例子：
+
+如果你系统盘除去已占用还有18G硬盘空余，你想开2G虚拟内存，15G的存储池，则
+
+```
+./lxdinstall.sh 2048 16
+```
+
 #### 只开一个NAT服务器
 
 ##### 下载开机脚本
