@@ -349,6 +349,13 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall
 ./lxdinstall.sh 2048 16
 ```
 
+安装完毕执行以下命令保证LXC命令的路径正确
+
+```
+! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+export PATH=$PATH:/snap/bin
+```
+
 #### 只开一个NAT服务器
 
 ##### 下载开机脚本
