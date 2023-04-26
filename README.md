@@ -6,7 +6,7 @@
 
 更新时间：2023.04.26
 
-修复了debian的zfs问题，现在一键脚本安装lxd环境支持debian和ubuntu了
+修复了debian(仅限x86_64架构)的zfs问题，现在一键安装lxd环境的脚本支持debian和ubuntu了
 
 ## 待解决的问题
 
@@ -353,7 +353,7 @@ lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
 
 ## 一键脚本老手推荐方便快捷
 
-- 环境要求：Ubuntu 18+(推荐)，Debian 8+
+- 环境要求：Ubuntu 18+(推荐)，Debian 8+(仅限x86_64架构)
 - 只生成一个NAT服务器，可自定义限制所有内容
 
 #### 一键安装lxd环境
