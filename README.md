@@ -503,6 +503,8 @@ https://discuss.linuxcontainers.org/t/how-do-i-assign-a-public-ipv6-address-to-a
 
 https://github.com/turtle0x1/LxdMosaic
 
+https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/index.html
+
 感谢 [@Ella-Alinda](https://github.com/Ella-Alinda) [@fscarmen](https://github.com/fscarmen) 提供的指导
 
 ### 友链
