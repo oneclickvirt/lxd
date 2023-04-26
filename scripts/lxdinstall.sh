@@ -9,11 +9,29 @@ _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
+reading(){ read -rp "$(_green "$1")" "$2"; }
+
+while true; do
+    reading "母鸡需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
+    if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
+        break
+    else
+        _yellow "输入无效，请输入一个正整数。"
+    fi
+done
+while true; do
+    reading "母鸡需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要1G存储池则输入1)：" disk_nums
+    if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
+        break
+    else
+        _yellow "输入无效，请输入一个正整数。"
+    fi
+done
 
 # 内存设置
 apt install dos2unix ufw -y
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
-./swap2.sh "$1"
+./swap2.sh "$memory_nums"
 # zfs
 apt-get -y install zfsutils || apt -y install zfs
 # lxd安装
@@ -69,11 +87,11 @@ if [ -z "$STORAGE_BACKEND" ]; then
       exit 0
     fi
 fi
-# /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$2" --storage-pool default --auto
+# /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 if [ "$STORAGE_BACKEND" = "zfs" ]; then
-    /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$2" --storage-pool default --auto
+    /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
 else
-    /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-device "$2" --storage-pool default --auto
+    /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-device "$disk_nums" --storage-pool default --auto
 fi
 sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
