@@ -11,28 +11,6 @@ _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading(){ read -rp "$(_green "$1")" "$2"; }
 
-# 读取母鸡配置
-while true; do
-    reading "母鸡需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
-    if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
-        break
-    else
-        _yellow "输入无效，请输入一个正整数。"
-    fi
-done
-while true; do
-    reading "母鸡需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
-    if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
-        break
-    else
-        _yellow "输入无效，请输入一个正整数。"
-    fi
-done
-
-# 内存设置
-apt install dos2unix ufw -y
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
-./swap2.sh "$memory_nums"
 # zfs
 if ! command -v zfs > /dev/null; then
   apt-get update
@@ -41,8 +19,19 @@ if ! command -v zfs > /dev/null; then
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
   apt-get install -y linux-headers-amd64
   apt-get install -y ${codename}-backports 
+  echo "deb http://deb.debian.org/debian bullseye-backports main contrib" > /etc/apt/sources.list.d/bullseye-backports.list
+  echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >> /etc/apt/sources.list.d/bullseye-backports.list
+echo "Package: src:zfs-linux
+Pin: release n=bullseye-backports
+Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
+  apt-get update
+  apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
   apt-get install -y zfsutils-linux
+  apt-get install -y zfs-dkms
+  kernal_file=$(find /usr/src/ -name 'linux-headers-*' | head -n 1)
+  dkms autoinstall --kernelsourcedir "$kernal_file"
 fi
+cd /root >/dev/null 2>&1
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
 lxd_snapd=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snapd`
@@ -80,7 +69,7 @@ else
   _yellow "重启后请再次执行本脚本"
   exit 0
 fi
-# 资源池设置-硬盘
+# 类型设置-硬盘
 SUPPORTED_BACKENDS=("zfs" "lvm" "btrfs" "ceph" "dir")
 STORAGE_BACKEND=""
 for backend in "${SUPPORTED_BACKENDS[@]}"; do
@@ -94,6 +83,30 @@ if [ -z "$STORAGE_BACKEND" ]; then
     _yellow "无可支持的存储类型，请联系脚本维护者"
     exit
 fi
+# 读取母鸡配置
+while true; do
+    reading "母鸡需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
+    if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
+        break
+    else
+        _yellow "输入无效，请输入一个正整数。"
+    fi
+done
+while true; do
+    reading "母鸡需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
+    if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
+        break
+    else
+        _yellow "输入无效，请输入一个正整数。"
+    fi
+done
+
+# 内存设置
+apt install dos2unix ufw -y
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
+./swap2.sh "$memory_nums"
+
+# 资源池设置-硬盘
 # /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 if [ "$STORAGE_BACKEND" = "zfs" ]; then
     /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
