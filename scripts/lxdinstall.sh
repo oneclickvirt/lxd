@@ -137,7 +137,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -
 sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 export PATH=$PATH:/snap/bin
-! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit 1
+! lxc -h >/dev/null 2>&1 && _yellow '使用 lxc -h 检测到路径有问题，请手动查看LXD是否安装成功' && exit 1
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
