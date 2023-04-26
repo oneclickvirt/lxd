@@ -90,6 +90,13 @@ fi
 # /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 if [ "$STORAGE_BACKEND" = "zfs" ]; then
     /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
+elif [ "$STORAGE_BACKEND" = "dir" ]; then
+    _green "由于无zfs，使用默认dir类型无限定存储池大小"
+    /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
+elif [ "$STORAGE_BACKEND" = "lvm" ]; then
+    _green "由于无zfs，使用默认lvm类型无限定存储池大小"
+    DISK=$(lsblk -p -o NAME,TYPE | awk '$2=="disk"{print $1}')
+    /snap/bin/lxd init --storage-backend lvm --storage-create-device $DISK --storage-pool lvm_pool --auto
 else
     /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-device "$disk_nums" --storage-pool default --auto
 fi
