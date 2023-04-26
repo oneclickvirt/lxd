@@ -34,7 +34,14 @@ apt install dos2unix ufw -y
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
 ./swap2.sh "$memory_nums"
 # zfs
-apt-get -y install zfsutils || apt -y install zfs
+if ! command -v zfs > /dev/null; then
+  apt-get update
+  apt-get -y install zfsutils || apt -y install zfs
+  apt-get install -y zfsutils-linux
+  modprobe zfs
+  _yellow "zfs 安装后需要重启服务器才会启用，请重启服务器再运行本脚本"
+  exit 0
+fi
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
 lxd_snapd=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snapd`
@@ -83,13 +90,8 @@ for backend in "${SUPPORTED_BACKENDS[@]}"; do
     fi
 done
 if [ -z "$STORAGE_BACKEND" ]; then
-    _yellow "无可支持的存储类型，尝试进行zfs安装"
-    if ! command -v zfs > /dev/null; then
-      apt-get update
-      apt-get install -y zfsutils-linux
-      _yellow "zfs 安装后需要重启服务器才会启用，请重启服务器再运行本脚本"
-      exit 0
-    fi
+    _yellow "无可支持的存储类型，请联系脚本维护者"
+    exit
 fi
 # /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 if [ "$STORAGE_BACKEND" = "zfs" ]; then
