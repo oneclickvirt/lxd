@@ -36,11 +36,12 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -
 # zfs
 if ! command -v zfs > /dev/null; then
   apt-get update
-  apt-get -y install zfsutils || apt -y install zfs
+  apt-get install -y linux-headers-amd64
+  codename=$(lsb_release -cs)
+  echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
+  apt-get install -y linux-headers-amd64
+  apt-get install -y ${codename}-backports 
   apt-get install -y zfsutils-linux
-  modprobe zfs
-  _yellow "zfs 安装后需要重启服务器才会启用，请重启服务器再运行本脚本"
-  exit 0
 fi
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
