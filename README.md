@@ -364,6 +364,8 @@ lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
 
 **如果是Debian系统的母鸡，务必在screen中执行本脚本，避免长期运行SSH中断导致ZFS安装失败**
 
+环境安装过程中可能需要重启服务器再次执行以加载内核
+
 ```bash
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 ```
@@ -371,8 +373,6 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall
 例子：
 
 如果系统盘除去已占用空间还有18G硬盘空余，想开2G虚拟内存(2048MB的SWAP)，15G的存储池，则依次输入```2048```和```15```
-
-环境安装完毕后关闭窗口，开一个新窗口再执行后续脚本(用SSH的断开连接重新连接一次，用screen的删除窗口开一个新的screen窗口)，因为要加载新的环境变量
 
 #### 只开一个NAT服务器
 
