@@ -19,6 +19,8 @@ if ! command -v zfs > /dev/null; then
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
   apt-get install -y linux-headers-amd64
   apt-get install -y ${codename}-backports 
+  apt-get install -y zfsutils-linux
+  apt-get install -y zfs-dkms
   echo "deb http://deb.debian.org/debian bullseye-backports main contrib" > /etc/apt/sources.list.d/bullseye-backports.list
   echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >> /etc/apt/sources.list.d/bullseye-backports.list
 echo "Package: src:zfs-linux
@@ -26,10 +28,8 @@ Pin: release n=bullseye-backports
 Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get update
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
-  apt-get install -y zfsutils-linux
-  apt-get install -y zfs-dkms
-  kernal_file=$(find /usr/src/ -name 'linux-headers-*' | head -n 1)
-  dkms autoinstall --kernelsourcedir "$kernal_file"
+#   kernal_file=$(find /usr/src/ -name 'linux-headers-*' | head -n 1)
+#   dkms autoinstall --kernelsourcedir "$kernal_file"
 fi
 cd /root >/dev/null 2>&1
 # lxd安装
