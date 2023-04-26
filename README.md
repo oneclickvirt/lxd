@@ -6,6 +6,8 @@
 
 更新时间：2023.04.26
 
+修复了debian的zfs问题，现在一键脚本安装lxd环境支持debian和ubuntu了
+
 # 目录
 
 * [配置要求](#配置要求)
@@ -48,7 +50,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/pre_check.
 <details>
 项目特点：
 
-- 本套脚本开发使用的Ubuntu20，Ubuntu别的长期维护版本应该也没问题，但debian系列多半有```zfs```的问题，自行解决
+- 本套脚本开发使用的Ubuntu20，Ubuntu别的长期维护版本应该也没问题，Debian无法使用zfs时自动切换别的存储类型
 
 - 已设置同时进行TCP和UDP转发，除了SSH端口其他的映射内网外网端口一致
 
@@ -347,7 +349,7 @@ lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
 
 ## 一键脚本老手推荐方便快捷
 
-- 环境要求：必须为Ubuntu系统，Debian系统会出现zfs问题，只能使用手动事先安装zfs解决(不会解决的务必使用Ubuntu)
+- 环境要求：Ubuntu 18+(推荐)，Debian 8+
 - 只生成一个NAT服务器，可自定义限制所有内容
 
 #### 一键安装lxd环境
