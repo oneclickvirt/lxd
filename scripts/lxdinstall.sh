@@ -28,6 +28,8 @@ Pin: release n=bullseye-backports
 Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get update
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
+  _green "请重启本机加载新内核"
+  exit 1
 #   kernal_file=$(find /usr/src/ -name 'linux-headers-*' | head -n 1)
 #   dkms autoinstall --kernelsourcedir "$kernal_file"
 fi
