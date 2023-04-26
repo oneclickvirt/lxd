@@ -8,6 +8,10 @@
 
 修复了debian的zfs问题，现在一键脚本安装lxd环境支持debian和ubuntu了
 
+## 待解决的问题
+
+使得母鸡支持更多的系统版本，使小鸡支持更多的系统版本
+
 # 目录
 
 * [配置要求](#配置要求)
@@ -512,7 +516,3 @@ https://github.com/MXCCO/lxdpro
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/spiritLHLS/lxc.svg)](https://starchart.cc/spiritLHLS/lxc)
-
-## 待解决的问题
-
-使得母鸡支持更多的系统版本
