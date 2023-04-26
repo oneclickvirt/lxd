@@ -362,7 +362,7 @@ lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
 
 这里的虚拟内存是说要开的SWAP大小，存储池则是你所有要开的小鸡占的盘的大小的总和
 
-**如果是Debian系统的母鸡，务必在screen中执行本脚本，避免长期运行SSH中断导致ZFS安装失败，中间可能要求重启服务器，重启后再次执行本脚本**
+**如果是Debian系统的母鸡，务必在screen中执行本脚本，避免长期运行SSH中断导致ZFS安装失败**
 
 ```bash
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
