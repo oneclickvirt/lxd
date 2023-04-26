@@ -22,25 +22,6 @@ if ! command -v curl > /dev/null; then
   apt-get install curl -y
 fi
 
-# zfs检测与安装
-if ! command -v zfs > /dev/null; then
-  apt-get install -y linux-headers-amd64
-  codename=$(lsb_release -cs)
-  echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
-  apt-get install -y linux-headers-amd64
-  apt-get install -y ${codename}-backports 
-  apt-get install -y zfsutils-linux
-  apt-get install -y zfs-dkms
-  echo "deb http://deb.debian.org/debian bullseye-backports main contrib" > /etc/apt/sources.list.d/bullseye-backports.list
-  echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >> /etc/apt/sources.list.d/bullseye-backports.list
-echo "Package: src:zfs-linux
-Pin: release n=bullseye-backports
-Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
-  apt-get update
-  apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
-  _green "请重启本机再次执行本脚本以加载新内核"
-  exit 1
-fi
 cd /root >/dev/null 2>&1
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
@@ -76,6 +57,27 @@ else
   ! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
   _green "LXD安装完成"        
 fi
+
+# zfs检测与安装
+if ! command -v zfs > /dev/null; then
+  apt-get install -y linux-headers-amd64
+  codename=$(lsb_release -cs)
+  echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
+  apt-get install -y linux-headers-amd64
+  apt-get install -y ${codename}-backports 
+  apt-get install -y zfsutils-linux
+  apt-get install -y zfs-dkms
+  echo "deb http://deb.debian.org/debian bullseye-backports main contrib" > /etc/apt/sources.list.d/bullseye-backports.list
+  echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >> /etc/apt/sources.list.d/bullseye-backports.list
+echo "Package: src:zfs-linux
+Pin: release n=bullseye-backports
+Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
+  apt-get update
+  apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
+  _green "请重启本机再次执行本脚本以加载新内核"
+  exit 1
+fi
+
 # 类型设置-硬盘
 SUPPORTED_BACKENDS=("zfs" "lvm" "btrfs" "ceph" "dir")
 STORAGE_BACKEND=""
