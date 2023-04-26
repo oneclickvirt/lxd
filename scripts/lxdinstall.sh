@@ -21,6 +21,7 @@ fi
 if ! command -v curl > /dev/null; then
   apt-get install curl -y
 fi
+export DEBIAN_FRONTEND=noninteractive
 
 cd /root >/dev/null 2>&1
 # lxd安装
