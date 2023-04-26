@@ -67,9 +67,9 @@ else
   export PATH=$PATH:/snap/bin
   ! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
   _green "LXD安装完成"        
-  _yellow "需要重启母鸡才能使用后续脚本"
-  _yellow "重启后请再次执行本脚本"
-  exit 0
+#   _yellow "需要重启母鸡才能使用后续脚本"
+#   _yellow "重启后请再次执行本脚本"
+#   exit 0
 fi
 # 类型设置-硬盘
 SUPPORTED_BACKENDS=("zfs" "lvm" "btrfs" "ceph" "dir")
@@ -126,6 +126,7 @@ sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 export PATH=$PATH:/snap/bin
 ! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
+
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
