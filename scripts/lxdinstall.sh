@@ -11,7 +11,7 @@ _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading(){ read -rp "$(_green "$1")" "$2"; }
 
-# zfs
+# zfs检测与安装
 if ! command -v zfs > /dev/null; then
   apt-get update
   apt-get install -y linux-headers-amd64
@@ -28,10 +28,6 @@ Pin: release n=bullseye-backports
 Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get update
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
-#   _green "请重启本机加载新内核"
-#   exit 1
-#   kernal_file=$(find /usr/src/ -name 'linux-headers-*' | head -n 1)
-#   dkms autoinstall --kernelsourcedir "$kernal_file"
 fi
 cd /root >/dev/null 2>&1
 # lxd安装
@@ -67,9 +63,6 @@ else
   export PATH=$PATH:/snap/bin
   ! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
   _green "LXD安装完成"        
-#   _yellow "需要重启母鸡才能使用后续脚本"
-#   _yellow "重启后请再次执行本脚本"
-#   exit 0
 fi
 # 类型设置-硬盘
 SUPPORTED_BACKENDS=("zfs" "lvm" "btrfs" "ceph" "dir")
