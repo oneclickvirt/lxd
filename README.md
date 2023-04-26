@@ -81,6 +81,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap.sh -o
 实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，上面我描述的情况属于超开了
 
 ```
+apt install snap -y
 apt install snapd -y
 snap install lxd
 /snap/bin/lxd init
@@ -187,6 +188,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap.sh -o
 实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，再多就超开了
 
 ```
+apt install snap -y
 apt install snapd -y
 snap install lxd
 /snap/bin/lxd init
