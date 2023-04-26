@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.02.27
+# 2023.04.26
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
@@ -11,6 +11,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -
 ./swap2.sh "$1"
 # lxd安装
 apt -y install zfsutils || apt -y install zfs
+apt install snap -y
 apt install snapd -y
 snap remove lxd -y >/dev/null 2>&1
 ! snap install lxd && snap install core && snap install lxd
