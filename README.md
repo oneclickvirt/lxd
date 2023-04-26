@@ -480,6 +480,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/backend.sh
 ##### 一键安装母鸡可视化操作的面板
 
 - (***非必须***，该面板只是为了方便可视化操作，没有也没问题)
+- 原作者仓库：[跳转](https://github.com/turtle0x1/LxdMosaic)
 
 ```
 lxc config set core.https_address [::]
