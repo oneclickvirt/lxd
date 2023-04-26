@@ -5,6 +5,11 @@
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 
+_red() { echo -e "\033[31m\033[01m$@\033[0m"; }
+_green() { echo -e "\033[32m\033[01m$@\033[0m"; }
+_yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
+_blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
+
 # 内存设置
 apt install dos2unix ufw -y
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
@@ -16,10 +21,10 @@ lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
 lxd_snapd=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snapd`
 if [[ "$lxd_snap" =~ ^snap.* ]]&&[[ "$lxd_snapd" =~ ^snapd.* ]]
 then
-  echo "snap已安装"
+  _green "snap已安装"
 else
-  echo "开始安装snap"
-  apt update
+  _green "开始安装snap"
+  apt-get update
   apt-get -y install snap
   apt-get -y install snapd
 fi
@@ -27,22 +32,22 @@ snap_core20=`snap list core20`
 snap_lxd=`snap list lxd`
 if [[ "$snap_core20" =~ core20.* ]]&&[[ "$snap_lxd" =~ lxd.* ]]
 then
-  echo "lxd已安装"
+  _green "lxd已安装"
   lxd_lxc_detect=`lxc list`
   if [[ "$lxd_lxc_detect" =~ "snap-update-ns failed with code1".* ]]
   then
     systemctl restart apparmor
     snap restart lxd
   else
-    echo "环境检测无问题"
+    _green "环境检测无问题"
   fi
 else
-  echo "开始安装LXD"
+  _green "开始安装LXD"
   snap install core
   snap install lxd
-  echo "LXD安装完成"        
-  echo "需要重启母鸡才能使用后续脚本"
-  echo "重启后请再次执行本脚本"
+  _green "LXD安装完成"        
+  _yellow "需要重启母鸡才能使用后续脚本"
+  _yellow "重启后请再次执行本脚本"
   exit 0
 fi
 # 资源池设置-硬盘
@@ -51,16 +56,16 @@ STORAGE_BACKEND=""
 for backend in "${SUPPORTED_BACKENDS[@]}"; do
     if command -v $backend >/dev/null; then
         STORAGE_BACKEND=$backend
-        echo "Using $STORAGE_BACKEND storage backend"
+        _green "使用 $STORAGE_BACKEND 存储类型"
         break
     fi
 done
 if [ -z "$STORAGE_BACKEND" ]; then
-    echo "无可支持的存储类型，尝试进行zfs安装"
+    _yellow "无可支持的存储类型，尝试进行zfs安装"
     if ! command -v zfs > /dev/null; then
       apt-get update
       apt-get install -y zfsutils-linux
-      echo "zfs 安装后需要重启服务器才会启用，请重启服务器再运行本脚本"
+      _yellow "zfs 安装后需要重启服务器才会启用，请重启服务器再运行本脚本"
       exit 0
     fi
 fi
@@ -73,7 +78,7 @@ fi
 sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 export PATH=$PATH:/snap/bin
-! lxc -h >/dev/null 2>&1 && echo 'Failed install lxc' && exit
+! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
