@@ -63,6 +63,9 @@ else
   _green "开始安装LXD"
   snap install core
   snap install lxd
+  ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+  export PATH=$PATH:/snap/bin
+  ! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
   _green "LXD安装完成"        
   _yellow "需要重启母鸡才能使用后续脚本"
   _yellow "重启后请再次执行本脚本"
