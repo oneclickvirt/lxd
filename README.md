@@ -32,13 +32,13 @@
 - 系统：Debian 8+, Ubuntu 18+(推荐)
 - 内存：内存至少512MB
 - 硬盘：硬盘(系统盘)至少10G
-- 网络：独立的IPV4地址，IPV6可有可无，带宽能下载脚本就行，网络能连接Github就行
+- 网络：独立的IPV4地址，IPV6可有可无，带宽能下载脚本就行，网络能连接Github的raw页面就行
 
 PS: 如果硬件非常好资源很多，可使用PVE批量开KVM的 [跳转](https://github.com/spiritLHLS/pve)
 
-#### 脚本检测
+### 脚本检测
 
-使用后续脚本的务必执行本命令检测母鸡
+**使用后续脚本的务必执行本命令检测母鸡是否符合要求**
 
 ```
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/pre_check.sh -o pre_check.sh && chmod +x pre_check.sh && bash pre_check.sh
@@ -352,34 +352,17 @@ lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
 
 #### 一键安装lxd环境
 
-##### 下载文件
-
-```bash
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
-```
-
-##### 设置母鸡内存虚拟化大小以及资源池硬盘大小
+##### 初始化LXC环境
 
 这里的虚拟内存是说要开的SWAP大小，存储池则是你所有要开的小鸡占的盘的大小的总和
 
 ```bash
-./lxdinstall.sh 虚拟内存大小以MB计算 存储池大小以GB计算
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 ```
 
 例子：
 
-如果你系统盘除去已占用还有18G硬盘空余，你想开2G虚拟内存(2048MB的SWAP)，15G的存储池，则输入
-
-```
-./lxdinstall.sh 2048 16
-```
-
-安装完毕执行以下命令保证LXC命令的路径正确
-
-```
-! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
-export PATH=$PATH:/snap/bin
-```
+如果系统盘除去已占用空间还有18G硬盘空余，想开2G虚拟内存(2048MB的SWAP)，15G的存储池，则依次输入```2048```和```15```
 
 #### 只开一个NAT服务器
 
