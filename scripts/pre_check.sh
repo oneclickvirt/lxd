@@ -42,7 +42,7 @@ else
     codename=$(cat /etc/*release | grep -E '^VERSION_CODENAME=' | awk -F= '{ print $2 }' | tr -d \")
 fi
 
-if [[ $distro != "Ubuntu" && ($distro != "Debian" || $codename -lt "jessie") ]]; then
+if [[ ! $distro == @(Ubuntu|ubuntu|Debian|debian) ]]; then
     _yellow "本机系统不符合要求，需要 Ubuntu 或 Debian 8+"
     exit 1
 else
