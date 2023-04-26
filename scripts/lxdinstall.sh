@@ -28,9 +28,9 @@ else
   apt-get -y install snap
   apt-get -y install snapd
 fi
-snap_core20=`snap list core20`
+snap_core=`snap list core`
 snap_lxd=`snap list lxd`
-if [[ "$snap_core20" =~ core20.* ]]&&[[ "$snap_lxd" =~ lxd.* ]]
+if [[ "$snap_core" =~ core.* ]]&&[[ "$snap_lxd" =~ lxd.* ]]
 then
   _green "lxd已安装"
   lxd_lxc_detect=`lxc list`
