@@ -60,7 +60,7 @@ else
 fi
 
 # zfs检测与安装
-if ! command -v zfs > /dev/null; then
+if ! lsmod | grep -q zfs; then
   apt-get install -y linux-headers-amd64
   codename=$(lsb_release -cs)
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
