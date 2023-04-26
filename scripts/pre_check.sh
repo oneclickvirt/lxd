@@ -24,10 +24,11 @@ virtcheck=$(systemd-detect-virt)
 case "$virtcheck" in
   kvm ) VIRT='kvm';;
   openvz ) VIRT='openvz';;
+  lxc ) VIRT='lxc';;
   * ) VIRT='kvm';;
 esac
-if [ $VIRT = "openvz" ]; then
-  _yellow "OVZ架构无法使用本套脚本，请使用别的虚拟化的服务器做母鸡，如KVM"
+if [ $VIRT == @(openvz|lxc) ]; then
+  _yellow "openvz或lxc架构无法使用本套脚本，请使用别的虚拟化的服务器做母鸡，如KVM"
   exit 1
 else
   _green "本机架构符合要求"
