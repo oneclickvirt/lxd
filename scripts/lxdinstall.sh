@@ -92,11 +92,6 @@ while true; do
     fi
 done
 
-# 内存设置
-apt install dos2unix ufw -y
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
-./swap2.sh "$memory_nums"
-
 # 资源池设置-硬盘
 # /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
@@ -120,6 +115,11 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载新内核"
   exit 1
 fi
+
+# 虚拟内存设置
+apt install dos2unix ufw -y
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
+./swap2.sh "$memory_nums"
 
 # if [ "$STORAGE_BACKEND" = "zfs" ]; then
 #     /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
