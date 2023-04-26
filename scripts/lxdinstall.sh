@@ -38,6 +38,8 @@ Pin: release n=bullseye-backports
 Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get update
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
+  _green "请重启本机再次执行本脚本以加载新内核"
+  exit 1
 fi
 cd /root >/dev/null 2>&1
 # lxd安装
