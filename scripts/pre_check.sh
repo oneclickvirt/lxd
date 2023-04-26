@@ -22,9 +22,9 @@ fi
 # 必须是全虚拟化的架构
 virtcheck=$(systemd-detect-virt)
 case "$virtcheck" in
-  "*kvm*" ) VIRT='kvm';;
-  "*openvz*" ) VIRT='openvz';;
-  "*lxc*" ) VIRT='lxc';;
+  kvm ) VIRT='kvm';;
+  openvz ) VIRT='openvz';;
+  lxc ) VIRT='lxc';;
   * ) VIRT='kvm';;
 esac
 if [[ $VIRT == @(openvz|lxc) ]]; then
