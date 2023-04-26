@@ -13,7 +13,7 @@ if [[ $(id -u) != 0 ]]; then
     _yellow "必须以root身份运行脚本，请切换到root权限再使用本套脚本。"
     exit 1
 elif [[ $(pwd) != /root* ]]; then
-    _yellow "脚本必须在/root目录下，请动到/root目录下再运行脚本。"
+    _yellow "脚本必须在/root目录下，请在/root目录下运行本脚本。"
     exit 1
 else
     _green "本机路径符合要求"
