@@ -11,6 +11,7 @@ _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading(){ read -rp "$(_green "$1")" "$2"; }
 
+# 读取母鸡配置
 while true; do
     reading "母鸡需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
     if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
@@ -20,7 +21,7 @@ while true; do
     fi
 done
 while true; do
-    reading "母鸡需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要1G存储池则输入1)：" disk_nums
+    reading "母鸡需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
     if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
         break
     else
