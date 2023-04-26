@@ -11,9 +11,19 @@ _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading(){ read -rp "$(_green "$1")" "$2"; }
 
+apt-get update
+if ! command -v sudo > /dev/null; then
+  apt-get install sudo -y
+fi
+if ! command -v wget > /dev/null; then
+  apt-get install wget -y
+fi
+if ! command -v curl > /dev/null; then
+  apt-get install curl -y
+fi
+
 # zfs检测与安装
 if ! command -v zfs > /dev/null; then
-  apt-get update
   apt-get install -y linux-headers-amd64
   codename=$(lsb_release -cs)
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
@@ -118,8 +128,7 @@ fi
 sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 export PATH=$PATH:/snap/bin
-! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
-
+! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit 1
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
