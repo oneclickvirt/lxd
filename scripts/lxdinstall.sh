@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.04.26
+# 2023.04.27
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
