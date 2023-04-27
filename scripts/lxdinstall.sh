@@ -42,7 +42,7 @@ then
 else
   _green "开始安装snap"
   apt-get update
-  apt-get -y install snap
+#   apt-get -y install snap
   apt-get -y install snapd
 fi
 snap_core=`snap list core`
