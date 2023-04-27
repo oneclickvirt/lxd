@@ -121,7 +121,7 @@ if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
   fi
   echo "$temp"
 fi
-if [[ $status == false ]]; then
+if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; then
   _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
   apt-get install -y linux-headers-amd64
   codename=$(lsb_release -cs)
