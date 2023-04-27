@@ -48,7 +48,7 @@ PS: 如果硬件非常好资源很多，可使用PVE批量开KVM的 [跳转](htt
 **使用后续脚本的务必执行本命令检测母鸡是否符合要求**
 
 ```
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/pre_check.sh -o pre_check.sh && chmod +x pre_check.sh && bash pre_check.sh
+bash <(wget -qO- --no-check-certificate https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/pre_check.sh)
 ```
 
 #### 项目特点
