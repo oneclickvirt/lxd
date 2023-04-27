@@ -104,7 +104,7 @@ done
 # 资源池设置-硬盘
 # /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 # zfs检测与安装
-temp=$(/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+temp=$(/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto)
 if [[ "$temp" =~ "lxd.migrate" ]] && [[ $? -ne 0 ]]; then
   /snap/bin/lxd.migrate
 elif [[ $? -ne 0 ]]; then
