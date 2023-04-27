@@ -93,4 +93,4 @@ else
   _green "本机IP符合要求"
 fi
 
-_green "本机符合作为母鸡的要求"
+_green "本机符合作为LXC母鸡的要求，可以批量开设LXC容器"
