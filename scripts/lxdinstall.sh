@@ -103,9 +103,11 @@ done
 
 # 资源池设置-硬盘
 # /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
-/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 # zfs检测与安装
-if [ $? -ne 0 ]; then
+temp=$(/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+if [[ "$temp" =~ "lxd.migrate" ]] && [[ $? -ne 0 ]]; then
+  /snap/bin/lxd.migrate
+elif [[ $? -ne 0 ]]; then
   _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
   apt-get install -y linux-headers-amd64
   codename=$(lsb_release -cs)
