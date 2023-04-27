@@ -105,9 +105,15 @@ done
 # /snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 # zfs检测与安装
 temp=$(/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto)
-if [[ "$temp" =~ "lxd.migrate" ]] && [[ $? -ne 0 ]]; then
+if [[ $? -ne 0 ]]; then
+  status=false
+else
+  status=true
+fi
+echo "$temp"
+if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
   /snap/bin/lxd.migrate
-elif [[ $? -ne 0 ]]; then
+elif [[ $status == false ]]; then
   _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
   apt-get install -y linux-headers-amd64
   codename=$(lsb_release -cs)
