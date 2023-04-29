@@ -110,6 +110,8 @@ fi
 removezfs(){
   rm /etc/apt/sources.list.d/bullseye-backports.list
   rm /etc/apt/preferences.d/90_zfs
+  sed -i "/$lineToRemove/d" /etc/apt/sources.list
+  apt-get remove ${codename}-backports -y
   apt-get remove zfs-dkms zfs-zed -y
   apt-get update
 }
@@ -119,6 +121,7 @@ if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; the
   _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
 #   apt-get install -y linux-headers-amd64
   codename=$(lsb_release -cs)
+  lineToRemove="deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
 #   apt-get install -y linux-headers-amd64
   apt-get install -y ${codename}-backports 
