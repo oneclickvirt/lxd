@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.04.27
+# 2023.04.29
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
@@ -107,6 +107,13 @@ if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
   echo "$temp"
 fi
 
+removezfs(){
+  rm /etc/apt/sources.list.d/bullseye-backports.list
+  rm /etc/apt/preferences.d/90_zfs
+  apt-get remove zfs-dkms zfs-zed -y
+  apt-get update
+}
+
 checkzfs(){
 if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; then
   _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
@@ -128,7 +135,7 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
   if [[ $? -ne 0 ]]; then
     status=false
-    apt-get remove zfs-dkms zfs-zed -y
+    removezfs
     return
   else
     status=true
@@ -136,7 +143,7 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get install -y zfsutils-linux
   if [[ $? -ne 0 ]]; then
     status=false
-    apt-get remove zfs-dkms zfs-zed -y
+    removezfs
     return
   else
     status=true
@@ -144,7 +151,7 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get install -y zfs-dkms
   if [[ $? -ne 0 ]]; then
     status=false
-    apt-get remove zfs-dkms zfs-zed -y
+    removezfs
     return
   else
     status=true
