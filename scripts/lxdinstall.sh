@@ -158,7 +158,8 @@ checkzfs
 if [[ $status == false ]]; then
   _yellow "zfs编译失败，尝试使用其他存储类型......"
   # 类型设置-硬盘
-  SUPPORTED_BACKENDS=("zfs" "lvm" "btrfs" "ceph" "dir")
+  # "zfs" 
+  SUPPORTED_BACKENDS=("lvm" "btrfs" "ceph" "dir")
   STORAGE_BACKEND=""
   for backend in "${SUPPORTED_BACKENDS[@]}"; do
       if command -v $backend >/dev/null; then
@@ -171,9 +172,9 @@ if [[ $status == false ]]; then
       _yellow "无可支持的存储类型，请联系脚本维护者"
       exit
   fi
-  if [ "$STORAGE_BACKEND" = "zfs" ]; then
-      /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
-  elif [ "$STORAGE_BACKEND" = "dir" ]; then
+#   if [ "$STORAGE_BACKEND" = "zfs" ]; then
+#       /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
+  if [ "$STORAGE_BACKEND" = "dir" ]; then
       _green "由于无zfs，使用默认dir类型无限定存储池大小"
       /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
   elif [ "$STORAGE_BACKEND" = "lvm" ]; then
