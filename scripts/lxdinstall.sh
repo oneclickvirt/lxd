@@ -115,14 +115,6 @@ if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; the
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
 #   apt-get install -y linux-headers-amd64
   apt-get install -y ${codename}-backports 
-  apt-get install -y zfsutils-linux
-  apt-get install -y zfs-dkms
-  if [[ $? -ne 0 ]]; then
-    status=false
-    return
-  else
-    status=true
-  fi
   if grep -q "deb http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list && grep -q "deb-src http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list; then
     echo "已修改源"
   else
@@ -134,6 +126,26 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   fi
   apt-get update
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
+  if [[ $? -ne 0 ]]; then
+    status=false
+    return
+  else
+    status=true
+  fi
+  apt-get install -y zfsutils-linux
+  if [[ $? -ne 0 ]]; then
+    status=false
+    return
+  else
+    status=true
+  fi
+  apt-get install -y zfs-dkms
+  if [[ $? -ne 0 ]]; then
+    status=false
+    return
+  else
+    status=true
+  fi
   _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载新内核，重启后需要再次输入你需要的配置"
   exit 1
 fi
