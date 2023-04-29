@@ -68,21 +68,6 @@ else
   _green "LXD安装完成"        
 fi
 
-# # 类型设置-硬盘
-# SUPPORTED_BACKENDS=("zfs" "lvm" "btrfs" "ceph" "dir")
-# STORAGE_BACKEND=""
-# for backend in "${SUPPORTED_BACKENDS[@]}"; do
-#     if command -v $backend >/dev/null; then
-#         STORAGE_BACKEND=$backend
-#         _green "使用 $STORAGE_BACKEND 存储类型"
-#         break
-#     fi
-# done
-# if [ -z "$STORAGE_BACKEND" ]; then
-#     _yellow "无可支持的存储类型，请联系脚本维护者"
-#     exit
-# fi
-
 # 读取母鸡配置
 while true; do
     reading "母鸡需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
@@ -121,44 +106,74 @@ if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
   fi
   echo "$temp"
 fi
+
+checkzfs(){
 if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; then
   _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
-  apt-get install -y linux-headers-amd64
+#   apt-get install -y linux-headers-amd64
   codename=$(lsb_release -cs)
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
-  apt-get install -y linux-headers-amd64
+#   apt-get install -y linux-headers-amd64
   apt-get install -y ${codename}-backports 
   apt-get install -y zfsutils-linux
   apt-get install -y zfs-dkms
-  echo "deb http://deb.debian.org/debian bullseye-backports main contrib" > /etc/apt/sources.list.d/bullseye-backports.list
-  echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >> /etc/apt/sources.list.d/bullseye-backports.list
-echo "Package: src:zfs-linux
+  if [[ $? -ne 0 ]]; then
+    status=false
+    return
+  else
+    status=true
+  fi
+  if grep -q "deb http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list && grep -q "deb-src http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list; then
+    echo "已修改源"
+  else
+    echo "deb http://deb.debian.org/debian bullseye-backports main contrib" > /etc/apt/sources.list.d/bullseye-backports.list
+    echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >> /etc/apt/sources.list.d/bullseye-backports.list
+  echo "Package: src:zfs-linux
 Pin: release n=bullseye-backports
 Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
+  fi
   apt-get update
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
   _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载新内核，重启后需要再次输入你需要的配置"
   exit 1
+fi
+}
+
+checkzfs
+if [[ $status == false ]]; then
+  _yellow "zfs编译失败，尝试使用其他存储类型......"
+  # 类型设置-硬盘
+  SUPPORTED_BACKENDS=("zfs" "lvm" "btrfs" "ceph" "dir")
+  STORAGE_BACKEND=""
+  for backend in "${SUPPORTED_BACKENDS[@]}"; do
+      if command -v $backend >/dev/null; then
+          STORAGE_BACKEND=$backend
+          _green "使用 $STORAGE_BACKEND 存储类型"
+          break
+      fi
+  done
+  if [ -z "$STORAGE_BACKEND" ]; then
+      _yellow "无可支持的存储类型，请联系脚本维护者"
+      exit
+  fi
+  if [ "$STORAGE_BACKEND" = "zfs" ]; then
+      /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
+  elif [ "$STORAGE_BACKEND" = "dir" ]; then
+      _green "由于无zfs，使用默认dir类型无限定存储池大小"
+      /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
+  elif [ "$STORAGE_BACKEND" = "lvm" ]; then
+      _green "由于无zfs，使用默认lvm类型无限定存储池大小"
+      DISK=$(lsblk -p -o NAME,TYPE | awk '$2=="disk"{print $1}')
+      /snap/bin/lxd init --storage-backend lvm --storage-create-device $DISK --storage-pool lvm_pool --auto
+  else
+      /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-device "$disk_nums" --storage-pool default --auto
+  fi
 fi
 
 # 虚拟内存设置
 apt install dos2unix ufw -y
 curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
 ./swap2.sh "$memory_nums"
-
-# if [ "$STORAGE_BACKEND" = "zfs" ]; then
-#     /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
-# elif [ "$STORAGE_BACKEND" = "dir" ]; then
-#     _green "由于无zfs，使用默认dir类型无限定存储池大小"
-#     /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
-# elif [ "$STORAGE_BACKEND" = "lvm" ]; then
-#     _green "由于无zfs，使用默认lvm类型无限定存储池大小"
-#     DISK=$(lsblk -p -o NAME,TYPE | awk '$2=="disk"{print $1}')
-#     /snap/bin/lxd init --storage-backend lvm --storage-create-device $DISK --storage-pool lvm_pool --auto
-# else
-#     /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-device "$disk_nums" --storage-pool default --auto
-# fi
-  
 sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
 export PATH=$PATH:/snap/bin
