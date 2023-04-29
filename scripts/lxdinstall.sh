@@ -128,6 +128,7 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
   if [[ $? -ne 0 ]]; then
     status=false
+    apt-get remove zfs-dkms zfs-zed -y
     return
   else
     status=true
@@ -135,6 +136,7 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get install -y zfsutils-linux
   if [[ $? -ne 0 ]]; then
     status=false
+    apt-get remove zfs-dkms zfs-zed -y
     return
   else
     status=true
@@ -142,6 +144,7 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   apt-get install -y zfs-dkms
   if [[ $? -ne 0 ]]; then
     status=false
+    apt-get remove zfs-dkms zfs-zed -y
     return
   else
     status=true
