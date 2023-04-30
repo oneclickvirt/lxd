@@ -45,6 +45,8 @@
 
 PS: 如果硬件非常好资源很多，可使用PVE批量开KVM的 [跳转](https://github.com/spiritLHLS/pve)
 
+PS: 如果硬件资源更烂，虚拟化不支持，可使用docker版本的，适配面更广 [跳转](https://github.com/spiritLHLS/docker)
+
 ### 脚本检测
 
 **使用后续脚本的务必执行本命令检测母鸡是否符合要求**
