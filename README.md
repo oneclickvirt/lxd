@@ -349,6 +349,17 @@ lxc exec 服务器名字 /bin/bash
 ```
 lxc list | awk '{print $2}' | grep -v "^$" | xargs -I {} lxc delete -f {}
 ```
+
+在容器内执行删除无用日志
+
+```
+sudo apt-get autoremove
+sudo apt-get clean
+sudo find /var/log -type f -delete
+sudo find /var/tmp -type f -delete
+sudo find /tmp -type f -delete
+sudo find /var/cache/apt/archives -type f -delete
+```
   
 </details>
 
