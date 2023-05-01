@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.04.29
+# 2023.05.01
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
@@ -60,8 +60,12 @@ then
   fi
 else
   _green "开始安装LXD"
-  snap install core
   snap install lxd
+  if [[ $? -ne 0 ]]; then
+    snap remove lxd 
+    snap install core
+    snap install lxd
+  fi
   ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
   export PATH=$PATH:/snap/bin
   ! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
