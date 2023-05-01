@@ -59,24 +59,6 @@ else
     _green "本机系统符合要求"
 fi
 
-# 检查内存大小是否符合要求
-mem=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-if [ $mem -lt 524288 ]; then
-    _yellow "内存大小不符合要求，需要至少512MB。"
-    exit 1
-else
-    _green "本机内存符合要求"
-fi
-
-# 检查磁盘空间是否符合要求
-disk=$(df / | awk '/\//{print $4}')
-if [ $disk -lt 9485760 ]; then
-    _yellow "本机硬盘空间不符合要求，需要至少10G。"
-    exit 1
-else
-    _green "本机硬盘符合要求"
-fi
-
 # 检查网络是否符合要求
 if ! ping -c 1 -w 6 raw.githubusercontent.com >/dev/null 2>&1; then
     _yellow "本机网络无法连接Github的raw页面，请检查网络连接"
@@ -91,6 +73,24 @@ if [ -z "$ip" ]; then
     exit 1
 else
   _green "本机IP符合要求"
+fi
+
+# 检查内存大小是否符合要求
+mem=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+if [ $mem -lt 524288 ]; then
+    _yellow "内存大小不符合要求，需要至少512MB。(实际小点也行，自行判断，后续安装开虚拟内存SWAP可弥补这块的不足)"
+    exit 1
+else
+    _green "本机内存符合要求"
+fi
+
+# 检查磁盘空间是否符合要求
+disk=$(df / | awk '/\//{print $4}')
+if [ $disk -lt 9485760 ]; then
+    _yellow "本机硬盘空间不符合要求，需要至少10G。(实际小点也行，安装大概需要500M~2G硬盘空间，因系统而异，在Ubuntu上的硬盘占用是最小的)"
+    exit 1
+else
+    _green "本机硬盘符合要求"
 fi
 
 _green "本机符合作为LXC母鸡的要求，可以批量开设LXC容器"
