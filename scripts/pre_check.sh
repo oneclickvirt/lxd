@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.04.26
+# 2023.05.01
 # 预检测本机是否符合开设小鸡的要求
 
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
@@ -70,7 +70,7 @@ fi
 
 # 检查磁盘空间是否符合要求
 disk=$(df / | awk '/\//{print $4}')
-if [ $disk -lt 10485760 ]; then
+if [ $disk -lt 9485760 ]; then
     _yellow "本机硬盘空间不符合要求，需要至少10G。"
     exit 1
 else
