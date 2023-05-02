@@ -50,4 +50,5 @@ do
   iptables -A OUTPUT -d zmap.io -j DROP -m comment --comment "block zmap"
   iptables -A OUTPUT -d nmap.org -j DROP -m comment --comment "block nmap"
   iptables -A OUTPUT -d foofus.net -j DROP -m comment --comment "block medusa"
+#   ip6tables -A OUTPUT -d zmap.io -j DROP -m comment --comment "block zmap v6"
 done
