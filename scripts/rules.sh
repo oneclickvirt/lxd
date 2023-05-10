@@ -34,6 +34,7 @@ divert_install_script "zmap"
 divert_install_script "nmap"
 divert_install_script "masscan"
 divert_install_script "medusa"
+divert_install_script "hping3"
 
 # 屏蔽流量
 iptables -F
