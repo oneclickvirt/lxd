@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.05.01
+# 2023.05.15
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
@@ -32,6 +32,30 @@ if ! command -v curl > /dev/null; then
   apt-get install curl -y
 fi
 export DEBIAN_FRONTEND=noninteractive
+
+check_cdn() {
+  local o_url=$1
+  for cdn_url in "${cdn_urls[@]}"; do
+    if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" > /dev/null 2>&1; then
+      export cdn_success_url="$cdn_url"
+      return
+    fi
+    sleep 0.5
+  done
+  export cdn_success_url=""
+}
+
+check_cdn_file() {
+    check_cdn "https://raw.githubusercontent.com/spiritLHLS/ecs/main/back/test"
+    if [ -n "$cdn_success_url" ]; then
+        echo "CDN available, using CDN"
+    else
+        echo "No CDN available, no use CDN"
+    fi
+}
+
+cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "https://cdn1.spiritlhl.net/" "https://ghproxy.com/" "https://cdn2.spiritlhl.net/")
+check_cdn_file
 
 cd /root >/dev/null 2>&1
 # lxd安装
@@ -203,7 +227,7 @@ fi
 
 # 虚拟内存设置
 apt install dos2unix ufw -y
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh -o swap2.sh && chmod +x swap2.sh
+curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh" -o swap2.sh && chmod +x swap2.sh
 ./swap2.sh "$memory_nums"
 sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
@@ -215,8 +239,8 @@ lxc config set images.auto_update_interval 0
 # 设置自动配置内网IPV6地址
 lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
+curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh" -o ssh.sh
+curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh" -o config.sh
 # 加载iptables并设置回源且允许NAT端口转发
 apt-get install -y iptables iptables-persistent
 iptables -t nat -A POSTROUTING -j MASQUERADE
