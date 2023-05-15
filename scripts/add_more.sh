@@ -20,6 +20,30 @@ else
   green "Locale set to $utf8_locale"
 fi
 
+check_cdn() {
+  local o_url=$1
+  for cdn_url in "${cdn_urls[@]}"; do
+    if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" > /dev/null 2>&1; then
+      export cdn_success_url="$cdn_url"
+      return
+    fi
+    sleep 0.5
+  done
+  export cdn_success_url=""
+}
+
+check_cdn_file() {
+    check_cdn "https://raw.githubusercontent.com/spiritLHLS/ecs/main/back/test"
+    if [ -n "$cdn_success_url" ]; then
+        echo "CDN available, using CDN"
+    else
+        echo "No CDN available, no use CDN"
+    fi
+}
+
+cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "https://cdn1.spiritlhl.net/" "https://ghproxy.com/" "https://cdn2.spiritlhl.net/")
+check_cdn_file
+
 pre_check(){
     home_dir=$(eval echo "~$(whoami)")
     if [ "$home_dir" != "/root" ]; then
@@ -30,17 +54,17 @@ pre_check(){
         apt-get install dos2unix -y
     fi
     if [ ! -f ssh.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh" -o ssh.sh
         chmod 777 ssh.sh
         dos2unix ssh.sh
     fi
     if [ ! -f config.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh" -o config.sh
         chmod 777 config.sh
         dos2unix config.sh
     fi
     if [ ! -f buildone.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh -o buildone.sh
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh" -o buildone.sh
         chmod 777 buildone.sh
         dos2unix buildone.sh
     fi
