@@ -21,6 +21,7 @@ else
 fi
 
 apt-get update
+apt-get autoremove -y
 if ! command -v sudo > /dev/null; then
   apt-get install sudo -y
 fi
