@@ -43,7 +43,7 @@
 - 硬盘：硬盘(系统盘)至少10G
 - 网络：独立的IPV4地址，IPV6可有可无，带宽能下载脚本就行，网络能连接Github的raw页面就行
 
-PS: 如果硬件非常好资源很多，可使用PVE批量开KVM的 [跳转](https://github.com/spiritLHLS/pve)
+PS: 如果硬件非常好资源很多，可使用PVE批量开KVM虚拟化的虚拟机 [跳转](https://github.com/spiritLHLS/pve)
 
 PS: 如果硬件资源更烂，虚拟化不支持，可使用docker版本的，适配面更广 [跳转](https://github.com/spiritLHLS/docker)
 
