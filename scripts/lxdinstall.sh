@@ -246,6 +246,18 @@ curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/ma
 chmod 777 buildone.sh
 apt-get install dos2unix -y
 dos2unix buildone.sh
+# 设置IPV4优先
+sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
+# 预设谷歌的DNS
+DNS_SERVER="8.8.8.8"
+RESOLV_CONF="/etc/resolv.conf"
+grep -q "^nameserver ${DNS_SERVER}$" ${RESOLV_CONF}
+if [ $? -eq 0 ]; then
+    echo "DNS server ${DNS_SERVER} already exists in ${RESOLV_CONF}."
+else
+    echo "Adding DNS server ${DNS_SERVER} to ${RESOLV_CONF}..."
+    echo -e "nameserver 1.1.1.1\nnameserver 8.8.8.8\nnameserver 8.8.4.4\nnameserver 2606:4700:4700::1111\nnameserver 2001:4860:4860::8888\nnameserver 2001:4860:4860::8844" >> ${RESOLV_CONF}
+fi
 # 加载iptables并设置回源且允许NAT端口转发
 apt-get install -y iptables iptables-persistent
 iptables -t nat -A POSTROUTING -j MASQUERADE
