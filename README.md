@@ -471,6 +471,12 @@ bash build_ipv6_network.sh 容器名称
 bash build_ipv6_network.sh test
 ```
 
+删除所有IPV6已映射的规则
+
+```bash
+ip6tables -t nat -F PREROUTING
+```
+
 ##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
 
 - (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
