@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.05.15
+# 2023.05.28
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
@@ -254,3 +254,8 @@ else
   echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
 fi
 ${sysctl_path} -p
+rm -rf buildone.sh
+curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh" -o buildone.sh
+chmod 777 buildone.sh
+apt-get install dos2unix -y
+dos2unix buildone.sh
