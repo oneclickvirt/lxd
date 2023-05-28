@@ -241,6 +241,11 @@ lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
 curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh" -o ssh.sh
 curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh" -o config.sh
+rm -rf buildone.sh
+curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh" -o buildone.sh
+chmod 777 buildone.sh
+apt-get install dos2unix -y
+dos2unix buildone.sh
 # 加载iptables并设置回源且允许NAT端口转发
 apt-get install -y iptables iptables-persistent
 iptables -t nat -A POSTROUTING -j MASQUERADE
@@ -254,8 +259,3 @@ else
   echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
 fi
 ${sysctl_path} -p
-rm -rf buildone.sh
-curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh" -o buildone.sh
-chmod 777 buildone.sh
-apt-get install dos2unix -y
-dos2unix buildone.sh
