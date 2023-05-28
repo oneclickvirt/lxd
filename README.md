@@ -396,6 +396,8 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall
 
 ##### 下载开机脚本
 
+- (***非必须***，如果你使用一键安装LXD的命令，自动已下载对应的开机脚本，请忽略下面的命令)
+
 ```
 rm -rf buildone.sh
 wget https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh
