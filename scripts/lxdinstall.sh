@@ -23,7 +23,7 @@ else
 fi
 
 install_required_modules() {
-    modules=("sudo" "wget" "curl")
+    modules=("sudo" "wget" "curl" "dos2unix" "ufw")
     for module in "${modules[@]}"
     do
         if dpkg -s $module > /dev/null 2>&1 ; then
@@ -233,7 +233,6 @@ if [[ $status == false ]]; then
 fi
 
 # 虚拟内存设置
-apt install dos2unix ufw -y
 curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh" -o swap2.sh && chmod +x swap2.sh
 ./swap2.sh "$memory_nums"
 sleep 2
@@ -251,7 +250,6 @@ curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/ma
 rm -rf buildone.sh
 curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh" -o buildone.sh
 chmod 777 buildone.sh
-apt-get install dos2unix -y
 dos2unix buildone.sh
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
