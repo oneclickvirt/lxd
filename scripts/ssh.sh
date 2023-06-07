@@ -6,21 +6,40 @@ RELEASE=("debian" "ubuntu" "centos" "centos")
 PACKAGE_UPDATE=("apt -y update" "apt -y update" "yum -y update" "yum -y update")
 PACKAGE_INSTALL=("apt -y install" "apt -y install" "yum -y install" "yum -y install")
 PACKAGE_UNINSTALL=("apt -y autoremove" "apt -y autoremove" "yum -y autoremove" "yum -y autoremove")
-
+temp_file_apt_fix="/tmp/apt_fix.txt"
 [[ $EUID -ne 0 ]] && exit 1
-
 CMD=("$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(hostnamectl 2>/dev/null | grep -i system | cut -d : -f2)" "$(lsb_release -sd 2>/dev/null)" "$(grep -i description /etc/lsb-release 2>/dev/null | cut -d \" -f2)" "$(grep . /etc/redhat-release 2>/dev/null)" "$(grep . /etc/issue 2>/dev/null | cut -d \\ -f1 | sed '/^[ ]*$/d')")
-
 for i in "${CMD[@]}"; do
     SYS="$i" && [[ -n $SYS ]] && break
 done
-
 for ((int = 0; int < ${#REGEX[@]}; int++)); do
     [[ $(echo "$SYS" | tr '[:upper:]' '[:lower:]') =~ ${REGEX[int]} ]] && SYSTEM="${RELEASE[int]}" && [[ -n $SYSTEM ]] && break
 done
 
+apt-get update -y
+if [ $? -ne 0 ]; then
+   dpkg --configure -a
+   apt-get update -y
+fi
+if [ $? -ne 0 ]; then
+   apt-get install gnupg -y
+fi
+apt_update_output=$(apt-get update 2>&1)
+echo "$apt_update_output" > "$temp_file_apt_fix"
+if grep -q 'NO_PUBKEY' "$temp_file_apt_fix"; then
+    public_keys=$(grep -oE 'NO_PUBKEY [0-9A-F]+' "$temp_file_apt_fix" | awk '{ print $2 }')
+    joined_keys=$(echo "$public_keys" | paste -sd " ")
+    echo "No Public Keys: ${joined_keys}"
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ${joined_keys}
+    apt-get update
+    if [ $? -eq 0 ]; then
+        echo "Fixed"
+    fi
+fi
+rm "$temp_file_apt_fix"
+
 install_required_modules() {
-    modules=("sudo" "sshpass" "openssh-server")
+    modules=("dos2unix" "wget" "sudo" "sshpass" "openssh-server")
     for module in "${modules[@]}"
     do
         if dpkg -s $module > /dev/null 2>&1 ; then
