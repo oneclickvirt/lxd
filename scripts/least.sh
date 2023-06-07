@@ -2,7 +2,7 @@
 # by https://github.com/spiritLHLS/lxc
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2023.04.12
+# 2023.06.07
 
 rm -rf log
 lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=128MiB
@@ -39,13 +39,10 @@ for ((a=1;a<="$2";a++)); do
   passwd=${ori: 2: 9}
   lxc start "$1"$a
   sleep 1
-  lxc exec "$1"$a -- apt update -y
-  lxc exec "$1"$a -- sudo dpkg --configure -a
-  lxc exec "$1"$a -- sudo apt-get update
-  lxc exec "$1"$a -- sudo apt-get install dos2unix curl wget -y
+  lxc exec "$1"$a -- sudo apt-get update -y
+  lxc exec "$1"$a -- sudo apt-get install curl -y --fix-missing
   lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
   lxc exec "$1"$a -- chmod 777 ssh.sh
-  lxc exec "$1"$a -- dos2unix ssh.sh
   lxc exec "$1"$a -- sudo ./ssh.sh $passwd
   lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
   lxc exec "$1"$a -- chmod +x config.sh
