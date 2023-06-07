@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.04.12
+# 2023.06.07
 
 # cd /root
 # 输入
@@ -52,14 +52,11 @@ ori=$(date | md5sum)
 passwd=${ori: 2: 9}
 lxc start "$name"
 sleep 1
-lxc exec "$name" -- apt update -y
-lxc exec "$name" -- sudo dpkg --configure -a
-lxc exec "$name" -- sudo apt-get update
-lxc exec "$name" -- sudo apt-get install dos2unix curl -y
+lxc exec "$name" -- sudo apt-get update -y
+lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
 lxc file push /root/ssh.sh "$name"/root/
 # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
 lxc exec "$name" -- chmod 777 ssh.sh
-lxc exec "$name" -- dos2unix ssh.sh
 lxc exec "$name" -- sudo ./ssh.sh $passwd
 lxc file push /root/config.sh "$name"/root/
 # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
