@@ -1,16 +1,18 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.05.28
+# 2023.06.07
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
 # ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
 
+cd /root >/dev/null 2>&1
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading(){ read -rp "$(_green "$1")" "$2"; }
 utf8_locale=$(locale -a 2>/dev/null | grep -i -m 1 -E "utf8|UTF-8")
+export DEBIAN_FRONTEND=noninteractive
 if [[ -z "$utf8_locale" ]]; then
   _yellow "No UTF-8 locale found"
 else
@@ -20,18 +22,21 @@ else
   _green "Locale set to $utf8_locale"
 fi
 
-apt-get update
-apt-get autoremove -y
-if ! command -v sudo > /dev/null; then
-  apt-get install sudo -y
-fi
-if ! command -v wget > /dev/null; then
-  apt-get install wget -y
-fi
-if ! command -v curl > /dev/null; then
-  apt-get install curl -y
-fi
-export DEBIAN_FRONTEND=noninteractive
+install_required_modules() {
+    modules=("sudo" "wget" "curl")
+    for module in "${modules[@]}"
+    do
+        if dpkg -s $module > /dev/null 2>&1 ; then
+            echo "$module 已经安装！"
+        else
+            apt-get install -y $module
+	    if [ $? -ne 0 ]; then
+	        apt-get install -y $module --fix-missing
+	    fi
+            echo "$module 已尝试过安装！"
+        fi
+    done
+}
 
 check_cdn() {
   local o_url=$1
@@ -55,9 +60,11 @@ check_cdn_file() {
 }
 
 cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "https://cdn1.spiritlhl.net/" "https://ghproxy.com/" "https://cdn2.spiritlhl.net/")
-check_cdn_file
 
-cd /root >/dev/null 2>&1
+apt-get update
+apt-get autoremove -y
+install_required_modules
+check_cdn_file
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
 lxd_snapd=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snapd`
