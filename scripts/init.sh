@@ -2,7 +2,7 @@
 # by https://github.com/spiritLHLS/lxc
 # cd /root
 # ./init.sh NAT服务器前缀 数量
-# 2023.06.07
+# 2023.06.09
 
 rm -rf log
 lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=256MiB
@@ -51,11 +51,14 @@ for ((a=1;a<="$2";a++)); do
   sleep 1
   lxc exec "$1"$a -- sudo apt-get update -y
   lxc exec "$1"$a -- sudo apt-get install curl -y --fix-missing
+  lxc exec "$1"$a -- sudo apt-get install -y --fix-missing dos2unix
   lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
   lxc exec "$1"$a -- chmod 777 ssh.sh
+  lxc exec "$1"$a -- dos2unix ssh.sh
   lxc exec "$1"$a -- sudo ./ssh.sh $passwd
   lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
   lxc exec "$1"$a -- chmod +x config.sh
+  lxc exec "$1"$a -- dos2unix config.sh
   lxc exec "$1"$a -- bash config.sh
   lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
   lxc config device add "$1"$a nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
