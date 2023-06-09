@@ -54,13 +54,16 @@ lxc start "$name"
 sleep 1
 lxc exec "$name" -- sudo apt-get update -y
 lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
+lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
 lxc file push /root/ssh.sh "$name"/root/
 # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
 lxc exec "$name" -- chmod 777 ssh.sh
+lxc exec "$name" -- dos2unix ssh.sh
 lxc exec "$name" -- sudo ./ssh.sh $passwd
 lxc file push /root/config.sh "$name"/root/
 # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
 lxc exec "$name" -- chmod +x config.sh
+lxc exec "$name" -- dos2unix config.sh
 lxc exec "$name" -- bash config.sh
 lxc exec "$name" -- history -c
 lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
