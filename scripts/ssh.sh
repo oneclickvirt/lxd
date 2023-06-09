@@ -15,6 +15,7 @@ done
 for ((int = 0; int < ${#REGEX[@]}; int++)); do
     [[ $(echo "$SYS" | tr '[:upper:]' '[:lower:]') =~ ${REGEX[int]} ]] && SYSTEM="${RELEASE[int]}" && [[ -n $SYSTEM ]] && break
 done
+[[ -z $SYSTEM ]] && exit 1
 
 apt-get update -y
 if [ $? -ne 0 ]; then
@@ -54,7 +55,6 @@ install_required_modules() {
     done
 }
 
-[[ -z $SYSTEM ]] && exit 1
 install_required_modules
 sshport=22
 sudo service iptables stop 2> /dev/null ; chkconfig iptables off 2> /dev/null ;
