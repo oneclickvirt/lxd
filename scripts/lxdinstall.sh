@@ -76,6 +76,9 @@ else
   apt-get update
 #   apt-get -y install snap
   apt-get -y install snapd
+  if [ $? -ne 0 ]; then
+    apt-get install -y snapd --fix-missing
+  fi
 fi
 snap_core=`snap list core`
 snap_lxd=`snap list lxd`
@@ -160,7 +163,10 @@ if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; the
   lineToRemove="deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
 #   apt-get install -y linux-headers-amd64
-  apt-get install -y ${codename}-backports 
+  apt-get install -y ${codename}-backports
+  if [ $? -ne 0 ]; then
+    apt-get install -y ${codename}-backports --fix-missing
+  fi
   if grep -q "deb http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list && grep -q "deb-src http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list; then
     echo "已修改源"
   else
@@ -172,6 +178,9 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
   fi
   apt-get update
   apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
+  if [ $? -ne 0 ]; then
+    apt-get install -y dpkg-dev linux-headers-generic linux-image-generic --fix-missing
+  fi
   if [[ $? -ne 0 ]]; then
     status=false
     removezfs
@@ -180,6 +189,9 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
     status=true
   fi
   apt-get install -y zfsutils-linux
+  if [ $? -ne 0 ]; then
+    apt-get install -y zfsutils-linux --fix-missing
+  fi
   if [[ $? -ne 0 ]]; then
     status=false
     removezfs
@@ -188,6 +200,9 @@ Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
     status=true
   fi
   apt-get install -y zfs-dkms
+  if [ $? -ne 0 ]; then
+    apt-get install -y zfs-dkms --fix-missing
+  fi
   if [[ $? -ne 0 ]]; then
     status=false
     removezfs
