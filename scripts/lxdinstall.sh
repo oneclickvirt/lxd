@@ -260,12 +260,18 @@ lxc config set images.auto_update_interval 0
 # 设置自动配置内网IPV6地址
 lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
-curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh" -o ssh.sh
-curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh" -o config.sh
-rm -rf buildone.sh
-curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh" -o buildone.sh
-chmod 777 buildone.sh
-dos2unix buildone.sh
+files=(
+  "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh"
+  "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh"
+  "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh"
+)
+for file in "${files[@]}"; do
+  filename=$(basename "$file")
+  rm -rf "$filename"
+  curl -sLk "${cdn_success_url}${file}" -o "$filename"
+  chmod 777 "$filename"
+  dos2unix "$filename"
+done
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
 # 预设谷歌的DNS
