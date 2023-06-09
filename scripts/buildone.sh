@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.07
+# 2023.06.09
 
 # cd /root
 # 输入
