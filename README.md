@@ -400,7 +400,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall
 
 ```
 rm -rf buildone.sh
-wget https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh
+wget https://ghproxy.com/https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh
 chmod 777 buildone.sh
 apt install dos2unix -y
 dos2unix buildone.sh
