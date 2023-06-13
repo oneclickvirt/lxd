@@ -73,8 +73,12 @@ checkupdate
 install_required_modules
 sshport=22
 sudo service iptables stop 2> /dev/null ; chkconfig iptables off 2> /dev/null ;
-sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/sysconfig/selinux;
-sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/selinux/config;
+if [ -f "/etc/sysconfig/selinux" ]; then
+    sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/sysconfig/selinux
+fi
+if [ -f "/etc/selinux/config" ]; then
+    sudo sed -i.bak '/^SELINUX=/cSELINUX=disabled' /etc/selinux/config
+fi
 sudo setenforce 0;
 echo root:"$1" |sudo chpasswd root;
 sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config;
@@ -85,4 +89,6 @@ sudo sed -i 's/#ListenAddress ::/ListenAddress ::/' /etc/ssh/sshd_config
 sudo sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config
 sudo service ssh restart
 sudo service sshd restart
+sudo systemctl restart sshd
+sudo systemctl restart ssh
 rm -rf "$0"
