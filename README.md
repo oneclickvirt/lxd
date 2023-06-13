@@ -108,7 +108,7 @@ bash <(wget -qO- --no-check-certificate https://raw.githubusercontent.com/spirit
 
 ```bash
 apt update
-apt install curl wget sudo dos2unix ufw -y
+apt install curl wget sudo dos2unix ufw jq -y
 ufw disable
 ```
 
@@ -216,7 +216,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/add_more.sh -o add_mo
 
 ```bash
 apt update
-apt install curl wget sudo dos2unix ufw -y
+apt install curl wget sudo dos2unix ufw jq -y
 ufw disable
 ```
 
