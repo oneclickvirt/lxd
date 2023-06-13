@@ -5,7 +5,7 @@
 
 # cd /root
 # 输入
-# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N)
+# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
 # 如果 外网起端口 外网止端口 都设置为0则不做区间外网端口映射了，只映射基础的SSH端口，注意不能为空，不进行映射需要设置为0
 
 # 创建容器
@@ -17,8 +17,20 @@ nat1="${5:-20002}"
 nat2="${6:-20025}"
 in="${7:-300}"
 out="${8:-300}"
+system="${10:-debian11}"
+a="${system%%[0-9]*}"
+b="${system##*[!0-9]}"
+output=$(lxc image list images:${a}/${b})
+if echo "$output" | grep -q "${a}/${b}"; then
+    echo "匹配的镜像存在，将使用 images:${a}/${b} 进行创建"
+else
+    echo "未找到匹配的镜像，请执行"
+    echo "lxc image list images:系统/版本号"
+    echo "查询是否存在对应镜像"
+    exit 1
+fi
 rm -rf "$name"
-lxc init images:debian/11 "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB 
+lxc init images:${a}/${b} "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB 
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
   echo "容器创建失败，请检查前面的输出信息"
