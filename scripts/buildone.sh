@@ -66,9 +66,15 @@ passwd=${ori: 2: 9}
 lxc start "$name"
 sleep 1
 /usr/local/bin/check-dns.sh
-lxc exec "$name" -- sudo apt-get update -y
-lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
-lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
+if echo "$system" | grep -qiE "centos|almalinux"; then
+    lxc exec "$name" -- sudo yum update -y
+    lxc exec "$name" -- sudo yum install -y curl
+    lxc exec "$name" -- sudo yum install -y dos2unix
+else
+    lxc exec "$name" -- sudo apt-get update -y
+    lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
+    lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
+fi
 lxc file push /root/ssh.sh "$name"/root/
 # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
 lxc exec "$name" -- chmod 777 ssh.sh
