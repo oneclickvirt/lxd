@@ -35,7 +35,7 @@ case "${sysarch}" in
     *) sys_bit="x86_64";;
 esac
 if echo "$output" | grep -q "${a}/${b}"; then
-    system=$(lxc image list images:${a}/${b} --format=json --architecture ${sys_bit} | jq -r '.[] | select(.type == "container") | .aliases[0].name' | head -n 1)
+    system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
     echo "匹配的镜像存在，将使用 images:${system} 进行创建"
 else
     echo "未找到匹配的镜像，请执行"
