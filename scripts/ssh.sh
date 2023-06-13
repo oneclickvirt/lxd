@@ -1,6 +1,15 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
 
+if [ -f "/etc/resolv.conf" ]
+then
+    cp /etc/resolv.conf /etc/resolv.conf.bak
+    sudo chattr -i /etc/resolv.conf
+    echo "nameserver 8.8.8.8" | tee -a /etc/resolv.conf > /dev/null
+    echo "nameserver 8.8.4.4" | tee -a /etc/resolv.conf > /dev/null
+    sudo chattr +i /etc/resolv.conf
+fi
+
 REGEX=("debian" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'")
 RELEASE=("debian" "ubuntu" "centos" "centos")
 PACKAGE_UPDATE=("apt -y update" "apt -y update" "yum -y update" "yum -y update")
