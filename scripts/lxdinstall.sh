@@ -1,9 +1,8 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.06.09
+# 2023.06.13
 
-# curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh
-# ./lxdinstall.sh 内存大小以MB计算 硬盘大小以GB计算
+# curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
 cd /root >/dev/null 2>&1
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
@@ -22,20 +21,17 @@ else
   _green "Locale set to $utf8_locale"
 fi
 
-install_required_modules() {
-    modules=("sudo" "wget" "curl" "dos2unix" "ufw")
-    for module in "${modules[@]}"
-    do
-        if dpkg -s $module > /dev/null 2>&1 ; then
-            echo "$module 已经安装！"
-        else
-            apt-get install -y $module
-	    if [ $? -ne 0 ]; then
-	        apt-get install -y $module --fix-missing
-	    fi
-            echo "$module 已尝试过安装！"
+install_package() {
+    package_name=$1
+    if dpkg -s $package_name > /dev/null 2>&1 ; then
+        _green "$package_name 已经安装"
+    else
+	apt-get install -y $package_name
+	if [ $? -ne 0 ]; then
+            apt-get install -y $package_name --fix-missing
         fi
-    done
+	_green "$package_name 已尝试安装"
+    fi
 }
 
 check_cdn() {
@@ -63,7 +59,11 @@ cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "ht
 
 apt-get update
 apt-get autoremove -y
-install_required_modules
+install_package wget
+install_package curl
+install_package sudo
+install_package dos2unix
+install_package ufw
 check_cdn_file
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
@@ -74,11 +74,8 @@ then
 else
   _green "开始安装snap"
   apt-get update
-#   apt-get -y install snap
-  apt-get -y install snapd
-  if [ $? -ne 0 ]; then
-    apt-get install -y snapd --fix-missing
-  fi
+#   install_package snap
+  install_package snapd
 fi
 snap_core=`snap list core`
 snap_lxd=`snap list lxd`
@@ -163,10 +160,7 @@ if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; the
   lineToRemove="deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"
   echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
 #   apt-get install -y linux-headers-amd64
-  apt-get install -y ${codename}-backports
-  if [ $? -ne 0 ]; then
-    apt-get install -y ${codename}-backports --fix-missing
-  fi
+  install_package ${codename}-backports
   if grep -q "deb http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list && grep -q "deb-src http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list; then
     echo "已修改源"
   else
@@ -288,7 +282,8 @@ else
     chattr +i /etc/resolv.conf
 fi
 # 加载iptables并设置回源且允许NAT端口转发
-apt-get install -y iptables iptables-persistent
+install_package iptables 
+install_package iptables-persistent
 iptables -t nat -A POSTROUTING -j MASQUERADE
 sysctl net.ipv4.ip_forward=1
 sysctl_path=$(which sysctl)
