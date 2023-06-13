@@ -148,13 +148,28 @@ build_new_containers(){
             yellow "输入无效，请输入一个正整数。"
         fi
     done
+    while true; do
+        reading "每个小鸡的系统是什么？(注意传入参数为系统名字+版本号，如：debian11、ubuntu20、centos7)：" system
+        a="${system%%[0-9]*}"
+        b="${system##*[!0-9]}"
+        output=$(lxc image list images:${a}/${b})
+        if echo "$output" | grep -q "${a}/${b}"; then
+            echo "匹配的镜像存在，将使用 images:${a}/${b} 进行创建"
+            break
+        else
+            echo "未找到匹配的镜像，请执行"
+            echo "lxc image list images:系统名字/版本号"
+            echo "查询是否存在对应镜像"
+            yellow "输入无效，请输入一个存在的系统"
+        fi
+    done
     for ((i=1; i<=$new_nums; i++)); do
         container_num=$(($container_num + 1))
         container_name="${container_prefix}${container_num}"
         ssh_port=$(($ssh_port + 1))
         public_port_start=$(($public_port_end + 1))
         public_port_end=$(($public_port_start + 25))
-        ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums
+        ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums N $system
         cat "$container_name" >> log
         rm -rf $container_name
     done
