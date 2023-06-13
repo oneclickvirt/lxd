@@ -15,6 +15,7 @@
 - ssh.sh文件增加对DNS的改写，增加谷歌的DNS配置，这样即便宿主机DNS有问题也保证LXC容器自己的DNS不出问题
 - 批量开设的脚本增加对下载带宽和上传带宽的限制
 - 开设小鸡时支持自定义小鸡的系统，注意传入参数为系统名字+版本号，如：debian11、ubuntu20，centos7，注意都是小写字母+数字的组合
+- 无apt命令的系统不支持滥用预防的各脚本，仅支持最基础的开设
 
 [更新日志](CHANGELOG.md)
 
@@ -70,7 +71,6 @@ bash <(wget -qO- --no-check-certificate https://raw.githubusercontent.com/spirit
 
 #### 项目特点
 <details>
-项目特点：
 
 - 本套脚本开发使用的Ubuntu20，Ubuntu别的长期维护版本应该也没问题，Debian无法使用zfs时自动切换别的存储类型
 
@@ -496,6 +496,7 @@ ip6tables -t nat -F PREROUTING
 
 - (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
 - 事前预防
+- 无apt命令的系统不支持该脚本
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
@@ -506,6 +507,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/rules.sh -o rules.sh 
 - 如需停止监控可使用```screen```命令停止```lxc_moniter```这个名字的窗口并删除
 - (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
 - 事后停机
+- 无apt命令的系统不支持该脚本
 
 ```
 curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
