@@ -56,6 +56,36 @@ check_cdn_file() {
     fi
 }
 
+rebuild_cloud_init(){
+if [ -f "/etc/cloud/cloud.cfg" ]; then
+  chattr -i /etc/cloud/cloud.cfg
+  if grep -q "preserve_hostname: true" "/etc/cloud/cloud.cfg"; then
+    :
+  else
+    sed -E -i 's/preserve_hostname:[[:space:]]*false/preserve_hostname: true/g' "/etc/cloud/cloud.cfg"
+    echo "change preserve_hostname to true"
+  fi
+  if grep -q "disable_root: false" "/etc/cloud/cloud.cfg"; then
+    :
+  else
+    sed -E -i 's/disable_root:[[:space:]]*true/disable_root: false/g' "/etc/cloud/cloud.cfg"
+    echo "change disable_root to false"
+  fi
+  chattr -i /etc/cloud/cloud.cfg
+  content=$(cat /etc/cloud/cloud.cfg)
+  line_number=$(grep -n "^system_info:" "/etc/cloud/cloud.cfg" | cut -d ':' -f 1)
+  if [ -n "$line_number" ]; then
+    lines_after_system_info=$(echo "$content" | sed -n "$((line_number+1)),\$p")
+    if [ -n "$lines_after_system_info" ]; then
+      updated_content=$(echo "$content" | sed "$((line_number+1)),\$d")
+      echo "$updated_content" > "/etc/cloud/cloud.cfg"
+    fi
+  fi
+  sed -i '/^\s*- set-passwords/s/^/#/' /etc/cloud/cloud.cfg
+  chattr +i /etc/cloud/cloud.cfg
+fi
+}
+
 apt-get update
 apt-get autoremove -y
 install_package wget
@@ -64,6 +94,7 @@ install_package sudo
 install_package dos2unix
 install_package ufw
 check_cdn_file
+rebuild_cloud_init
 
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
