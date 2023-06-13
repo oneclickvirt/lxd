@@ -21,8 +21,21 @@ system="${10:-debian11}"
 a="${system%%[0-9]*}"
 b="${system##*[!0-9]}"
 output=$(lxc image list images:${a}/${b})
+sys_bit=""
+sysarch="$(uname -m)"
+case "${sysarch}" in
+    "x86_64"|"x86"|"amd64"|"x64") sys_bit="x86_64";;
+    "i386"|"i686") sys_bit="i686";;
+    "aarch64"|"armv8"|"armv8l") sys_bit="aarch64";;
+    "armv7l") sys_bit="armv7l";;
+    "s390x") sys_bit="s390x";;
+#     "riscv64") sys_bit="riscv64";;
+    "ppc64le") sys_bit="ppc64le";;
+#     "ppc64") sys_bit="ppc64";;
+    *) sys_bit="x86_64";;
+esac
 if echo "$output" | grep -q "${a}/${b}"; then
-    system=$(lxc image list images:${a}/${b} --format=json | jq -r '.[] | select(.type == "container") | .aliases[0].name' | head -n 1)
+    system=$(lxc image list images:${a}/${b} --format=json --architecture ${sys_bit} | jq -r '.[] | select(.type == "container") | .aliases[0].name' | head -n 1)
     echo "匹配的镜像存在，将使用 images:${system} 进行创建"
 else
     echo "未找到匹配的镜像，请执行"
