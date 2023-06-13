@@ -10,60 +10,66 @@ then
     sudo chattr +i /etc/resolv.conf
 fi
 
-REGEX=("debian" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'")
-RELEASE=("debian" "ubuntu" "centos" "centos")
-PACKAGE_UPDATE=("apt -y update" "apt -y update" "yum -y update" "yum -y update")
-PACKAGE_INSTALL=("apt -y install" "apt -y install" "yum -y install" "yum -y install")
-PACKAGE_UNINSTALL=("apt -y autoremove" "apt -y autoremove" "yum -y autoremove" "yum -y autoremove")
 temp_file_apt_fix="/tmp/apt_fix.txt"
-[[ $EUID -ne 0 ]] && exit 1
-CMD=("$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(hostnamectl 2>/dev/null | grep -i system | cut -d : -f2)" "$(lsb_release -sd 2>/dev/null)" "$(grep -i description /etc/lsb-release 2>/dev/null | cut -d \" -f2)" "$(grep . /etc/redhat-release 2>/dev/null)" "$(grep . /etc/issue 2>/dev/null | cut -d \\ -f1 | sed '/^[ ]*$/d')")
-for i in "${CMD[@]}"; do
-    SYS="$i" && [[ -n $SYS ]] && break
-done
+REGEX=("debian|astra" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "fedora" "arch" "freebsd")
+RELEASE=("Debian" "Ubuntu" "CentOS" "CentOS" "Fedora" "Arch" "FreeBSD")
+PACKAGE_UPDATE=("! apt-get update && apt-get --fix-broken install -y && apt-get update" "apt-get update" "yum -y update" "yum -y update" "yum -y update" "pacman -Sy" "pkg update")
+PACKAGE_INSTALL=("apt-get -y install" "apt-get -y install" "yum -y install" "yum -y install" "yum -y install" "pacman -Sy --noconfirm --needed" "pkg install -y")
+PACKAGE_REMOVE=("apt-get -y remove" "apt-get -y remove" "yum -y remove" "yum -y remove" "yum -y remove" "pacman -Rsc --noconfirm" "pkg delete")
+PACKAGE_UNINSTALL=("apt-get -y autoremove" "apt-get -y autoremove" "yum -y autoremove" "yum -y autoremove" "yum -y autoremove" "" "pkg autoremove")
+CMD=("$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(hostnamectl 2>/dev/null | grep -i system | cut -d : -f2)" "$(lsb_release -sd 2>/dev/null)" "$(grep -i description /etc/lsb-release 2>/dev/null | cut -d \" -f2)" "$(grep . /etc/redhat-release 2>/dev/null)" "$(grep . /etc/issue 2>/dev/null | cut -d \\ -f1 | sed '/^[ ]*$/d')" "$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(uname -s)") 
+SYS="${CMD[0]}"
+[[ -n $SYS ]] || exit 1
 for ((int = 0; int < ${#REGEX[@]}; int++)); do
-    [[ $(echo "$SYS" | tr '[:upper:]' '[:lower:]') =~ ${REGEX[int]} ]] && SYSTEM="${RELEASE[int]}" && [[ -n $SYSTEM ]] && break
+    if [[ $(echo "$SYS" | tr '[:upper:]' '[:lower:]') =~ ${REGEX[int]} ]]; then
+        SYSTEM="${RELEASE[int]}"
+        [[ -n $SYSTEM ]] && break
+    fi
 done
 [[ -z $SYSTEM ]] && exit 1
+[[ $EUID -ne 0 ]] && exit 1
 
-apt-get update -y
-if [ $? -ne 0 ]; then
-   dpkg --configure -a
-   apt-get update -y
-fi
-if [ $? -ne 0 ]; then
-   apt-get install gnupg -y
-fi
-apt_update_output=$(apt-get update 2>&1)
-echo "$apt_update_output" > "$temp_file_apt_fix"
-if grep -q 'NO_PUBKEY' "$temp_file_apt_fix"; then
-    public_keys=$(grep -oE 'NO_PUBKEY [0-9A-F]+' "$temp_file_apt_fix" | awk '{ print $2 }')
-    joined_keys=$(echo "$public_keys" | paste -sd " ")
-    echo "No Public Keys: ${joined_keys}"
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ${joined_keys}
-    apt-get update
-    if [ $? -eq 0 ]; then
-        echo "Fixed"
+checkupdate(){
+if command -v apt-get > /dev/null 2>&1; then
+    apt_update_output=$(apt-get update 2>&1)
+    echo "$apt_update_output" > "$temp_file_apt_fix"
+    if grep -q 'NO_PUBKEY' "$temp_file_apt_fix"; then
+	public_keys=$(grep -oE 'NO_PUBKEY [0-9A-F]+' "$temp_file_apt_fix" | awk '{ print $2 }')
+	joined_keys=$(echo "$public_keys" | paste -sd " ")
+	echo "No Public Keys: ${joined_keys}"
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ${joined_keys}
+	apt-get update
+	if [ $? -eq 0 ]; then
+	    _green "Fixed"
+	fi
     fi
-fi
-rm "$temp_file_apt_fix"
+    rm "$temp_file_apt_fix"
+else
+    ${PACKAGE_UPDATE[int]}
+fi 
+}
 
 install_required_modules() {
     modules=("dos2unix" "wget" "sudo" "sshpass" "openssh-server")
     for module in "${modules[@]}"
     do
-        if dpkg -s $module > /dev/null 2>&1 ; then
-            echo "$module 已经安装！"
-        else
-            apt-get install -y $module
-	    if [ $? -ne 0 ]; then
-	        apt-get install -y $module --fix-missing
+        if command -v apt-get > /dev/null 2>&1; then
+	    if dpkg -s $module > /dev/null 2>&1 ; then
+	        echo "$module 已经安装！"
+	    else
+	        apt-get install -y $module
+	        if [ $? -ne 0 ]; then
+		    apt-get install -y $module --fix-missing
+	        fi
+	        echo "$module 已尝试过安装！"
 	    fi
-            echo "$module 已尝试过安装！"
-        fi
+	else
+	    ${PACKAGE_INSTALL[int]} $module
+	fi
     done
 }
 
+checkupdate
 install_required_modules
 sshport=22
 sudo service iptables stop 2> /dev/null ; chkconfig iptables off 2> /dev/null ;
