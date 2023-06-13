@@ -301,7 +301,7 @@ done
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
 # 预设谷歌的DNS
-if [ ! -s "/etc/resolv.conf" ]
+if [ -f "/etc/resolv.conf" ]
 then
     cp /etc/resolv.conf /etc/resolv.conf.bak
     sudo chattr -i /etc/resolv.conf
@@ -329,3 +329,18 @@ else
   echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
 fi
 ${sysctl_path} -p
+# 解除进程数限制
+if [ -f "/etc/security/limits.conf" ]; then
+    if ! grep -q "*          hard    nproc       unlimited" /etc/security/limits.conf; then
+	echo '*          hard    nproc       unlimited' | sudo tee -a /etc/security/limits.conf
+    fi
+    if ! grep -q "*          soft    nproc       unlimited" /etc/security/limits.conf; then
+	echo '*          soft    nproc       unlimited' | sudo tee -a /etc/security/limits.conf
+    fi
+fi
+if [ -f "/etc/systemd/logind.conf" ]; then
+    if ! grep -q "UserTasksMax=infinity" /etc/systemd/logind.conf; then
+        echo 'UserTasksMax=infinity' | sudo tee -a /etc/systemd/logind.conf
+    fi
+fi
+_green "如果你需要开启超过100个小鸡，建议等待几分钟后执行 reboot 重启本机以使得设置生效"
