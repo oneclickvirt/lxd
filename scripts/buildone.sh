@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.09
+# 2023.06.13
 
 # cd /root
 # 输入
@@ -18,7 +18,8 @@ nat2="${6:-20025}"
 in="${7:-300}"
 out="${8:-300}"
 rm -rf "$name"
-lxc init images:debian/11 "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB
+lxc init images:debian/11 "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB 
+# --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
   echo "容器创建失败，请检查前面的输出信息"
   exit 1
@@ -52,6 +53,7 @@ ori=$(date | md5sum)
 passwd=${ori: 2: 9}
 lxc start "$name"
 sleep 1
+/usr/local/bin/check-dns.sh
 lxc exec "$name" -- sudo apt-get update -y
 lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
 lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
