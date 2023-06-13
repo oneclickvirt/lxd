@@ -10,6 +10,7 @@ _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading(){ read -rp "$(_green "$1")" "$2"; }
+cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "https://cdn1.spiritlhl.net/" "https://ghproxy.com/" "https://cdn2.spiritlhl.net/")
 utf8_locale=$(locale -a 2>/dev/null | grep -i -m 1 -E "utf8|UTF-8")
 export DEBIAN_FRONTEND=noninteractive
 if [[ -z "$utf8_locale" ]]; then
@@ -55,8 +56,6 @@ check_cdn_file() {
     fi
 }
 
-cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "https://cdn1.spiritlhl.net/" "https://ghproxy.com/" "https://cdn2.spiritlhl.net/")
-
 apt-get update
 apt-get autoremove -y
 install_package wget
@@ -65,6 +64,7 @@ install_package sudo
 install_package dos2unix
 install_package ufw
 check_cdn_file
+
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
 lxd_snapd=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snapd`
@@ -269,18 +269,20 @@ done
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
 # 预设谷歌的DNS
-DNS_SERVER="8.8.8.8"
-RESOLV_CONF="/etc/resolv.conf"
-grep -q "^nameserver ${DNS_SERVER}$" ${RESOLV_CONF}
-if [ $? -eq 0 ]; then
-    echo "DNS server ${DNS_SERVER} already exists in ${RESOLV_CONF}."
-else
+if [ ! -s "/etc/resolv.conf" ]
+then
     cp /etc/resolv.conf /etc/resolv.conf.bak
-    chattr -i /etc/resolv.conf
-    echo "Adding DNS server ${DNS_SERVER} to ${RESOLV_CONF}..."
-    echo -e "nameserver 1.1.1.1\nnameserver 8.8.8.8\nnameserver 8.8.4.4\nnameserver 2606:4700:4700::1111\nnameserver 2001:4860:4860::8888\nnameserver 2001:4860:4860::8844" >> ${RESOLV_CONF}
-    chattr +i /etc/resolv.conf
+    sudo chattr -i /etc/resolv.conf
+    echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+    sudo chattr +i /etc/resolv.conf
 fi
+wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
+wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
+chmod +x /usr/local/bin/check-dns.sh
+chmod +x /etc/systemd/system/check-dns.service
+systemctl daemon-reload
+systemctl enable check-dns.service
+systemctl start check-dns.service
 # 加载iptables并设置回源且允许NAT端口转发
 install_package iptables 
 install_package iptables-persistent
