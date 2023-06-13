@@ -17,14 +17,6 @@ for ((int = 0; int < ${#REGEX[@]}; int++)); do
 done
 [[ -z $SYSTEM ]] && exit 1
 
-if [ -f "/etc/resolv.conf" ]
-then
-    cp /etc/resolv.conf /etc/resolv.conf.bak
-    sudo chattr -i /etc/resolv.conf
-    echo "nameserver 8.8.8.8" | tee -a /etc/resolv.conf > /dev/null
-    sudo chattr +i /etc/resolv.conf
-fi
-
 apt-get update -y
 if [ $? -ne 0 ]; then
    dpkg --configure -a
