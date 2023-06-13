@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.05.15
+# 2023.06.13
 
 # cd /root
 
@@ -132,13 +132,29 @@ build_new_containers(){
             yellow "输入无效，请输入一个正整数。"
         fi
     done
+    while true; do
+        reading "每个小鸡下载速度限制多少？(若需要限制为300Mbit，输入300)：" input_nums
+        if [[ "$input_nums" =~ ^[1-9][0-9]*$ ]]; then
+            break
+        else
+            yellow "输入无效，请输入一个正整数。"
+        fi
+    done
+    while true; do
+        reading "每个小鸡上传速度限制多少？(若需要限制为300Mbit，输入300)：" output_nums
+        if [[ "$output_nums" =~ ^[1-9][0-9]*$ ]]; then
+            break
+        else
+            yellow "输入无效，请输入一个正整数。"
+        fi
+    done
     for ((i=1; i<=$new_nums; i++)); do
         container_num=$(($container_num + 1))
         container_name="${container_prefix}${container_num}"
         ssh_port=$(($ssh_port + 1))
         public_port_start=$(($public_port_end + 1))
         public_port_end=$(($public_port_start + 25))
-        ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end 300 300
+        ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums
         cat "$container_name" >> log
         rm -rf $container_name
     done
