@@ -95,6 +95,7 @@ install_package dos2unix
 install_package ufw
 check_cdn_file
 rebuild_cloud_init
+apt-get remove cloud-init -y
 
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
