@@ -154,7 +154,7 @@ build_new_containers(){
         b="${system##*[!0-9]}"
         output=$(lxc image list images:${a}/${b})
         if echo "$output" | grep -q "${a}/${b}"; then
-            echo "匹配的镜像存在，将使用 images:${a}/${b} 进行创建"
+            echo "匹配的镜像存在"
             break
         else
             echo "未找到匹配的镜像，请执行"
