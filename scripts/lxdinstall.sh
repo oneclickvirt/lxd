@@ -309,13 +309,21 @@ then
     echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
     sudo chattr +i /etc/resolv.conf
 fi
-wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
-wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
-chmod +x /usr/local/bin/check-dns.sh
-chmod +x /etc/systemd/system/check-dns.service
-systemctl daemon-reload
-systemctl enable check-dns.service
-systemctl start check-dns.service
+if [ ! -f /usr/local/bin/check-dns.sh ]; then
+    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
+    chmod +x /usr/local/bin/check-dns.sh
+else
+    echo "Script already exists. Skipping installation."
+fi
+if [ ! -f /etc/systemd/system/check-dns.service ]; then
+    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
+    chmod +x /etc/systemd/system/check-dns.service
+    systemctl daemon-reload
+    systemctl enable check-dns.service
+    systemctl start check-dns.service
+else
+    echo "Service already exists. Skipping installation."
+fi
 # 加载iptables并设置回源且允许NAT端口转发
 install_package iptables 
 install_package iptables-persistent
