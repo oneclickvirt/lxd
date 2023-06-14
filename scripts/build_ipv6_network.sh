@@ -23,7 +23,7 @@ fi
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
-    modules=("sudo" "ufw" "lshw" "jq" "net-tools")
+    modules=("sudo" "ufw" "lshw" "jq" "net-tools" "netfilter-persistent")
     for module in "${modules[@]}"
     do
         if dpkg -s $module > /dev/null 2>&1 ; then
