@@ -491,6 +491,16 @@ netfilter-persistent reload
 service netfilter-persistent restart
 ```
 
+卸载IPV6地址绑定的守护进程和对应的文件
+
+```
+systemctl stop add-ipv6.service
+systemctl disable add-ipv6.service
+rm /etc/systemd/system/add-ipv6.service
+systemctl daemon-reload
+rm /usr/local/bin/add-ipv6.sh
+```
+
 ##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
 
 - (***非必须***，该脚本仅仅是为了防止容器滥用方便，不装的也没问题)
