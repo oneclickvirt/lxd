@@ -3,7 +3,7 @@ Description=Check IPV6 service
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/check-ipv6.sh
+ExecStart=/usr/local/bin/add-ipv6.sh
 
 [Install]
 WantedBy=multi-user.target
