@@ -484,6 +484,7 @@ bash build_ipv6_network.sh test
 
 ```bash
 ip6tables -t nat -F PREROUTING
+ip6tables-legacy -t nat -F PREROUTING
 ip6tables-save > /etc/iptables/rules.v6
 netfilter-persistent save
 netfilter-persistent reload
