@@ -23,7 +23,7 @@ fi
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
-    modules=("sudo" "ufw" "lshw" "jq" "net-tools" "netfilter-persistent")
+    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent")
     for module in "${modules[@]}"
     do
         if command -v $module > /dev/null 2>&1 ; then
@@ -35,7 +35,6 @@ install_required_modules() {
     done
 }
 install_required_modules
-ufw disable
 
 # 查询网卡
 interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
