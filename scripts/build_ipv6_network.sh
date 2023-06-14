@@ -26,7 +26,7 @@ install_required_modules() {
     modules=("sudo" "ufw" "lshw" "jq" "net-tools" "netfilter-persistent")
     for module in "${modules[@]}"
     do
-        if dpkg -s $module > /dev/null 2>&1 ; then
+        if command -v $module > /dev/null 2>&1 ; then
             _green "$module 已经安装！"
         else
             apt-get install -y $module
