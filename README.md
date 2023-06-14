@@ -6,15 +6,10 @@
 
 更新：
 
-2023.06.13 
+2023.06.14
 
-- LXD的一键安装脚本增加cloud-init文件的识别，~~修改商家的设置，避免DNS重置~~，删除cloud-init组件
-- LXD的一键安装脚本增加了进程数限制解除，以使得支持开设100个以上的小鸡
-- 使用dos2unix转换ssh.sh文件的格式避免部分模板识别不到文件，依赖自修复增加对zfs编译的修复
-- 宿主机增加DNS检测的守护进程，避免LXD在开设服务器的过程中因为继承宿主机DNS配置，导致的DNS重置回商家原始设置的问题
-- ssh.sh文件增加对DNS的改写，增加谷歌的DNS配置，这样即便宿主机DNS有问题也保证LXC容器自己的DNS不出问题
-- 批量开设的脚本增加对下载带宽和上传带宽的限制
-- 开设小鸡时支持自定义小鸡的系统，注意传入参数为系统名字+版本号，如：debian11、ubuntu20，centos7，注意都是小写字母+数字的组合，具体镜像将自动模糊匹配
+- 修复IPV6地址绑定后如果重启宿主机会导致绑定丢失的问题
+- 增加针对IPV6转发的IPV6地址绑定的守护进程
 
 [更新日志](CHANGELOG.md)
 
@@ -489,6 +484,10 @@ bash build_ipv6_network.sh test
 
 ```bash
 ip6tables -t nat -F PREROUTING
+ip6tables-save > /etc/iptables/rules.v6
+netfilter-persistent save
+netfilter-persistent reload
+service netfilter-persistent restart
 ```
 
 ##### 屏蔽容易被滥用的端口的出入流量以屏蔽端口和屏蔽滥用工具包
