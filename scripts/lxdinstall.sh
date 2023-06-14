@@ -310,13 +310,13 @@ then
     sudo chattr +i /etc/resolv.conf
 fi
 if [ ! -f /usr/local/bin/check-dns.sh ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
+    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
     chmod +x /usr/local/bin/check-dns.sh
 else
     echo "Script already exists. Skipping installation."
 fi
 if [ ! -f /etc/systemd/system/check-dns.service ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/pve/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
+    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
     chmod +x /etc/systemd/system/check-dns.service
     systemctl daemon-reload
     systemctl enable check-dns.service
