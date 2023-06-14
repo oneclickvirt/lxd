@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.04.14
+# 2023.06.14
 
 # ./build_ipv6_network.sh LXC容器名称
 
