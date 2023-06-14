@@ -92,6 +92,8 @@ if [ ! -f "/etc/iptables/rules.v6" ]; then
     touch /etc/iptables/rules.v6
 fi
 ip6tables-save > /etc/iptables/rules.v6
+netfilter-persistent save
+netfilter-persistent reload
 service netfilter-persistent restart
 
 # 打印信息并测试是否通畅
