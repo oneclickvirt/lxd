@@ -20,3 +20,8 @@ else
         ip addr add "$parameter"/64 dev "$interface"
     done
 fi
+ip6tables-restore < /etc/iptables/rules.v6
+ip6tables-legacy-restore < /etc/iptables/rules.v6
+netfilter-persistent save
+netfilter-persistent reload
+service netfilter-persistent restart
