@@ -21,7 +21,7 @@
 
 [virt.spiritlhl.net](https://virt.spiritlhl.net/)
 
-### 友链
+## 友链
 
 VPS融合怪测评脚本
 
