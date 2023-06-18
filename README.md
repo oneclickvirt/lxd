@@ -19,7 +19,7 @@
 
 ## 说明文档
 
-[virt.spiritlhl.net](https://virt.spiritlhl.net/)
+[virt.spiritlhl.net](https://virt.spiritlhl.net/) 中 LXD 分区内容
 
 ## 友链
 
