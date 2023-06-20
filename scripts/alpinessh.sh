@@ -11,7 +11,7 @@ then
   echo "This script must be executed with root privileges."
   exit 1
 fi
-apk add --no-cache openssh-server sshpass
+apk add --no-cache openssh-server sshpass openssh-keygen
 if [ -f "/etc/motd" ]; then
     echo 'Related repo https://github.com/spiritLHLS/lxc' >> /etc/motd
     echo '--by https://t.me/spiritlhl' >> /etc/motd
@@ -24,6 +24,7 @@ sed -i.bak '/^#PasswordAuthentication\|PasswordAuthentication/c PasswordAuthenti
 sed -i.bak '/^#ListenAddress\|ListenAddress/c ListenAddress 0.0.0.0' /etc/ssh/sshd_config
 sed -i.bak '/^#AddressFamily\|AddressFamily/c AddressFamily any' /etc/ssh/sshd_config
 sed -i.bak "s/^#\?\(Port\).*/\1 $sshport/" /etc/ssh/sshd_config
+sed -i.bak -E 's/^#?(Port).*/\1 $sshport/' /etc/ssh/sshd_config
 /usr/sbin/sshd
 echo root:"$1" | chpasswd root
 rm -f "$0"
