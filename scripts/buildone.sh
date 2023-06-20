@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.13
+# 2023.06.20
 
 # cd /root
 # 输入
@@ -84,22 +84,34 @@ if echo "$system" | grep -qiE "centos|almalinux"; then
     lxc exec "$name" -- sudo yum update -y
     lxc exec "$name" -- sudo yum install -y curl
     lxc exec "$name" -- sudo yum install -y dos2unix
+elif echo "$system" | grep -qiE "alpine"; then
+    lxc exec "$name" -- apk update
+    lxc exec "$name" -- apk add --no-cache curl
+    lxc exec "$name" -- apk add --no-cache dos2unix
 else
     lxc exec "$name" -- sudo apt-get update -y
     lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
     lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
 fi
-lxc file push /root/ssh.sh "$name"/root/
-# lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
-lxc exec "$name" -- chmod 777 ssh.sh
-lxc exec "$name" -- dos2unix ssh.sh
-lxc exec "$name" -- sudo ./ssh.sh $passwd
-lxc file push /root/config.sh "$name"/root/
-# lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
-lxc exec "$name" -- chmod +x config.sh
-lxc exec "$name" -- dos2unix config.sh
-lxc exec "$name" -- bash config.sh
-lxc exec "$name" -- history -c
+if echo "$system" | grep -qiE "alpine"; then
+    lxc file push /root/alpinessh.sh "$name"/root/
+    # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/alpinessh.sh -o alpinessh.sh
+    lxc exec "$name" -- chmod 777 alpinessh.sh
+    lxc exec "$name" -- dos2unix alpinessh.sh
+    lxc exec "$name" -- sh /alpinessh.sh ${passwd}
+else
+    lxc file push /root/ssh.sh "$name"/root/
+    # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
+    lxc exec "$name" -- chmod 777 ssh.sh
+    lxc exec "$name" -- dos2unix ssh.sh
+    lxc exec "$name" -- sudo ./ssh.sh $passwd
+    lxc file push /root/config.sh "$name"/root/
+    # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
+    lxc exec "$name" -- chmod +x config.sh
+    lxc exec "$name" -- dos2unix config.sh
+    lxc exec "$name" -- bash config.sh
+    lxc exec "$name" -- history -c
+fi
 lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
 # 是否要创建V6地址
 if [ -n "$9" ]; then
