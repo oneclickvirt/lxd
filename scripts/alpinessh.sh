@@ -11,8 +11,7 @@ then
   echo "This script must be executed with root privileges."
   exit 1
 fi
-apk update
-apk add --no-cache wget curl openssh-server sshpass
+apk add --no-cache openssh-server sshpass
 cd /etc/ssh
 ssh-keygen -A
 sshport=22
