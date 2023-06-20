@@ -12,6 +12,10 @@ then
   exit 1
 fi
 apk add --no-cache openssh-server sshpass
+if [ -f "/etc/motd" ]; then
+    echo 'Related repo https://github.com/spiritLHLS/lxc' >> /etc/motd
+    echo '--by https://t.me/spiritlhl' >> /etc/motd
+fi
 cd /etc/ssh
 ssh-keygen -A
 sshport=22
