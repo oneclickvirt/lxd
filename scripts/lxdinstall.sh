@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.06.14
+# 2023.06.20
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -41,7 +41,7 @@ check_cdn() {
     if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" > /dev/null 2>&1; then
       export cdn_success_url="$cdn_url"
       return
-    fi
+    fiuidmap
     sleep 0.5
   done
   export cdn_success_url=""
@@ -273,6 +273,7 @@ if [[ $status == false ]]; then
       /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-device "$disk_nums" --storage-pool default --auto
   fi
 fi
+install_package uidmap
 
 # 虚拟内存设置
 curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh" -o swap2.sh && chmod +x swap2.sh
