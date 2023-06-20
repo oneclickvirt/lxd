@@ -87,7 +87,6 @@ if echo "$system" | grep -qiE "centos|almalinux"; then
 elif echo "$system" | grep -qiE "alpine"; then
     lxc exec "$name" -- apk update
     lxc exec "$name" -- apk add --no-cache curl
-    lxc exec "$name" -- apk add --no-cache dos2unix
 else
     lxc exec "$name" -- sudo apt-get update -y
     lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
@@ -97,8 +96,7 @@ if echo "$system" | grep -qiE "alpine"; then
     lxc file push /root/alpinessh.sh "$name"/root/
     # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/alpinessh.sh -o alpinessh.sh
     lxc exec "$name" -- chmod 777 alpinessh.sh
-    lxc exec "$name" -- dos2unix alpinessh.sh
-    lxc exec "$name" -- sh /alpinessh.sh ${passwd}
+    lxc exec "$name" -- ./alpinessh.sh ${passwd}
 else
     lxc file push /root/ssh.sh "$name"/root/
     # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
