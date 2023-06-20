@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.13
+# 2023.06.20
 
 # cd /root
 
@@ -151,7 +151,7 @@ build_new_containers(){
     while true; do
         reading "每个小鸡的系统是什么？(注意传入参数为系统名字+版本号，如：debian11、ubuntu20、centos7)：" system
         a="${system%%[0-9]*}"
-        b="${system##*[!0-9]}"
+        b="${system##*[!0-9.]}"
         output=$(lxc image list images:${a}/${b})
         if echo "$output" | grep -q "${a}/${b}"; then
             echo "匹配的镜像存在"
