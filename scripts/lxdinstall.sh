@@ -290,6 +290,7 @@ lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
 files=(
   "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh"
+  "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/alpinessh.sh"
   "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh"
   "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh"
 )
