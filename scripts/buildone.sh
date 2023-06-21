@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.20
+# 2023.06.21
 
 # cd /root
 # 输入
@@ -54,12 +54,10 @@ fi
 lxc config device override "$name" root size="$disk"GB
 lxc config device set "$name" root limits.max "$disk"GB
 # IO
-lxc config device set "$name" root limits.read 100MB
-lxc config device set "$name" root limits.write 100MB
-lxc config device set "$name" root limits.read 100iops
-lxc config device set "$name" root limits.write 100iops
-# 网速
-lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
+lxc config device set "$name" root limits.read 500MB
+lxc config device set "$name" root limits.write 500MB
+lxc config device set "$name" root limits.read 5000iops
+lxc config device set "$name" root limits.write 5000iops
 # cpu
 lxc config set "$name" limits.cpu.priority 0
 lxc config set "$name" limits.cpu.allowance 50%
@@ -133,3 +131,7 @@ if [ "$nat1" == "0" ] && [ "$nat2" == "0" ]; then
   echo "$name $sshn $passwd" >> "$name"
   echo "$name $sshn $passwd" 
 fi
+# 网速
+lxc stop "$name"
+lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
+lxc start "$name"
