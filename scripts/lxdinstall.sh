@@ -41,7 +41,7 @@ check_cdn() {
     if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" > /dev/null 2>&1; then
       export cdn_success_url="$cdn_url"
       return
-    fiuidmap
+    fi
     sleep 0.5
   done
   export cdn_success_url=""
@@ -94,6 +94,7 @@ install_package sudo
 install_package dos2unix
 install_package ufw
 install_package jq
+install_package fiuidmap
 check_cdn_file
 rebuild_cloud_init
 apt-get remove cloud-init -y
