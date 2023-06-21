@@ -7,10 +7,10 @@
 rm -rf log
 lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=128MiB
 lxc config device override "$1" root size=200MB
-lxc config device set "$1" root limits.read 100MB
-lxc config device set "$1" root limits.write 100MB
-lxc config device set "$1" root limits.read 100iops
-lxc config device set "$1" root limits.write 100iops
+lxc config device set "$1" root limits.read 500MB
+lxc config device set "$1" root limits.write 500MB
+lxc config device set "$1" root limits.read 5000iops
+lxc config device set "$1" root limits.write 5000iops
 lxc config device set "$1" root limits.max 300MB
 lxc config device override "$1" eth0 limits.egress=300Mbit limits.ingress=300Mbit
 lxc config set "$1" limits.cpu.priority 0
