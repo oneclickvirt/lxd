@@ -356,3 +356,4 @@ if [ -f "/etc/systemd/logind.conf" ]; then
     fi
 fi
 _green "如果你需要开启超过100个小鸡，建议等待几分钟后执行 reboot 重启本机以使得设置生效"
+_green "重启后可以保证DNS的检测机制生效，否则批量开启过程中可能导致宿主机的DNS被商家预设覆盖"
