@@ -3,7 +3,7 @@
 # 2023.06.29
 
 
-DNS_SERVER="8.8.8.8"
+DNS_SERVER="2001:4860:4860::8844"
 RESOLV_CONF="/etc/resolv.conf"
 
 grep -q "^nameserver ${DNS_SERVER}$" ${RESOLV_CONF}
