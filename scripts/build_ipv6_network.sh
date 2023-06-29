@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.06.14
+# 2023.06.29
 
 # ./build_ipv6_network.sh LXC容器名称
 
@@ -27,9 +27,11 @@ install_required_modules() {
     for module in "${modules[@]}"
     do
         if command -v $module > /dev/null 2>&1 ; then
+            _green "$module is installed!"
             _green "$module 已经安装！"
         else
             apt-get install -y $module
+            _green "$module has been successfully installed!"
             _green "$module 已成功安装！"
         fi
     done
@@ -44,6 +46,7 @@ _yellow "网卡 $interface"
 CONTAINER_NAME="$1"
 CONTAINER_IPV6=$(lxc list $CONTAINER_NAME --format=json | jq -r '.[0].state.network.eth0.addresses[] | select(.family=="inet6") | select(.scope=="global") | .address')
 if [ -z "$CONTAINER_IPV6" ]; then
+    _red "Container has no intranet IPV6 address, no auto-mapping"
     _red "容器无内网IPV6地址，不进行自动映射"
     exit 1
 fi
@@ -54,10 +57,12 @@ SUBNET_PREFIX=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | a
 
 # 检查是否存在 IPV6 
 if [ -z "$SUBNET_PREFIX" ]; then
+    _red "No IPV6 subnet, no automatic mapping"
     _red "无 IPV6 子网，不进行自动映射"
     exit 1
 fi
-_blue "母鸡的IPV6子网前缀为 $SUBNET_PREFIX"
+_blue "The IPV6 subnet prefix is $SUBNET_PREFIX"
+_blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 
 # 寻找未使用的子网内的一个IPV6地址
 for i in $(seq 1 65535); do
@@ -79,6 +84,7 @@ done
 
 # 检查是否找到未使用的 IPV6 地址
 if [ -z "$IPV6" ]; then
+    _red "No IPV6 address available, no auto mapping"
     _red "无可用 IPV6 地址，不进行自动映射"
     exit 1
 fi
@@ -113,8 +119,10 @@ service netfilter-persistent restart
 
 # 打印信息并测试是否通畅
 if ping6 -c 3 $IPV6 &>/dev/null; then
+    _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
     _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
 else
+    _red "Mapping failure"
     _red "映射失败"
     exit 1
 fi

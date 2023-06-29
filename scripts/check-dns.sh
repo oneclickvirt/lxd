@@ -1,5 +1,8 @@
 #!/bin/bash
 #from https://github.com/spiritLHLS/lxc
+# 2023.06.29
+
+
 DNS_SERVER="8.8.8.8"
 RESOLV_CONF="/etc/resolv.conf"
 

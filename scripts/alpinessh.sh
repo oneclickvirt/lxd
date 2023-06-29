@@ -1,5 +1,6 @@
 #!/bin/sh
-#https://github.com/spiritLHLS/lxc
+# by https://github.com/spiritLHLS/lxc
+# 2023.06.29
 
 if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" != "alpine" ]
 then

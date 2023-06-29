@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.21
+# 2023.06.29
 
 # cd /root
 # 输入
@@ -36,8 +36,12 @@ case "${sysarch}" in
 esac
 if echo "$output" | grep -q "${a}/${b}"; then
     system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+    echo "A matching image exists and will be created using images:${system}"
     echo "匹配的镜像存在，将使用 images:${system} 进行创建"
 else
+    echo "No matching image found, please execute"
+    echo "lxc image list images:system/version number"
+    echo "Check if a corresponding image exists"
     echo "未找到匹配的镜像，请执行"
     echo "lxc image list images:系统/版本号"
     echo "查询是否存在对应镜像"
@@ -47,8 +51,9 @@ rm -rf "$name"
 lxc init images:${system} "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB 
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
-  echo "容器创建失败，请检查前面的输出信息"
-  exit 1
+    echo "Container creation failed, please check the previous output message"
+    echo "容器创建失败，请检查前面的输出信息"
+    exit 1
 fi
 # 硬盘大小
 lxc config device override "$name" root size="$disk"GB

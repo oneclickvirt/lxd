@@ -1,12 +1,13 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.05.11
+# 2023.06.29
 
 if ! command -v jq > /dev/null 2>&1; then
     apt-get install jq -y
 fi
 echo $$ > /tmp/lxc_monitor.pid
+echo "The monitoring PID is the contents of the /tmp/lxc_monitor.pid file, which can be viewed by executing cat /tmp/lxc_monitor.pid"
 echo "监控PID为 /tmp/lxc_monitor.pid 文件中的内容，可执行 cat /tmp/lxc_monitor.pid 查看"
 # 指定关键词列表
 KEYWORDS=("xmrig" "masscan" "zmap" "nmap" "medusa" "webBenchmark" "hping3")

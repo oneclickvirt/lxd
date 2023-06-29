@@ -1,5 +1,7 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
+# 2023.06.29
+
 
 if [ -f "/etc/resolv.conf" ]
 then
@@ -54,17 +56,19 @@ install_required_modules() {
     for module in "${modules[@]}"
     do
         if command -v apt-get > /dev/null 2>&1; then
-	    if dpkg -s $module > /dev/null 2>&1 ; then
-	        echo "$module 已经安装！"
-	    else
-	        apt-get install -y $module
-	        if [ $? -ne 0 ]; then
-		    apt-get install -y $module --fix-missing
-	        fi
-	        echo "$module 已尝试过安装！"
-	    fi
-	else
-	    ${PACKAGE_INSTALL[int]} $module
+            if command -v $module > /dev/null 2>&1 ; then
+                echo "$module is installed!"
+                echo "$module 已经安装！"
+            else
+                apt-get install -y $module
+                if [ $? -ne 0 ]; then
+                    apt-get install -y $module --fix-missing
+                fi
+                echo "$module has tried to install!"
+                echo "$module 已尝试过安装！"
+            fi
+        else
+            ${PACKAGE_INSTALL[int]} $module
 	fi
     done
 }

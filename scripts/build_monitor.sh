@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.02.27
+# 2023.06.29
 
 # 检查 screen 是否已安装
 if ! command -v screen &> /dev/null; then

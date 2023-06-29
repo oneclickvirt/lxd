@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.20
+# 2023.06.29
 
 # cd /root
 
@@ -47,6 +47,7 @@ check_cdn_file
 pre_check(){
     home_dir=$(eval echo "~$(whoami)")
     if [ "$home_dir" != "/root" ]; then
+        red "Current path is not /root, script will exit."
         red "当前路径不是/root，脚本将退出。"
         exit 1
     fi
@@ -73,6 +74,7 @@ pre_check(){
 check_log(){
     log_file="log"
     if [ -f "$log_file" ]; then
+        green "Log file exists, content being read..."
         green "Log文件存在，正在读取内容..."
         while read line; do
             # echo "$line"
@@ -85,19 +87,22 @@ check_log(){
         public_port_start="${last_line_array[3]}"
         public_port_end="${last_line_array[4]}"
         if [ -z "$public_port_start" ] || [ -z "$public_port_end" ]; then
-          blue "仅支持普通版本的配置批量重复生成，纯探针版本或其他的无法使用"
-          exit 1
+            blue "Only the common version of the configuration batch repeat generation is supported, pure probe version or other can not be used"
+            blue "仅支持普通版本的配置批量重复生成，纯探针版本或其他的无法使用"
+            exit 1
         fi
         container_prefix="${container_name%%[0-9]*}"
         container_num="${container_name##*[!0-9]}"
+        yellow "Current information on the last container:"
         yellow "目前最后一个小鸡的信息："
-        blue "容器前缀: $container_prefix"
-        blue "容器数量: $container_num"
-        blue "SSH端口: $ssh_port"
+        blue "容器前缀-Prefix: $container_prefix"
+        blue "容器数量-num: $container_num"
+        blue "SSH端口-ssh: $ssh_port"
 #         blue "密码: $password"
-        blue "外网端口起: $public_port_start"
-        blue "外网端口止: $public_port_end"
+        blue "外网端口起-portstart: $public_port_start"
+        blue "外网端口止-portend: $public_port_end"
     else
+        red "Log file does not exist."
         red "log文件不存在。"
         container_prefix="ex"
         container_num=0
@@ -109,54 +114,69 @@ check_log(){
 
 build_new_containers(){
     while true; do
+        green "How many more containers need to be generated? (Enter how many new containers to add):"
         reading "还需要生成几个小鸡？(输入新增几个小鸡)：" new_nums
         if [[ "$new_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
+            yellow "Invalid input, please enter a positive integer."
             yellow "输入无效，请输入一个正整数。"
         fi
     done
     while true; do
+        green "How much memory is allocated per container? (Memory size per container, enter 256 if 256MB of memory is required):"
         reading "每个小鸡分配多少内存？(每个小鸡内存大小，若需要256MB内存，输入256)：" memory_nums
         if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
+            yellow "Invalid input, please enter a positive integer."
             yellow "输入无效，请输入一个正整数。"
         fi
     done
     while true; do
+        green "What size hard disk is allocated for each container? (per container hard drive size, enter 1 if 1G hard drive is required):"
         reading "每个小鸡分配多大硬盘？(每个小鸡硬盘大小，若需要1G硬盘，输入1)：" disk_nums
         if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
+            yellow "Invalid input, please enter a positive integer."
             yellow "输入无效，请输入一个正整数。"
         fi
     done
     while true; do
+        green "What is the download speed limit per container? (If you need the limit to be 300Mbit, enter 300):"
         reading "每个小鸡下载速度限制多少？(若需要限制为300Mbit，输入300)：" input_nums
         if [[ "$input_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
+            yellow "Invalid input, please enter a positive integer."
             yellow "输入无效，请输入一个正整数。"
         fi
     done
     while true; do
+        green "What is the upload speed limit per container? (If you need the limit to be 300Mbit, enter 300):"
         reading "每个小鸡上传速度限制多少？(若需要限制为300Mbit，输入300)：" output_nums
         if [[ "$output_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
+            yellow "Invalid input, please enter a positive integer."
             yellow "输入无效，请输入一个正整数。"
         fi
     done
     while true; do
+        green "What is the system of each container? (Note that the incoming parameter is the system name + version number, e.g. debian11, ubuntu20, centos7):"
         reading "每个小鸡的系统是什么？(注意传入参数为系统名字+版本号，如：debian11、ubuntu20、centos7)：" system
         a="${system%%[0-9]*}"
         b="${system##*[!0-9.]}"
         output=$(lxc image list images:${a}/${b})
         if echo "$output" | grep -q "${a}/${b}"; then
+            echo "Matching mirror exists"
             echo "匹配的镜像存在"
             break
         else
+            echo "No matching image found, please execute"
+            echo "lxc image list images:system name/version number"
+            echo "Check if the corresponding image exists"
             echo "未找到匹配的镜像，请执行"
             echo "lxc image list images:系统名字/版本号"
             echo "查询是否存在对应镜像"
@@ -178,5 +198,6 @@ build_new_containers(){
 pre_check
 check_log
 build_new_containers
+green "Generating new chicks is complete"
 green "生成新的小鸡完毕"
 check_log
