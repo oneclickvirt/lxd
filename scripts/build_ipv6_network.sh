@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.06.29
+# 2023.07.03
 
 # ./build_ipv6_network.sh LXC容器名称
 
@@ -40,6 +40,7 @@ install_required_modules
 
 # 查询网卡
 interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
+_yellow "NIC $interface"
 _yellow "网卡 $interface"
 
 # 获取指定LXC容器的内网IPV6
@@ -50,10 +51,23 @@ if [ -z "$CONTAINER_IPV6" ]; then
     _red "容器无内网IPV6地址，不进行自动映射"
     exit 1
 fi
+_blue "The container with the name $CONTAINER_NAME has an intranet IPV6 address of $CONTAINER_IPV6"
 _blue "$CONTAINER_NAME 容器的内网IPV6地址为 $CONTAINER_IPV6"
 
-# 获取母鸡子网前缀
+# 获取宿主机子网前缀
 SUBNET_PREFIX=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1 | cut -d ':' -f1-5):
+
+# 获取宿主机的IPV6地址
+ipv6_address=$(ip addr show | awk '/inet6.*scope global/ { print $2 }' | head -n 1)
+if [[ $ipv6_address == */* ]]; then
+    ipv6_length=$(echo "$ipv6_address" | awk -F '/' '{ print $2 }')
+    _green "subnet size: $ipv6_length"
+    _green "子网大小: $ipv6_length"
+else
+    _green "Subnet size for IPV6 not queried"
+    _green "查询不到IPV6的子网大小"
+    exit 1
+fi
 
 # 检查是否存在 IPV6 
 if [ -z "$SUBNET_PREFIX" ]; then
@@ -90,7 +104,7 @@ if [ -z "$IPV6" ]; then
 fi
 
 # 映射 IPV6 地址到容器的私有 IPV6 地址
-ip addr add "$IPV6"/64 dev "$interface"
+ip addr add "$IPV6"/"$ipv6_length" dev "$interface"
 ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
 # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
 if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
