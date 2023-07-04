@@ -59,6 +59,13 @@ check_cdn_file() {
     fi
 }
 
+statistics_of_run-times() {
+COUNT=$(
+  curl -4 -ksm1 "https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxc&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=&edge_flat=true" 2>&1 ||
+  curl -6 -ksm1 "https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxc&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=&edge_flat=true" 2>&1) &&
+  TODAY=$(expr "$COUNT" : '.*\s\([0-9]\{1,\}\)\s/.*') && TOTAL=$(expr "$COUNT" : '.*/\s\([0-9]\{1,\}\)\s.*')
+}
+
 rebuild_cloud_init(){
     if [ -f "/etc/cloud/cloud.cfg" ]; then
         chattr -i /etc/cloud/cloud.cfg
@@ -101,6 +108,7 @@ install_package uidmap
 check_cdn_file
 rebuild_cloud_init
 apt-get remove cloud-init -y
+statistics_of_run-times
 
 # lxd安装
 lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
@@ -375,6 +383,7 @@ if [ -f "/etc/systemd/logind.conf" ]; then
         echo 'UserTasksMax=infinity' | sudo tee -a /etc/systemd/logind.conf
     fi
 fi
+_green "脚本当天运行次数:${TODAY}，累计运行次数:${TOTAL}"
 _green "If you need to turn on more than 100 cts, it is recommended to wait for a few minutes before performing a reboot to reboot the machine to make the settings take effect"
 _green "The reboot will ensure that the DNS detection mechanism takes effect, otherwise the batch opening process may cause the host's DNS to be overwritten by the merchant's preset"
 _green "如果你需要开启超过100个小鸡，建议等待几分钟后执行 reboot 重启本机以使得设置生效"
