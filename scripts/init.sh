@@ -1,9 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # by https://github.com/spiritLHLS/lxc
 # cd /root
 # ./init.sh NAT服务器前缀 数量
 # 2023.06.29
 
+cd /root >/dev/null 2>&1
+if [ ! -d "/usr/local/bin" ]; then
+    mkdir -p "$directory"
+fi
 rm -rf log
 lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=256MiB
 # 硬盘大小
@@ -37,6 +41,18 @@ for port in "${blocked_ports[@]}"; do
   iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
   iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
 done
+if [ ! -f /usr/local/bin/ssh.sh ]; then
+    curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
+    chmod 777 /usr/local/bin/ssh.sh
+    dos2unix /usr/local/bin/ssh.sh
+fi
+cp /usr/local/bin/ssh.sh /root
+if [ ! -f /usr/local/bin/config.sh ]; then
+    curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o /usr/local/bin/config.sh
+    chmod 777 /usr/local/bin/config.sh
+    dos2unix /usr/local/bin/config.sh
+fi
+cp /usr/local/bin/config.sh /root
 # 批量创建容器
 for ((a=1;a<="$2";a++)); do
   lxc copy "$1" "$1"$a
@@ -52,11 +68,11 @@ for ((a=1;a<="$2";a++)); do
   lxc exec "$1"$a -- sudo apt-get update -y
   lxc exec "$1"$a -- sudo apt-get install curl -y --fix-missing
   lxc exec "$1"$a -- sudo apt-get install -y --fix-missing dos2unix
-  lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
+  lxc file push /root/ssh.sh "$1"$a/root/
   lxc exec "$1"$a -- chmod 777 ssh.sh
   lxc exec "$1"$a -- dos2unix ssh.sh
   lxc exec "$1"$a -- sudo ./ssh.sh $passwd
-  lxc exec "$1"$a -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
+  lxc file push /root/config.sh "$1"$a/root/
   lxc exec "$1"$a -- chmod +x config.sh
   lxc exec "$1"$a -- dos2unix config.sh
   lxc exec "$1"$a -- bash config.sh
@@ -65,3 +81,4 @@ for ((a=1;a<="$2";a++)); do
   lxc config device add "$1"$a natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
   echo "$name $sshn $passwd $nat1 $nat2" >> log
 done
+rm -rf ssh.sh config.sh alpinessh.sh

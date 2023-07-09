@@ -1,14 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.29
+# 2023.07.09
 
-# cd /root
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
 # 如果 外网起端口 外网止端口 都设置为0则不做区间外网端口映射了，只映射基础的SSH端口，注意不能为空，不进行映射需要设置为0
 
 # 创建容器
+cd /root >/dev/null 2>&1
+if [ ! -d "/usr/local/bin" ]; then
+    mkdir -p "$directory"
+fi
 name="${1:-test}"
 memory="${2:-256}"
 disk="${3:-2}"
@@ -96,18 +99,33 @@ else
     lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
 fi
 if echo "$system" | grep -qiE "alpine"; then
+    if [ ! -f /usr/local/bin/alpinessh.sh ]; then
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/alpinessh.sh -o /usr/local/bin/alpinessh.sh
+        chmod 777 /usr/local/bin/alpinessh.sh
+        dos2unix /usr/local/bin/alpinessh.sh
+    fi
+    cp /usr/local/bin/alpinessh.sh /root
     lxc file push /root/alpinessh.sh "$name"/root/
-    # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/alpinessh.sh -o alpinessh.sh
     lxc exec "$name" -- chmod 777 alpinessh.sh
     lxc exec "$name" -- ./alpinessh.sh ${passwd}
 else
+    if [ ! -f /usr/local/bin/ssh.sh ]; then
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
+        chmod 777 /usr/local/bin/ssh.sh
+        dos2unix /usr/local/bin/ssh.sh
+    fi
+    cp /usr/local/bin/ssh.sh /root
     lxc file push /root/ssh.sh "$name"/root/
-    # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o ssh.sh
     lxc exec "$name" -- chmod 777 ssh.sh
     lxc exec "$name" -- dos2unix ssh.sh
     lxc exec "$name" -- sudo ./ssh.sh $passwd
+    if [ ! -f /usr/local/bin/config.sh ]; then
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o /usr/local/bin/config.sh
+        chmod 777 /usr/local/bin/config.sh
+        dos2unix /usr/local/bin/config.sh
+    fi
+    cp /usr/local/bin/config.sh /root
     lxc file push /root/config.sh "$name"/root/
-    # lxc exec "$name" -- curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o config.sh
     lxc exec "$name" -- chmod +x config.sh
     lxc exec "$name" -- dos2unix config.sh
     lxc exec "$name" -- bash config.sh
@@ -140,3 +158,4 @@ fi
 lxc stop "$name"
 lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
 lxc start "$name"
+rm -rf ssh.sh config.sh alpinessh.sh
