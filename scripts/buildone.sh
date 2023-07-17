@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.07.09
+# 2023.07.17
+
 
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -11,6 +12,9 @@
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p "$directory"
+fi
+if ! command -v jq; then
+    apt-get install jq -y
 fi
 name="${1:-test}"
 memory="${2:-256}"

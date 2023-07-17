@@ -1,10 +1,10 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.06.29
+# 2023.07.17
+
 
 # cd /root
-
 red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
@@ -18,6 +18,10 @@ else
   export LANG="$utf8_locale"
   export LANGUAGE="$utf8_locale"
   green "Locale set to $utf8_locale"
+fi
+
+if ! command -v jq; then
+    apt-get install jq -y
 fi
 
 check_cdn() {
@@ -163,13 +167,24 @@ build_new_containers(){
             yellow "输入无效，请输入一个正整数。"
         fi
     done
+    sys_bit=""
+    sysarch="$(uname -m)"
+    case "${sysarch}" in
+        "x86_64"|"x86"|"amd64"|"x64") sys_bit="x86_64";;
+        "i386"|"i686") sys_bit="i686";;
+        "aarch64"|"armv8"|"armv8l") sys_bit="aarch64";;
+        "armv7l") sys_bit="armv7l";;
+        "s390x") sys_bit="s390x";;
+        "ppc64le") sys_bit="ppc64le";;
+        *) sys_bit="x86_64";;
+    esac
     while true; do
         green "What is the system of each container? (Note that the incoming parameter is the system name + version number, e.g. debian11, ubuntu20, centos7):"
         reading "每个小鸡的系统是什么？(注意传入参数为系统名字+版本号，如：debian11、ubuntu20、centos7)：" system
         a="${system%%[0-9]*}"
         b="${system##*[!0-9.]}"
-        output=$(lxc image list images:${a}/${b})
-        if echo "$output" | grep -q "${a}/${b}"; then
+        output=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+        if echo "$output" | grep -q "${a}"; then
             echo "Matching mirror exists"
             echo "匹配的镜像存在"
             break
