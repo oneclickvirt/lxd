@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxc
-# 2023.07.17
-
+# 2023.07.24
 
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -41,7 +40,7 @@ case "${sysarch}" in
 #     "ppc64") sys_bit="ppc64";;
     *) sys_bit="x86_64";;
 esac
-if echo "$output" | grep -q "${a}/${b}"; then
+if echo "$output" | grep -q "${a}"; then
     system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
     echo "A matching image exists and will be created using images:${system}"
     echo "匹配的镜像存在，将使用 images:${system} 进行创建"
