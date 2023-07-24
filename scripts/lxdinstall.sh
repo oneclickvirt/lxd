@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.07.17
+# 2023.07.24
 
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
@@ -334,7 +334,7 @@ for file in "${files[@]}"; do
     dos2unix "$filename"
 done
 cp /root/alpinessh.sh /usr/local/bin
-cp /root/config.sh /usr/local/bin
+cp /root/ssh.sh /usr/local/bin
 cp /root/config.sh /usr/local/bin
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
