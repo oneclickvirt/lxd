@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxc
-# 2023.06.29
+# 2023.07.24
 
 
 if [ -f "/etc/resolv.conf" ]
@@ -89,12 +89,28 @@ if [ -f "/etc/selinux/config" ]; then
 fi
 sudo setenforce 0;
 echo root:"$1" |sudo chpasswd root;
-sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config;
-sudo sed -i "s/^#\?PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config;
-sudo sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config;
-sudo sed -i 's/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config
-sudo sed -i 's/#ListenAddress ::/ListenAddress ::/' /etc/ssh/sshd_config
-sudo sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config
+if [ -f /etc/ssh/sshd_config ]; then
+    sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
+    sudo sed -i "s/^#\?PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config
+    sudo sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+    sudo sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config
+    sudo sed -i 's/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config
+    sudo sed -i 's/#ListenAddress ::/ListenAddress ::/' /etc/ssh/sshd_config
+    sudo sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config
+    sudo sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config
+    sudo sed -i '/^AuthorizedKeysFile/s/^/#/' /etc/ssh/sshd_config
+fi
+if [ -f /etc/ssh/sshd_config.d/50-cloud-init.conf ]; then
+    sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i "s/^#\?PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i 's/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i 's/#ListenAddress ::/ListenAddress ::/' /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i '/^AuthorizedKeysFile/s/^/#/' /etc/ssh/sshd_config.d/50-cloud-init.conf
+fi
 sudo service ssh restart
 sudo service sshd restart
 sudo systemctl restart sshd
