@@ -6,16 +6,18 @@
 
 ## 更新
 
-2023.07.17
+2023.07.24
 
-- 修复部分镜像检测存在问题，导致无法运行批量开设容器的BUG
-- 自定义开设部分增加jq组件检测，如果不存在则自动下载，避免组件缺失
+- ubuntu20无法被检索到，上次更新替换了image的查找方式使用json解析，结果判断出问题了，之前没用jq解析json的时候没这个问题的，已修复
+- 开设alpine的时候我搬运的我之前写docker虚拟化开设alpine的时候的脚本设置ssh，没想到配置文件不一样，已修复
+- 修复了centos系上部分系统ssh开设的问题，对cloudinit文件进行覆盖修改
 
 [更新日志](CHANGELOG.md)
 
 ## 待解决的问题
 
 - 部分机器的ubuntu22系统lxd开出的容器没网，待修复，此时建议回退ubuntu20
+- 开设的容器不支持centos7，centos8，仅支持centos的stream版本，待添加支持([参考](https://github.com/spiritLHLS/lxc/issues/20#issue-1816499383))
 - 使得母鸡支持更多的系统版本
 
 ## 说明文档
