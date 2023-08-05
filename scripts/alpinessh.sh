@@ -12,11 +12,13 @@ then
   echo "This script must be executed with root privileges."
   exit 1
 fi
+apk update
 apk add --no-cache openssh-server 
 apk add --no-cache sshpass 
 apk add --no-cache openssh-keygen 
 apk add --no-cache bash 
 apk add --no-cache curl
+apk add --no-cache wget
 if [ -f "/etc/motd" ]; then
     echo 'Related repo https://github.com/spiritLHLS/lxc' >> /etc/motd
     echo '--by https://t.me/spiritlhl' >> /etc/motd
