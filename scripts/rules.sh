@@ -1,5 +1,5 @@
 #!/bin/bash
-# from https://github.com/spiritLHLS/lxc
+# from https://github.com/spiritLHLS/lxd
 # 2023.06.29
 
 # 容器内屏蔽安装包

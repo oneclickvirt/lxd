@@ -1,5 +1,5 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxc
+# by https://github.com/spiritLHLS/lxd
 # 2023.06.29
 
 # 环境安装

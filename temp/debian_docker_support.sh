@@ -1,4 +1,5 @@
 #!/bin/bash
+# by https://github.com/spiritLHLS/lxd
 
 # Update the package manager's package list
 apt-get update

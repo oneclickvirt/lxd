@@ -1,5 +1,5 @@
 #!/bin/sh
-# by https://github.com/spiritLHLS/lxc
+# by https://github.com/spiritLHLS/lxd
 # 2023.08.05
 
 if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" != "alpine" ]
@@ -20,7 +20,7 @@ apk add --no-cache bash
 apk add --no-cache curl
 apk add --no-cache wget
 if [ -f "/etc/motd" ]; then
-    echo 'Related repo https://github.com/spiritLHLS/lxc' >> /etc/motd
+    echo 'Related repo https://github.com/spiritLHLS/lxd' >> /etc/motd
     echo '--by https://t.me/spiritlhl' >> /etc/motd
 fi
 cd /etc/ssh

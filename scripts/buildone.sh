@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # from
-# https://github.com/spiritLHLS/lxc
+# https://github.com/spiritLHLS/lxd
 # 2023.07.24
 
 # 输入
@@ -103,7 +103,7 @@ else
 fi
 if echo "$system" | grep -qiE "alpine"; then
     if [ ! -f /usr/local/bin/alpinessh.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/alpinessh.sh -o /usr/local/bin/alpinessh.sh
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/alpinessh.sh -o /usr/local/bin/alpinessh.sh
         chmod 777 /usr/local/bin/alpinessh.sh
         dos2unix /usr/local/bin/alpinessh.sh
     fi
@@ -113,7 +113,7 @@ if echo "$system" | grep -qiE "alpine"; then
     lxc exec "$name" -- ./alpinessh.sh ${passwd}
 else
     if [ ! -f /usr/local/bin/ssh.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
         chmod 777 /usr/local/bin/ssh.sh
         dos2unix /usr/local/bin/ssh.sh
     fi
@@ -123,7 +123,7 @@ else
     lxc exec "$name" -- dos2unix ssh.sh
     lxc exec "$name" -- sudo ./ssh.sh $passwd
     if [ ! -f /usr/local/bin/config.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o /usr/local/bin/config.sh
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
         chmod 777 /usr/local/bin/config.sh
         dos2unix /usr/local/bin/config.sh
     fi
@@ -140,7 +140,7 @@ if [ -n "$9" ]; then
   if [ "$9" == "Y" ]; then
     if [ ! -f "./build_ipv6_network.sh" ]; then
       # 如果不存在，则从指定 URL 下载并添加可执行权限
-      curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh > /dev/null 2>&1
+      curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh > /dev/null 2>&1
     fi
     ./build_ipv6_network.sh "$name" > /dev/null 2>&1
   fi

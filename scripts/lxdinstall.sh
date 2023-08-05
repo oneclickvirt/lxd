@@ -1,9 +1,9 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxc
+# by https://github.com/spiritLHLS/lxd
 # 2023.07.24
 
 
-# curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
+# curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -308,7 +308,7 @@ fi
 install_package uidmap
 
 # 虚拟内存设置
-curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap2.sh" -o swap2.sh && chmod +x swap2.sh
+curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/swap2.sh" -o swap2.sh && chmod +x swap2.sh
 ./swap2.sh "$memory_nums"
 sleep 2
 ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
@@ -321,10 +321,10 @@ lxc config set images.auto_update_interval 0
 lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
 files=(
-    "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh"
-    "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/alpinessh.sh"
-    "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh"
-    "https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh"
+    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh"
+    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/alpinessh.sh"
+    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh"
+    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/buildone.sh"
 )
 for file in "${files[@]}"; do
     filename=$(basename "$file")
@@ -347,13 +347,13 @@ then
     sudo chattr +i /etc/resolv.conf
 fi
 if [ ! -f /usr/local/bin/check-dns.sh ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
+    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
     chmod +x /usr/local/bin/check-dns.sh
 else
     echo "Script already exists. Skipping installation."
 fi
 if [ ! -f /etc/systemd/system/check-dns.service ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
+    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
     chmod +x /etc/systemd/system/check-dns.service
     systemctl daemon-reload
     systemctl enable check-dns.service

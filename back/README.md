@@ -1,7 +1,7 @@
 # 测试命令，勿要使用
 
 ```
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/config.sh -o config.sh && chmod +x config.sh && bash config.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/config.sh -o config.sh && chmod +x config.sh && bash config.sh
 ```
 
 
@@ -48,7 +48,7 @@ PS: 如果硬件资源更烂，虚拟化不支持，可使用docker版本的，�
 **使用后续脚本的务必执行本命令检测母鸡是否符合要求**
 
 ```
-bash <(wget -qO- --no-check-certificate https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/pre_check.sh)
+bash <(wget -qO- --no-check-certificate https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/pre_check.sh)
 ```
 
 #### 项目特点
@@ -68,7 +68,7 @@ bash <(wget -qO- --no-check-certificate https://raw.githubusercontent.com/spirit
 
 - 保证你要开的盘为默认的系统盘(sda或者sda1)而不是挂载的盘(sdb之类的)，不确定的使用```fdisk -l```和```df```查看
 
-- 挂载其他盘的详看 [其他说明](https://github.com/spiritLHLS/lxc/blob/main/README_other.md)
+- 挂载其他盘的详看 [其他说明](https://github.com/spiritLHLS/lxd/blob/main/README_other.md)
 
 - 一键脚本支持自定义限制所有内容，普通版本支持多次运行批量生成不覆盖先前生成的配置
 
@@ -102,7 +102,7 @@ ufw disable
 执行下面命令，输入1，再输入2048，代表开2G虚拟内存
 
 ```
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
 ```
 
 #### 安装LXD
@@ -160,7 +160,7 @@ lxc若命令无问题，执行初始化开小鸡，这一步最好放```screen``
 
 ```
 rm -rf init.sh
-wget https://github.com/spiritLHLS/lxc/raw/main/scripts/init.sh
+wget https://github.com/spiritLHLS/lxd/raw/main/scripts/init.sh
 chmod 777 init.sh
 apt install dos2unix -y
 dos2unix init.sh
@@ -183,7 +183,7 @@ dos2unix init.sh
 如果需要多次批量生成小鸡，可使用
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/add_more.sh -o add_more.sh && chmod +x add_more.sh && bash add_more.sh
+curl -L https://github.com/spiritLHLS/lxd/raw/main/scripts/add_more.sh -o add_more.sh && chmod +x add_more.sh && bash add_more.sh
 ```
 
 可多次运行批量生成小鸡，且继承前面已生成的部分在后面添加，可自定义内存和硬盘大小
@@ -210,7 +210,7 @@ ufw disable
 执行下面命令，输入1，再输入1024，代表开1G虚拟内存
 
 ```bash
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/swap.sh -o swap.sh && chmod +x swap.sh && bash swap.sh
 ```
 
 实际swap开的虚拟内存应该是实际内存的2倍，也就是开1G是合理的，再多就超开了
@@ -260,7 +260,7 @@ lxc命令无问题，执行初始化开小鸡，这一步最好放screen中后�
 
 ```
 rm -rf least.sh
-wget https://github.com/spiritLHLS/lxc/raw/main/scripts/least.sh
+wget https://github.com/spiritLHLS/lxd/raw/main/scripts/least.sh
 chmod 777 least.sh
 apt install dos2unix -y
 dos2unix least.sh
@@ -380,7 +380,7 @@ sudo find /var/cache/apt/archives -type f -delete
 环境安装过程中可能需要重启服务器再次执行以加载含zfs的内核
 
 ```bash
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 ```
 
 例子：
@@ -395,7 +395,7 @@ curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/lxdinstall
 
 ```
 rm -rf buildone.sh
-wget https://ghproxy.com/https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/buildone.sh
+wget https://ghproxy.com/https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/buildone.sh
 chmod 777 buildone.sh
 apt install dos2unix -y
 dos2unix buildone.sh
@@ -451,7 +451,7 @@ cat 小鸡名字
 下载脚本
 
 ```bash
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh
 ```
 
 自动为容器配置IPV6映射地址
@@ -495,7 +495,7 @@ rm /usr/local/bin/add-ipv6.sh
 - 事前预防
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
+curl -L https://github.com/spiritLHLS/lxd/raw/main/scripts/rules.sh -o rules.sh && chmod +x rules.sh && bash rules.sh
 ```
 
 ##### 使用screen配置监控屏蔽某些进程的执行遇到某些进程的出现直接关闭容器
@@ -505,7 +505,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/rules.sh -o rules.sh 
 - 事后停机
 
 ```
-curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
+curl -L https://github.com/spiritLHLS/lxd/raw/main/scripts/build_monitor.sh -o build_monitor.sh && chmod +x build_monitor.sh && bash build_monitor.sh
 ```
 
 ##### 一键安装开lxd母鸡所需要的带vnstat环境的常用预配置环境
@@ -513,7 +513,7 @@ curl -L https://github.com/spiritLHLS/lxc/raw/main/scripts/build_monitor.sh -o b
 - (***非必须***，该脚本仅仅是为了站点对接监控方便，不装的也没问题)
 
 ```
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
+curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/backend.sh -o backend.sh && chmod +x backend.sh && bash backend.sh
 ```
 
 ##### 一键安装母鸡可视化操作的面板

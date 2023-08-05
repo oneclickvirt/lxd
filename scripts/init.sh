@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# by https://github.com/spiritLHLS/lxc
+# by https://github.com/spiritLHLS/lxd
 # cd /root
 # ./init.sh NAT服务器前缀 数量
 # 2023.06.29
@@ -42,13 +42,13 @@ for port in "${blocked_ports[@]}"; do
   iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
 done
 if [ ! -f /usr/local/bin/ssh.sh ]; then
-    curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
+    curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
     chmod 777 /usr/local/bin/ssh.sh
     dos2unix /usr/local/bin/ssh.sh
 fi
 cp /usr/local/bin/ssh.sh /root
 if [ ! -f /usr/local/bin/config.sh ]; then
-    curl -L https://raw.githubusercontent.com/spiritLHLS/lxc/main/scripts/config.sh -o /usr/local/bin/config.sh
+    curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
     chmod 777 /usr/local/bin/config.sh
     dos2unix /usr/local/bin/config.sh
 fi

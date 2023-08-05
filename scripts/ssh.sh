@@ -1,5 +1,5 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxc
+# by https://github.com/spiritLHLS/lxd
 # 2023.08.04
 
 
@@ -76,7 +76,7 @@ install_required_modules() {
 checkupdate
 install_required_modules
 if [ -f "/etc/motd" ]; then
-    echo 'Related repo https://github.com/spiritLHLS/lxc' >> /etc/motd
+    echo 'Related repo https://github.com/spiritLHLS/lxd' >> /etc/motd
     echo '--by https://t.me/spiritlhl' >> /etc/motd
 fi
 sudo service iptables stop 2> /dev/null ; chkconfig iptables off 2> /dev/null ;
