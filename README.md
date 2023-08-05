@@ -15,8 +15,10 @@
 ## 待解决的问题
 
 - 部分机器的ubuntu22系统lxd开出的容器没网，待修复，此时建议回退ubuntu20
-- 开设的容器不支持centos7，centos8，仅支持centos的stream版本，待添加支持([参考](https://github.com/spiritLHLS/lxc/issues/20#issue-1816499383))
-- 使得母鸡支持更多的系统版本
+- 系统debian11做宿主机系统可能部分资源限制不住，待修复，此时建议回退ubuntu20([相关](https://github.com/spiritLHLS/lxc/issues/21#issue-1819109212))
+- 开设的容器不支持centos7，centos8，仅支持centos的stream版本，待添加支持([相关](https://github.com/spiritLHLS/lxc/issues/20#issue-1816499383))
+- 开设的容器不支持debian8，debian9，待添加支持([相关](https://github.com/spiritLHLS/lxc/issues/21#issue-1819109212))
+- 使得宿主机支持更多的系统，不仅限于ubuntu和debian系做宿主机
 
 ## 说明文档
 
