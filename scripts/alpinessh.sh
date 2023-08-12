@@ -1,6 +1,6 @@
 #!/bin/sh
 # by https://github.com/spiritLHLS/lxd
-# 2023.08.05
+# 2023.08.12
 
 if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" != "alpine" ]
 then
@@ -31,6 +31,7 @@ sed -i '/^#ListenAddress\|ListenAddress/c ListenAddress 0.0.0.0' /etc/ssh/sshd_c
 sed -i '/^#AddressFamily\|AddressFamily/c AddressFamily any' /etc/ssh/sshd_config
 sed -i "s/^#\?\(Port\).*/\1 22/" /etc/ssh/sshd_config
 sed -i -E 's/^#?(Port).*/\1 22/' /etc/ssh/sshd_config
+sed -i '/^#UsePAM\|UsePAM/c #UsePAM no' /etc/ssh/sshd_config
 sed -E -i 's/preserve_hostname:[[:space:]]*false/preserve_hostname: true/g' /etc/cloud/cloud.cfg
 sed -E -i 's/disable_root:[[:space:]]*true/disable_root: false/g' /etc/cloud/cloud.cfg
 sed -E -i 's/ssh_pwauth:[[:space:]]*false/ssh_pwauth:   true/g' /etc/cloud/cloud.cfg
