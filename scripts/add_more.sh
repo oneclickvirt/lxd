@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.07.17
+# 2023.08.17
 
 
 # cd /root
@@ -167,6 +167,8 @@ build_new_containers(){
             yellow "输入无效，请输入一个正整数。"
         fi
     done
+    green "Is IPV6 enabled for each chick?(Leave blank N by default, no V6 address is set):"
+    reading "每个小鸡是否启用IPV6？(默认留空为N，不设置V6地址)：" is_enabled_ipv6
     sys_bit=""
     sysarch="$(uname -m)"
     case "${sysarch}" in
@@ -198,13 +200,18 @@ build_new_containers(){
             yellow "输入无效，请输入一个存在的系统"
         fi
     done
+    if [[ -n "$is_enabled_ipv6" && ( "$is_enabled_ipv6" == "Y" || "$is_enabled_ipv6" == "y" ) ]]; then
+        status_ipv6="Y"
+    else
+        status_ipv6="N"
+    fi
     for ((i=1; i<=$new_nums; i++)); do
         container_num=$(($container_num + 1))
         container_name="${container_prefix}${container_num}"
         ssh_port=$(($ssh_port + 1))
         public_port_start=$(($public_port_end + 1))
         public_port_end=$(($public_port_start + 25))
-        ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums N $system
+        ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums $status_ipv6 $system
         cat "$container_name" >> log
         rm -rf $container_name
     done

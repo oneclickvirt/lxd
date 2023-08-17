@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.07.24
+# 2023.08.17
 
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -148,7 +148,18 @@ fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
   lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
   lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
-  # 生成的小鸡信息写入log并打印
+fi
+# 网速
+lxc stop "$name"
+lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
+lxc start "$name"
+rm -rf ssh.sh config.sh alpinessh.sh
+if echo "$system" | grep -qiE "alpine"; then
+    sleep 3
+    lxc stop "$name"
+    lxc start "$name"
+fi
+if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
   echo "$name $sshn $passwd $nat1 $nat2" >> "$name"
   echo "$name $sshn $passwd $nat1 $nat2"
   exit 1
@@ -157,8 +168,3 @@ if [ "$nat1" == "0" ] && [ "$nat2" == "0" ]; then
   echo "$name $sshn $passwd" >> "$name"
   echo "$name $sshn $passwd" 
 fi
-# 网速
-lxc stop "$name"
-lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
-lxc start "$name"
-rm -rf ssh.sh config.sh alpinessh.sh

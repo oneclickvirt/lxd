@@ -1,6 +1,6 @@
 #!/bin/sh
 # by https://github.com/spiritLHLS/lxd
-# 2023.08.12
+# 2023.08.17
 
 if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" != "alpine" ]
 then
@@ -25,6 +25,7 @@ if [ -f "/etc/motd" ]; then
 fi
 cd /etc/ssh
 ssh-keygen -A
+chattr -i /etc/ssh/sshd_config
 sed -i '/^#PermitRootLogin\|PermitRootLogin/c PermitRootLogin yes' /etc/ssh/sshd_config
 sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config
 sed -i '/^#ListenAddress\|ListenAddress/c ListenAddress 0.0.0.0' /etc/ssh/sshd_config
@@ -38,4 +39,5 @@ sed -E -i 's/ssh_pwauth:[[:space:]]*false/ssh_pwauth:   true/g' /etc/cloud/cloud
 /usr/sbin/sshd
 rc-update add sshd default
 echo root:"$1" | chpasswd root
+chattr +i /etc/ssh/sshd_config
 rm -f "$0"
