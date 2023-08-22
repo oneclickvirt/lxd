@@ -3,14 +3,13 @@
 # 2023.06.29
 
 # 容器内屏蔽安装包
-if ! dpkg -s apparmor &> /dev/null; then
+if ! dpkg -s apparmor &>/dev/null; then
     apt-get install apparmor
 fi
 containers=$(lxc list -c n | awk '{print $2}')
-for container_name in $containers
-do
+for container_name in $containers; do
     echo "lxc profile set $container_name restrictions" \
-      "apparmor='/usr/bin/zmap Cx,'\
+        "apparmor='/usr/bin/zmap Cx,'\
       '/usr/bin/nmap Cx,'\
       '/usr/bin/masscan Cx,'\
       '/usr/bin/medusa Cx,'"
@@ -40,7 +39,7 @@ divert_install_script "apache2-utils"
 
 # 屏蔽流量
 iptables -F
-blocked_ports=( 3389 8888 54321 65432 )
+blocked_ports=(3389 8888 54321 65432)
 for port in "${blocked_ports[@]}"; do
     iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
     iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
@@ -48,10 +47,9 @@ done
 
 # 屏蔽网站访问
 container_ips=$(lxc list -c 4 | awk '{print $2}')
-for container_ip in $container_ips
-do
+for container_ip in $container_ips; do
     iptables -A OUTPUT -d zmap.io -j DROP -m comment --comment "block zmap"
     iptables -A OUTPUT -d nmap.org -j DROP -m comment --comment "block nmap"
     iptables -A OUTPUT -d foofus.net -j DROP -m comment --comment "block medusa"
-#     ip6tables -A OUTPUT -d zmap.io -j DROP -m comment --comment "block zmap v6"
+    #     ip6tables -A OUTPUT -d zmap.io -j DROP -m comment --comment "block zmap v6"
 done

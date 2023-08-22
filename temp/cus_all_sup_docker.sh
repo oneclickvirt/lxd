@@ -3,7 +3,7 @@
 # 2022.12.20
 
 # Check if lxd is installed
-if ! command -v lxd > /dev/null 2>&1; then
+if ! command -v lxd >/dev/null 2>&1; then
   echo "Error: lxd is not installed."
   exit 1
 fi
@@ -31,4 +31,4 @@ while read -r container; do
 
   # Print a success message
   echo "Successfully set configuration for container $container"
-done <<< "$containers"
+done <<<"$containers"

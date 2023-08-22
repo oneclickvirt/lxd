@@ -2,7 +2,6 @@
 # by https://github.com/spiritLHLS/lxd
 # 2023.07.24
 
-
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
 cd /root >/dev/null 2>&1
@@ -13,7 +12,7 @@ _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
-reading(){ read -rp "$(_green "$1")" "$2"; }
+reading() { read -rp "$(_green "$1")" "$2"; }
 cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "https://cdn1.spiritlhl.net/" "https://ghproxy.com/" "https://cdn2.spiritlhl.net/")
 utf8_locale=$(locale -a 2>/dev/null | grep -i -m 1 -E "utf8|UTF-8")
 export DEBIAN_FRONTEND=noninteractive
@@ -28,11 +27,11 @@ fi
 
 install_package() {
     package_name=$1
-    if command -v $package_name > /dev/null 2>&1 ; then
+    if command -v $package_name >/dev/null 2>&1; then
         _green "$package_name has been installed"
         _green "$package_name 已经安装"
     else
-	      apt-get install -y $package_name
+        apt-get install -y $package_name
         if [ $? -ne 0 ]; then
             apt-get install -y $package_name --fix-missing
         fi
@@ -44,7 +43,7 @@ install_package() {
 check_cdn() {
     local o_url=$1
     for cdn_url in "${cdn_urls[@]}"; do
-        if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" > /dev/null 2>&1; then
+        if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" >/dev/null 2>&1; then
             export cdn_success_url="$cdn_url"
             return
         fi
@@ -63,13 +62,14 @@ check_cdn_file() {
 }
 
 statistics_of_run-times() {
-COUNT=$(
-  curl -4 -ksm1 "https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxc&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=&edge_flat=true" 2>&1 ||
-  curl -6 -ksm1 "https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxc&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=&edge_flat=true" 2>&1) &&
-  TODAY=$(expr "$COUNT" : '.*\s\([0-9]\{1,\}\)\s/.*') && TOTAL=$(expr "$COUNT" : '.*/\s\([0-9]\{1,\}\)\s.*')
+    COUNT=$(
+        curl -4 -ksm1 "https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxc&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=&edge_flat=true" 2>&1 ||
+            curl -6 -ksm1 "https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxc&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=&edge_flat=true" 2>&1
+    ) &&
+        TODAY=$(expr "$COUNT" : '.*\s\([0-9]\{1,\}\)\s/.*') && TOTAL=$(expr "$COUNT" : '.*/\s\([0-9]\{1,\}\)\s.*')
 }
 
-rebuild_cloud_init(){
+rebuild_cloud_init() {
     if [ -f "/etc/cloud/cloud.cfg" ]; then
         chattr -i /etc/cloud/cloud.cfg
         if grep -q "preserve_hostname: true" "/etc/cloud/cloud.cfg"; then
@@ -88,10 +88,10 @@ rebuild_cloud_init(){
         content=$(cat /etc/cloud/cloud.cfg)
         line_number=$(grep -n "^system_info:" "/etc/cloud/cloud.cfg" | cut -d ':' -f 1)
         if [ -n "$line_number" ]; then
-            lines_after_system_info=$(echo "$content" | sed -n "$((line_number+1)),\$p")
+            lines_after_system_info=$(echo "$content" | sed -n "$((line_number + 1)),\$p")
             if [ -n "$lines_after_system_info" ]; then
-                updated_content=$(echo "$content" | sed "$((line_number+1)),\$d")
-                echo "$updated_content" > "/etc/cloud/cloud.cfg"
+                updated_content=$(echo "$content" | sed "$((line_number + 1)),\$d")
+                echo "$updated_content" >"/etc/cloud/cloud.cfg"
             fi
         fi
         sed -i '/^\s*- set-passwords/s/^/#/' /etc/cloud/cloud.cfg
@@ -114,28 +114,25 @@ apt-get remove cloud-init -y
 statistics_of_run-times
 
 # lxd安装
-lxd_snap=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snap`
-lxd_snapd=`dpkg -l |awk '/^[hi]i/{print $2}' | grep -ow snapd`
-if [[ "$lxd_snap" =~ ^snap.* ]]&&[[ "$lxd_snapd" =~ ^snapd.* ]]
-then
+lxd_snap=$(dpkg -l | awk '/^[hi]i/{print $2}' | grep -ow snap)
+lxd_snapd=$(dpkg -l | awk '/^[hi]i/{print $2}' | grep -ow snapd)
+if [[ "$lxd_snap" =~ ^snap.* ]] && [[ "$lxd_snapd" =~ ^snapd.* ]]; then
     _green "snap is installed"
     _green "snap已安装"
 else
     _green "start installation of snap"
     _green "开始安装snap"
     apt-get update
-#     install_package snap
+    #     install_package snap
     install_package snapd
 fi
-snap_core=`snap list core`
-snap_lxd=`snap list lxd`
-if [[ "$snap_core" =~ core.* ]]&&[[ "$snap_lxd" =~ lxd.* ]]
-then
+snap_core=$(snap list core)
+snap_lxd=$(snap list lxd)
+if [[ "$snap_core" =~ core.* ]] && [[ "$snap_lxd" =~ lxd.* ]]; then
     _green "lxd is installed"
     _green "lxd已安装"
-    lxd_lxc_detect=`lxc list`
-    if [[ "$lxd_lxc_detect" =~ "snap-update-ns failed with code1".* ]]
-    then
+    lxd_lxc_detect=$(lxc list)
+    if [[ "$lxd_lxc_detect" =~ "snap-update-ns failed with code1".* ]]; then
         systemctl restart apparmor
         snap restart lxd
     else
@@ -147,15 +144,15 @@ else
     _green "开始安装LXD"
     snap install lxd
     if [[ $? -ne 0 ]]; then
-        snap remove lxd 
+        snap remove lxd
         snap install core
         snap install lxd
     fi
-    ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+    ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >>/root/.bashrc && source /root/.bashrc
     export PATH=$PATH:/snap/bin
     ! lxc -h >/dev/null 2>&1 && _yellow 'lxc路径有问题，请检查修复' && exit
     _green "LXD installation complete"
-    _green "LXD安装完成"        
+    _green "LXD安装完成"
 fi
 
 # 读取母鸡配置
@@ -201,7 +198,7 @@ if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
     echo "$temp"
 fi
 
-removezfs(){
+removezfs() {
     rm /etc/apt/sources.list.d/bullseye-backports.list
     rm /etc/apt/preferences.d/90_zfs
     sed -i "/$lineToRemove/d" /etc/apt/sources.list
@@ -210,63 +207,63 @@ removezfs(){
     apt-get update
 }
 
-checkzfs(){
-  if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; then
-      _green "zfs module call failed, trying to compile zfs module plus load kernel..."
-      _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
-    #   apt-get install -y linux-headers-amd64
-      codename=$(lsb_release -cs)
-      lineToRemove="deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"
-      echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && apt-get update
-    #   apt-get install -y linux-headers-amd64
-      install_package ${codename}-backports
-      if grep -q "deb http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list && grep -q "deb-src http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list; then
-          echo "已修改源"
-      else
-          echo "deb http://deb.debian.org/debian bullseye-backports main contrib" > /etc/apt/sources.list.d/bullseye-backports.list
-          echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >> /etc/apt/sources.list.d/bullseye-backports.list
-echo "Package: src:zfs-linux
+checkzfs() {
+    if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; then
+        _green "zfs module call failed, trying to compile zfs module plus load kernel..."
+        _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
+        #   apt-get install -y linux-headers-amd64
+        codename=$(lsb_release -cs)
+        lineToRemove="deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"
+        echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free" | sudo tee -a /etc/apt/sources.list && apt-get update
+        #   apt-get install -y linux-headers-amd64
+        install_package ${codename}-backports
+        if grep -q "deb http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list && grep -q "deb-src http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list; then
+            echo "已修改源"
+        else
+            echo "deb http://deb.debian.org/debian bullseye-backports main contrib" >/etc/apt/sources.list.d/bullseye-backports.list
+            echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >>/etc/apt/sources.list.d/bullseye-backports.list
+            echo "Package: src:zfs-linux
 Pin: release n=bullseye-backports
-Pin-Priority: 990" > /etc/apt/preferences.d/90_zfs
-      fi
-      apt-get update
-      apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
-      if [ $? -ne 0 ]; then
-          apt-get install -y dpkg-dev linux-headers-generic linux-image-generic --fix-missing
-      fi
-      if [[ $? -ne 0 ]]; then
-          status=false
-          removezfs
-          return
-      else
-          status=true
-      fi
-      apt-get install -y zfsutils-linux
-      if [ $? -ne 0 ]; then
-          apt-get install -y zfsutils-linux --fix-missing
-      fi
-      if [[ $? -ne 0 ]]; then
-          status=false
-          removezfs
-          return
-      else
-          status=true
-      fi
-      apt-get install -y zfs-dkms
-      if [ $? -ne 0 ]; then
-          apt-get install -y zfs-dkms --fix-missing
-      fi
-      if [[ $? -ne 0 ]]; then
-          status=false
-          removezfs
-          return
-      else
-          status=true
-      fi
-      _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the new kernel, after the reboot you will need to enter the configuration you need again"
-      _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载新内核，重启后需要再次输入你需要的配置"
-      exit 1
-  fi
+Pin-Priority: 990" >/etc/apt/preferences.d/90_zfs
+        fi
+        apt-get update
+        apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
+        if [ $? -ne 0 ]; then
+            apt-get install -y dpkg-dev linux-headers-generic linux-image-generic --fix-missing
+        fi
+        if [[ $? -ne 0 ]]; then
+            status=false
+            removezfs
+            return
+        else
+            status=true
+        fi
+        apt-get install -y zfsutils-linux
+        if [ $? -ne 0 ]; then
+            apt-get install -y zfsutils-linux --fix-missing
+        fi
+        if [[ $? -ne 0 ]]; then
+            status=false
+            removezfs
+            return
+        else
+            status=true
+        fi
+        apt-get install -y zfs-dkms
+        if [ $? -ne 0 ]; then
+            apt-get install -y zfs-dkms --fix-missing
+        fi
+        if [[ $? -ne 0 ]]; then
+            status=false
+            removezfs
+            return
+        else
+            status=true
+        fi
+        _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the new kernel, after the reboot you will need to enter the configuration you need again"
+        _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载新内核，重启后需要再次输入你需要的配置"
+        exit 1
+    fi
 }
 
 checkzfs
@@ -274,7 +271,7 @@ if [[ $status == false ]]; then
     _yellow "zfs compilation failed, trying to use another storage type ......"
     _yellow "zfs编译失败，尝试使用其他存储类型......"
     # 类型设置-硬盘
-    # "zfs" 
+    # "zfs"
     SUPPORTED_BACKENDS=("lvm" "btrfs" "ceph" "dir")
     STORAGE_BACKEND=""
     for backend in "${SUPPORTED_BACKENDS[@]}"; do
@@ -290,8 +287,8 @@ if [[ $status == false ]]; then
         _yellow "无可支持的存储类型，请联系脚本维护者"
         exit 1
     fi
-  #   if [ "$STORAGE_BACKEND" = "zfs" ]; then
-  #       /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
+    #   if [ "$STORAGE_BACKEND" = "zfs" ]; then
+    #       /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --storage-create-loop "$disk_nums" --storage-pool default --auto
     if [ "$STORAGE_BACKEND" = "dir" ]; then
         _green "Infinite storage pool size using default dir type due to no zfs"
         _green "由于无zfs，使用默认dir类型无限定存储池大小"
@@ -311,7 +308,7 @@ install_package uidmap
 curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/swap2.sh" -o swap2.sh && chmod +x swap2.sh
 ./swap2.sh "$memory_nums"
 sleep 2
-! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >> /root/.bashrc && source /root/.bashrc
+! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >>/root/.bashrc && source /root/.bashrc
 export PATH=$PATH:/snap/bin
 ! lxc -h >/dev/null 2>&1 && _yellow '使用 lxc -h 检测到路径有问题，请手动查看LXD是否安装成功' && exit 1
 # 设置镜像不更新
@@ -339,11 +336,10 @@ cp /root/config.sh /usr/local/bin
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
 # 预设谷歌的DNS
-if [ -f "/etc/resolv.conf" ]
-then
+if [ -f "/etc/resolv.conf" ]; then
     cp /etc/resolv.conf /etc/resolv.conf.bak
     sudo chattr -i /etc/resolv.conf
-    echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+    echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf >/dev/null
     sudo chattr +i /etc/resolv.conf
 fi
 if [ ! -f /usr/local/bin/check-dns.sh ]; then
@@ -362,7 +358,7 @@ else
     echo "Service already exists. Skipping installation."
 fi
 # 加载iptables并设置回源且允许NAT端口转发
-install_package iptables 
+install_package iptables
 install_package iptables-persistent
 iptables -t nat -A POSTROUTING -j MASQUERADE
 sysctl net.ipv4.ip_forward=1
@@ -372,16 +368,16 @@ if grep -q "^net.ipv4.ip_forward=1" /etc/sysctl.conf; then
         sed -i 's/^#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
     fi
 else
-    echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+    echo "net.ipv4.ip_forward=1" >>/etc/sysctl.conf
 fi
 ${sysctl_path} -p
 # 解除进程数限制
 if [ -f "/etc/security/limits.conf" ]; then
     if ! grep -q "*          hard    nproc       unlimited" /etc/security/limits.conf; then
-	      echo '*          hard    nproc       unlimited' | sudo tee -a /etc/security/limits.conf
+        echo '*          hard    nproc       unlimited' | sudo tee -a /etc/security/limits.conf
     fi
     if ! grep -q "*          soft    nproc       unlimited" /etc/security/limits.conf; then
-	      echo '*          soft    nproc       unlimited' | sudo tee -a /etc/security/limits.conf
+        echo '*          soft    nproc       unlimited' | sudo tee -a /etc/security/limits.conf
     fi
 fi
 if [ -f "/etc/systemd/logind.conf" ]; then

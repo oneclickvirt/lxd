@@ -11,7 +11,7 @@ while IFS= read -r line; do
         parameter="${parameter%%/*}"
         array+=("$parameter")
     fi
-done < "$file"
+done <"$file"
 
 if [ ${#array[@]} -eq 0 ]; then
     echo "Empty IPV6 array"
@@ -21,8 +21,8 @@ else
         ip addr add "$parameter"/64 dev "$interface"
     done
 fi
-ip6tables-restore < /etc/iptables/rules.v6
-ip6tables-legacy-restore < /etc/iptables/rules.v6
+ip6tables-restore </etc/iptables/rules.v6
+ip6tables-legacy-restore </etc/iptables/rules.v6
 netfilter-persistent save
 netfilter-persistent reload
 service netfilter-persistent restart

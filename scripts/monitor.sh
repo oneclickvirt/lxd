@@ -3,10 +3,10 @@
 # https://github.com/spiritLHLS/lxd
 # 2023.06.29
 
-if ! command -v jq > /dev/null 2>&1; then
+if ! command -v jq >/dev/null 2>&1; then
     apt-get install jq -y
 fi
-echo $$ > /tmp/lxc_monitor.pid
+echo $$ >/tmp/lxc_monitor.pid
 echo "The monitoring PID is the contents of the /tmp/lxc_monitor.pid file, which can be viewed by executing cat /tmp/lxc_monitor.pid"
 echo "监控PID为 /tmp/lxc_monitor.pid 文件中的内容，可执行 cat /tmp/lxc_monitor.pid 查看"
 # 指定关键词列表
@@ -22,7 +22,7 @@ while true; do
             if echo "$PROCESS_NAMES" | grep -q "\<$keyword\>"; then
                 # 停止容器并记录日志
                 lxc stop $container
-                echo "container $container stopped due to process with keyword '$keyword'." >> /var/log/container_monitor.log
+                echo "container $container stopped due to process with keyword '$keyword'." >>/var/log/container_monitor.log
                 break
             fi
         done

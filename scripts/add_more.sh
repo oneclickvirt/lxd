@@ -3,21 +3,20 @@
 # https://github.com/spiritLHLS/lxd
 # 2023.08.17
 
-
 # cd /root
 red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
-reading(){ read -rp "$(green "$1")" "$2"; }
+reading() { read -rp "$(green "$1")" "$2"; }
 utf8_locale=$(locale -a 2>/dev/null | grep -i -m 1 -E "utf8|UTF-8")
 if [[ -z "$utf8_locale" ]]; then
-  yellow "No UTF-8 locale found"
+    yellow "No UTF-8 locale found"
 else
-  export LC_ALL="$utf8_locale"
-  export LANG="$utf8_locale"
-  export LANGUAGE="$utf8_locale"
-  green "Locale set to $utf8_locale"
+    export LC_ALL="$utf8_locale"
+    export LANG="$utf8_locale"
+    export LANGUAGE="$utf8_locale"
+    green "Locale set to $utf8_locale"
 fi
 
 if ! command -v jq; then
@@ -25,15 +24,15 @@ if ! command -v jq; then
 fi
 
 check_cdn() {
-  local o_url=$1
-  for cdn_url in "${cdn_urls[@]}"; do
-    if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" > /dev/null 2>&1; then
-      export cdn_success_url="$cdn_url"
-      return
-    fi
-    sleep 0.5
-  done
-  export cdn_success_url=""
+    local o_url=$1
+    for cdn_url in "${cdn_urls[@]}"; do
+        if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" >/dev/null 2>&1; then
+            export cdn_success_url="$cdn_url"
+            return
+        fi
+        sleep 0.5
+    done
+    export cdn_success_url=""
 }
 
 check_cdn_file() {
@@ -48,14 +47,14 @@ check_cdn_file() {
 cdn_urls=("https://cdn.spiritlhl.workers.dev/" "https://cdn3.spiritlhl.net/" "https://cdn1.spiritlhl.net/" "https://ghproxy.com/" "https://cdn2.spiritlhl.net/")
 check_cdn_file
 
-pre_check(){
+pre_check() {
     home_dir=$(eval echo "~$(whoami)")
     if [ "$home_dir" != "/root" ]; then
         red "Current path is not /root, script will exit."
         red "当前路径不是/root，脚本将退出。"
         exit 1
     fi
-    if ! command -v dos2unix > /dev/null 2>&1; then
+    if ! command -v dos2unix >/dev/null 2>&1; then
         apt-get install dos2unix -y
     fi
     if [ ! -f ssh.sh ]; then
@@ -75,7 +74,7 @@ pre_check(){
     fi
 }
 
-check_log(){
+check_log() {
     log_file="log"
     if [ -f "$log_file" ]; then
         green "Log file exists, content being read..."
@@ -83,7 +82,7 @@ check_log(){
         while read line; do
             # echo "$line"
             last_line="$line"
-        done < "$log_file"
+        done <"$log_file"
         last_line_array=($last_line)
         container_name="${last_line_array[0]}"
         ssh_port="${last_line_array[1]}"
@@ -102,7 +101,7 @@ check_log(){
         blue "容器前缀-Prefix: $container_prefix"
         blue "容器数量-num: $container_num"
         blue "SSH端口-ssh: $ssh_port"
-#         blue "密码: $password"
+        #         blue "密码: $password"
         blue "外网端口起-portstart: $public_port_start"
         blue "外网端口止-portend: $public_port_end"
     else
@@ -113,10 +112,10 @@ check_log(){
         ssh_port=20000
         public_port_end=30000
     fi
-    
+
 }
 
-build_new_containers(){
+build_new_containers() {
     while true; do
         green "How many more containers need to be generated? (Enter how many new containers to add):"
         reading "还需要生成几个小鸡？(输入新增几个小鸡)：" new_nums
@@ -172,13 +171,13 @@ build_new_containers(){
     sys_bit=""
     sysarch="$(uname -m)"
     case "${sysarch}" in
-        "x86_64"|"x86"|"amd64"|"x64") sys_bit="x86_64";;
-        "i386"|"i686") sys_bit="i686";;
-        "aarch64"|"armv8"|"armv8l") sys_bit="aarch64";;
-        "armv7l") sys_bit="armv7l";;
-        "s390x") sys_bit="s390x";;
-        "ppc64le") sys_bit="ppc64le";;
-        *) sys_bit="x86_64";;
+    "x86_64" | "x86" | "amd64" | "x64") sys_bit="x86_64" ;;
+    "i386" | "i686") sys_bit="i686" ;;
+    "aarch64" | "armv8" | "armv8l") sys_bit="aarch64" ;;
+    "armv7l") sys_bit="armv7l" ;;
+    "s390x") sys_bit="s390x" ;;
+    "ppc64le") sys_bit="ppc64le" ;;
+    *) sys_bit="x86_64" ;;
     esac
     while true; do
         green "What is the system of each container? (Note that the incoming parameter is the system name + version number, e.g. debian11, ubuntu20, centos7):"
@@ -200,19 +199,19 @@ build_new_containers(){
             yellow "输入无效，请输入一个存在的系统"
         fi
     done
-    if [[ -n "$is_enabled_ipv6" && ( "$is_enabled_ipv6" == "Y" || "$is_enabled_ipv6" == "y" ) ]]; then
+    if [[ -n "$is_enabled_ipv6" && ("$is_enabled_ipv6" == "Y" || "$is_enabled_ipv6" == "y") ]]; then
         status_ipv6="Y"
     else
         status_ipv6="N"
     fi
-    for ((i=1; i<=$new_nums; i++)); do
+    for ((i = 1; i <= $new_nums; i++)); do
         container_num=$(($container_num + 1))
         container_name="${container_prefix}${container_num}"
         ssh_port=$(($ssh_port + 1))
         public_port_start=$(($public_port_end + 1))
         public_port_end=$(($public_port_start + 25))
         ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums $status_ipv6 $system
-        cat "$container_name" >> log
+        cat "$container_name" >>log
         rm -rf $container_name
     done
 }

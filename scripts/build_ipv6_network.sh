@@ -13,20 +13,19 @@ _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 utf8_locale=$(locale -a 2>/dev/null | grep -i -m 1 -E "utf8|UTF-8")
 if [[ -z "$utf8_locale" ]]; then
-  _yellow "No UTF-8 locale found"
+    _yellow "No UTF-8 locale found"
 else
-  export LC_ALL="$utf8_locale"
-  export LANG="$utf8_locale"
-  export LANGUAGE="$utf8_locale"
-  _green "Locale set to $utf8_locale"
+    export LC_ALL="$utf8_locale"
+    export LANG="$utf8_locale"
+    export LANGUAGE="$utf8_locale"
+    _green "Locale set to $utf8_locale"
 fi
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
     modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent")
-    for module in "${modules[@]}"
-    do
-        if command -v $module > /dev/null 2>&1 ; then
+    for module in "${modules[@]}"; do
+        if command -v $module >/dev/null 2>&1; then
             _green "$module is installed!"
             _green "$module 已经安装！"
         else
@@ -69,7 +68,7 @@ else
     exit 1
 fi
 
-# 检查是否存在 IPV6 
+# 检查是否存在 IPV6
 if [ -z "$SUBNET_PREFIX" ]; then
     _red "No IPV6 subnet, no automatic mapping"
     _red "无 IPV6 子网，不进行自动映射"
@@ -126,7 +125,7 @@ fi
 if [ ! -f "/etc/iptables/rules.v6" ]; then
     touch /etc/iptables/rules.v6
 fi
-ip6tables-save > /etc/iptables/rules.v6
+ip6tables-save >/etc/iptables/rules.v6
 netfilter-persistent save
 netfilter-persistent reload
 service netfilter-persistent restart
@@ -142,4 +141,4 @@ else
 fi
 
 # 写入信息
-echo "$IPV6" >> "$1_v6"
+echo "$IPV6" >>"$1_v6"

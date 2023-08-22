@@ -30,15 +30,15 @@ output=$(lxc image list images:${a}/${b})
 sys_bit=""
 sysarch="$(uname -m)"
 case "${sysarch}" in
-    "x86_64"|"x86"|"amd64"|"x64") sys_bit="x86_64";;
-    "i386"|"i686") sys_bit="i686";;
-    "aarch64"|"armv8"|"armv8l") sys_bit="aarch64";;
-    "armv7l") sys_bit="armv7l";;
-    "s390x") sys_bit="s390x";;
-#     "riscv64") sys_bit="riscv64";;
-    "ppc64le") sys_bit="ppc64le";;
-#     "ppc64") sys_bit="ppc64";;
-    *) sys_bit="x86_64";;
+"x86_64" | "x86" | "amd64" | "x64") sys_bit="x86_64" ;;
+"i386" | "i686") sys_bit="i686" ;;
+"aarch64" | "armv8" | "armv8l") sys_bit="aarch64" ;;
+"armv7l") sys_bit="armv7l" ;;
+"s390x") sys_bit="s390x" ;;
+    #     "riscv64") sys_bit="riscv64";;
+"ppc64le") sys_bit="ppc64le" ;;
+    #     "ppc64") sys_bit="ppc64";;
+*) sys_bit="x86_64" ;;
 esac
 if echo "$output" | grep -q "${a}"; then
     system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
@@ -54,7 +54,7 @@ else
     exit 1
 fi
 rm -rf "$name"
-lxc init images:${system} "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB 
+lxc init images:${system} "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
     echo "Container creation failed, please check the previous output message"
@@ -85,7 +85,7 @@ lxc config set "$name" security.nesting true
 #   lxc config set "$1" security.syscalls.intercept.setxattr true
 # fi
 ori=$(date | md5sum)
-passwd=${ori: 2: 9}
+passwd=${ori:2:9}
 lxc start "$name"
 sleep 1
 /usr/local/bin/check-dns.sh
@@ -137,17 +137,17 @@ fi
 lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
 # 是否要创建V6地址
 if [ -n "$9" ]; then
-  if [ "$9" == "Y" ]; then
-    if [ ! -f "./build_ipv6_network.sh" ]; then
-      # 如果不存在，则从指定 URL 下载并添加可执行权限
-      curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh > /dev/null 2>&1
+    if [ "$9" == "Y" ]; then
+        if [ ! -f "./build_ipv6_network.sh" ]; then
+            # 如果不存在，则从指定 URL 下载并添加可执行权限
+            curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
+        fi
+        ./build_ipv6_network.sh "$name" >/dev/null 2>&1
     fi
-    ./build_ipv6_network.sh "$name" > /dev/null 2>&1
-  fi
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
-  lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
-  lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
+    lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
+    lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
 fi
 # 网速
 lxc stop "$name"
@@ -160,11 +160,11 @@ if echo "$system" | grep -qiE "alpine"; then
     lxc start "$name"
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
-  echo "$name $sshn $passwd $nat1 $nat2" >> "$name"
-  echo "$name $sshn $passwd $nat1 $nat2"
-  exit 1
+    echo "$name $sshn $passwd $nat1 $nat2" >>"$name"
+    echo "$name $sshn $passwd $nat1 $nat2"
+    exit 1
 fi
 if [ "$nat1" == "0" ] && [ "$nat2" == "0" ]; then
-  echo "$name $sshn $passwd" >> "$name"
-  echo "$name $sshn $passwd" 
+    echo "$name $sshn $passwd" >>"$name"
+    echo "$name $sshn $passwd"
 fi

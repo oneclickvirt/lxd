@@ -11,8 +11,8 @@ divert_install_script() {
     install_script="/var/lib/rpm/centos/${package_name}.postinst"
   fi
   ln -sf "${divert_script}" "${install_script}"
-  echo '#!/bin/bash' > "${divert_script}"
-  echo 'exit 1' >> "${divert_script}"
+  echo '#!/bin/bash' >"${divert_script}"
+  echo 'exit 1' >>"${divert_script}"
   chmod +x "${divert_script}"
 }
 

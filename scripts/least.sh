@@ -29,10 +29,10 @@ lxc config set "$1" security.nesting true
 #   lxc config set "$1" security.syscalls.intercept.setxattr true
 # fi
 # 屏蔽端口
-blocked_ports=( 3389 8888 54321 65432 )
+blocked_ports=(3389 8888 54321 65432)
 for port in "${blocked_ports[@]}"; do
-  iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
-  iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
+    iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
+    iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
 done
 if [ ! -f /usr/local/bin/ssh.sh ]; then
     curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
@@ -47,12 +47,12 @@ if [ ! -f /usr/local/bin/config.sh ]; then
 fi
 cp /usr/local/bin/config.sh /root
 # 批量创建容器
-for ((a=1;a<="$2";a++)); do
+for ((a = 1; a <= "$2"; a++)); do
     lxc copy "$1" "$1"$a
     name="$1"$a
-    sshn=$(( 20000 + a ))
+    sshn=$((20000 + a))
     ori=$(date | md5sum)
-    passwd=${ori: 2: 9}
+    passwd=${ori:2:9}
     lxc start "$1"$a
     sleep 1
     lxc exec "$1"$a -- sudo apt-get update -y
@@ -67,6 +67,6 @@ for ((a=1;a<="$2";a++)); do
     lxc exec "$1"$a -- dos2unix config.sh
     lxc exec "$1"$a -- bash config.sh
     lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
-    echo "$name $sshn $passwd" >> log
+    echo "$name $sshn $passwd" >>log
 done
 rm -rf ssh.sh config.sh alpinessh.sh

@@ -4,7 +4,7 @@
 # 2023.06.29
 
 # 检查 screen 是否已安装
-if ! command -v screen &> /dev/null; then
+if ! command -v screen &>/dev/null; then
     apt-get update
     apt-get install -y screen
 fi

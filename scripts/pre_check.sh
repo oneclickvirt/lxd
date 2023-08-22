@@ -34,10 +34,10 @@ fi
 # 必须是全虚拟化的架构
 virtcheck=$(systemd-detect-virt)
 case "$virtcheck" in
-    kvm ) VIRT='kvm';;
-    openvz ) VIRT='openvz';;
-    lxc ) VIRT='lxc';;
-    * ) VIRT='kvm';;
+kvm) VIRT='kvm' ;;
+openvz) VIRT='openvz' ;;
+lxc) VIRT='lxc' ;;
+*) VIRT='kvm' ;;
 esac
 if [[ $VIRT == @(openvz|lxc) ]]; then
     _yellow "openvz or lxc architecture cannot use this set of scripts, please use another virtualized server as a mother hen, such as KVM"
