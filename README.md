@@ -16,6 +16,7 @@
 ## 待解决的问题
 
 - 开设的容器不支持自定义的含小数点的硬盘设置，暂时只支持整数设置硬盘，待修复
+- LXC模板构建自定义的模板提前初始化好部分内容，避免原始模板过于干净导致初始化时间过长
 - 部分机器的ubuntu22系统lxd开出的容器没网，待修复，此时建议回退ubuntu20
 - 系统debian11做宿主机系统可能部分资源限制不住，待修复，此时建议回退ubuntu20([相关](https://github.com/spiritLHLS/lxd/issues/21#issue-1819109212))
 - 开设的容器不支持centos7，centos8，仅支持centos的stream版本，待添加支持([相关](https://github.com/spiritLHLS/lxd/issues/20#issue-1816499383))
