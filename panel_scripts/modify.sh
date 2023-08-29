@@ -83,6 +83,7 @@ if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
     lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
 fi
 # 网速
+lxc stop "$name"
 lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
 lxc start "$name"
 rm -rf ssh.sh config.sh alpinessh.sh
