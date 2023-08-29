@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.07.24
+# 2023.08.29
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -207,6 +207,7 @@ removezfs() {
     apt-get update
 }
 
+# https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/index.html
 checkzfs() {
     if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; then
         _green "zfs module call failed, trying to compile zfs module plus load kernel..."
@@ -217,13 +218,13 @@ checkzfs() {
         echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free" | sudo tee -a /etc/apt/sources.list && apt-get update
         #   apt-get install -y linux-headers-amd64
         install_package ${codename}-backports
-        if grep -q "deb http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list && grep -q "deb-src http://deb.debian.org/debian bullseye-backports main contrib" /etc/apt/sources.list.d/bullseye-backports.list; then
+        if grep -q "deb http://deb.debian.org/debian bookworm-backports main contrib" /etc/apt/sources.list.d/bookworm-backports.list && grep -q "deb-src http://deb.debian.org/debian bookworm-backports main contrib" /etc/apt/sources.list.d/bookworm-backports.list; then
             echo "已修改源"
         else
-            echo "deb http://deb.debian.org/debian bullseye-backports main contrib" >/etc/apt/sources.list.d/bullseye-backports.list
-            echo "deb-src http://deb.debian.org/debian bullseye-backports main contrib" >>/etc/apt/sources.list.d/bullseye-backports.list
+            echo "deb http://deb.debian.org/debian bookworm-backports main contrib" >/etc/apt/sources.list.d/bookworm-backports.list
+            echo "deb-src http://deb.debian.org/debian bookworm-backports main contrib" >>/etc/apt/sources.list.d/bookworm-backports.list
             echo "Package: src:zfs-linux
-Pin: release n=bullseye-backports
+Pin: release n=bookworm-backports
 Pin-Priority: 990" >/etc/apt/preferences.d/90_zfs
         fi
         apt-get update
