@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.08.17
+# 2023.09.01
 
 # cd /root
 red() { echo -e "\033[31m\033[01m$@\033[0m"; }
@@ -139,11 +139,11 @@ build_new_containers() {
     while true; do
         green "What size hard disk is allocated for each container? (per container hard drive size, enter 1 if 1G hard drive is required):"
         reading "每个小鸡分配多大硬盘？(每个小鸡硬盘大小，若需要1G硬盘，输入1)：" disk_nums
-        if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
+        if [[ "$disk_nums" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             break
         else
-            yellow "Invalid input, please enter a positive integer."
-            yellow "输入无效，请输入一个正整数。"
+            yellow "Invalid input, please enter a positive num."
+            yellow "输入无效，请输入一个正数。"
         fi
     done
     while true; do

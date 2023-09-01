@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.08.17
+# 2023.09.01
 
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -59,8 +59,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 # 硬盘大小
-lxc config device override "$name" root size="$disk"GB
-lxc config device set "$name" root limits.max "$disk"GB
+if [[ $disk == *.* ]]; then
+    disk_mb=$(echo "$disk * 1024" | bc | cut -d '.' -f 1)
+    lxc config device override "$name" root size="$disk_mb"MB
+    lxc config device set "$name" root limits.max "$disk_mb"MB
+else
+    lxc config device override "$name" root size="$disk"GB
+    lxc config device set "$name" root limits.max "$disk"GB
+fi
 # IO
 lxc config device set "$name" root limits.read 500MB
 lxc config device set "$name" root limits.write 500MB
