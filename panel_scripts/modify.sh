@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.08.29
+# 2023.09.02
 
 # 输入
 # ./modify.sh 服务器名称 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N)
@@ -93,11 +93,11 @@ if echo "$system" | grep -qiE "alpine"; then
     lxc start "$name"
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
-    echo "$name $sshn $passwd $nat1 $nat2" >>"$name"
+    echo "$name $sshn $passwd $nat1 $nat2" >"$name"
     echo "$name $sshn $passwd $nat1 $nat2"
     exit 1
 fi
 if [ "$nat1" == "0" ] && [ "$nat2" == "0" ]; then
-    echo "$name $sshn $passwd" >>"$name"
+    echo "$name $sshn $passwd" >"$name"
     echo "$name $sshn $passwd"
 fi
