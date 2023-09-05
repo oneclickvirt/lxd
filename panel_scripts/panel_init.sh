@@ -419,6 +419,7 @@ fi
 
 systemctl enable snapd
 systemctl start snapd
+apt install vnstati -y
 snap install vnstat
 export PATH="$PATH:/snap/bin"
 
