@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.08.29
+# 2023.10.09
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -108,6 +108,7 @@ install_package dos2unix
 install_package ufw
 install_package jq
 install_package uidmap
+# install_package lxcfs
 check_cdn_file
 rebuild_cloud_init
 apt-get remove cloud-init -y
@@ -154,6 +155,10 @@ else
     _green "LXD installation complete"
     _green "LXD安装完成"
 fi
+snap set lxd lxcfs.loadavg=true
+snap set lxd lxcfs.pidfd=true
+snap set lxd lxcfs.cfs=true
+systemctl restart snap.lxd.daemon
 
 # 读取母鸡配置
 while true; do

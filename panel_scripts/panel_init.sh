@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.09.05
+# 2023.10.09
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -154,6 +154,10 @@ else
     _green "LXD installation complete"
     _green "LXD安装完成"
 fi
+snap set lxd lxcfs.loadavg=true
+snap set lxd lxcfs.pidfd=true
+snap set lxd lxcfs.cfs=true
+systemctl restart snap.lxd.daemon
 
 # 读取母鸡配置
 while true; do

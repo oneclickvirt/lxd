@@ -6,9 +6,9 @@
 
 ## 更新
 
-2023.09.02
+2023.10.09
 
-- 增加宿主机的证书设置+vnstat环境安装+lxd环境安装的三合一脚本，配合LXD站点
+- 一键安装默认启用lxd的lxcfs相关配置，使得容器内查询容器信息变更为容器本身的信息而不是宿主机信息
 
 [更新日志](CHANGELOG.md)
 
@@ -16,7 +16,6 @@
 
 - LXC模板构建自定义的模板提前初始化好部分内容，避免原始模板过于干净导致初始化时间过长
 - 部分机器的ubuntu22系统lxd开出的容器没网，待修复，此时建议回退ubuntu20
-- 系统debian11做宿主机系统可能部分资源限制不住，待修复，此时建议回退ubuntu20([相关](https://github.com/spiritLHLS/lxd/issues/21#issue-1819109212))
 - 开设的容器不支持centos7，centos8，仅支持centos的stream版本，待添加支持([相关](https://github.com/spiritLHLS/lxd/issues/20#issue-1816499383))
 - 开设的容器不支持debian8，debian9，待添加支持([相关](https://github.com/spiritLHLS/lxd/issues/21#issue-1819109212))
 - 使得宿主机支持更多的系统，不仅限于ubuntu和debian系做宿主机
