@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.09.01
+# 2023.10.09
 
 # 输入
 # ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -12,6 +12,25 @@ cd /root >/dev/null 2>&1
 if ! command -v jq; then
     apt-get install jq -y
 fi
+
+check_china() {
+    echo "IP area being detected ......"
+    if [[ -z "${CN}" ]]; then
+        if [[ $(curl -m 6 -s https://ipapi.co/json | grep 'China') != "" ]]; then
+            echo "根据ipapi.co提供的信息，当前IP可能在中国，使用中国镜像完成相关组件安装"
+            CN=true
+        else
+            if [[ $? -ne 0 ]]; then
+                if [[ $(curl -m 6 -s cip.cc) =~ "中国" ]]; then
+                    echo "根据cip.cc提供的信息，当前IP可能在中国，使用中国镜像完成相关组件安装"
+                    CN=true
+                fi
+            fi
+        fi
+    fi
+}
+
+check_china
 name="${1:-test}"
 memory="${2:-256}"
 disk="${3:-2}"
@@ -92,6 +111,11 @@ passwd=${ori:2:9}
 lxc start "$name"
 sleep 1
 /usr/local/bin/check-dns.sh
+if [[ "${CN}" == true ]]; then
+    lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
+    lxc exec "$name" -- chmod 777 ChangeMirrors.sh
+    lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
+fi
 if echo "$system" | grep -qiE "centos|almalinux"; then
     lxc exec "$name" -- sudo yum update -y
     lxc exec "$name" -- sudo yum install -y curl

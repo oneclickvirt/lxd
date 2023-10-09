@@ -2,12 +2,31 @@
 # by https://github.com/spiritLHLS/lxd
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2023.07.09
+# 2023.10.09
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p "$directory"
 fi
+
+check_china() {
+    echo "IP area being detected ......"
+    if [[ -z "${CN}" ]]; then
+        if [[ $(curl -m 6 -s https://ipapi.co/json | grep 'China') != "" ]]; then
+            echo "根据ipapi.co提供的信息，当前IP可能在中国，使用中国镜像完成相关组件安装"
+            CN=true
+        else
+            if [[ $? -ne 0 ]]; then
+                if [[ $(curl -m 6 -s cip.cc) =~ "中国" ]]; then
+                    echo "根据cip.cc提供的信息，当前IP可能在中国，使用中国镜像完成相关组件安装"
+                    CN=true
+                fi
+            fi
+        fi
+    fi
+}
+
+check_china
 rm -rf log
 lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=128MiB
 lxc config device override "$1" root size=200MB
@@ -55,6 +74,11 @@ for ((a = 1; a <= "$2"; a++)); do
     passwd=${ori:2:9}
     lxc start "$1"$a
     sleep 1
+    if [[ "${CN}" == true ]]; then
+        lxc exec "$1"$a -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
+        lxc exec "$1"$a -- chmod 777 ChangeMirrors.sh
+        lxc exec "$1"$a -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
+    fi
     lxc exec "$1"$a -- sudo apt-get update -y
     lxc exec "$1"$a -- sudo apt-get install curl -y --fix-missing
     lxc exec "$1"$a -- sudo apt-get install -y --fix-missing dos2unix
