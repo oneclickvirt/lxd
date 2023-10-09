@@ -75,6 +75,8 @@ for ((a = 1; a <= "$2"; a++)); do
     lxc start "$1"$a
     sleep 1
     if [[ "${CN}" == true ]]; then
+        lxc exec "$name" -- yum install -y curl
+        lxc exec "$name" -- apt-get install curl -y --fix-missing
         lxc exec "$1"$a -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
         lxc exec "$1"$a -- chmod 777 ChangeMirrors.sh
         lxc exec "$1"$a -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips

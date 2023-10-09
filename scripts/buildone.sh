@@ -112,6 +112,8 @@ lxc start "$name"
 sleep 1
 /usr/local/bin/check-dns.sh
 if [[ "${CN}" == true ]]; then
+    lxc exec "$name" -- yum install -y curl
+    lxc exec "$name" -- apt-get install curl -y --fix-missing
     lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
     lxc exec "$name" -- chmod 777 ChangeMirrors.sh
     lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
