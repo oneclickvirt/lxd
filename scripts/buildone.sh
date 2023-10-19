@@ -136,7 +136,7 @@ if [[ "${CN}" == true ]]; then
     lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
     lxc exec "$name" -- rm -rf ChangeMirrors.sh
 fi
-if echo "$system" | grep -qiE "centos|almalinux"; then
+if echo "$system" | grep -qiE "centos" || echo "$system" | grep -qiE "almalinux" || echo "$system" | grep -qiE "fedora"; then
     lxc exec "$name" -- sudo yum update -y
     lxc exec "$name" -- sudo yum install -y curl
     lxc exec "$name" -- sudo yum install -y dos2unix
