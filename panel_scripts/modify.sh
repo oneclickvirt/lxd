@@ -22,13 +22,16 @@ passwd=${ori:2:9}
 lxc start "$name"
 sleep 1
 /usr/local/bin/check-dns.sh
-if echo "$system" | grep -qiE "centos|almalinux"; then
+if echo "$system" | grep -qiE "centos" || echo "$system" | grep -qiE "almalinux" || echo "$system" | grep -qiE "fedora" || echo "$system" | grep -qiE "rocky"; then
+    lxc exec "$name" -- sudo yum update -y
     lxc exec "$name" -- sudo yum update -y
     lxc exec "$name" -- sudo yum install -y curl
     lxc exec "$name" -- sudo yum install -y dos2unix
 elif echo "$system" | grep -qiE "alpine"; then
     lxc exec "$name" -- apk update
     lxc exec "$name" -- apk add --no-cache curl
+elif echo "$system" | grep -qiE "openwrt"; then
+    lxc exec "$name" -- opkg update
 else
     lxc exec "$name" -- sudo apt-get update -y
     lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
