@@ -60,6 +60,15 @@ case "${sysarch}" in
 esac
 if echo "$output" | grep -q "${a}"; then
     system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+    if [ $? -ne 0 ]; then
+        system=$(lxc image list tuna-images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+        echo "A matching image exists and will be created using tuna-images:${system}"
+        echo "匹配的镜像存在，将使用 images:${system} 进行创建"
+        # tuna-images
+        status_tuna="T"
+    else
+        status_tuna="F"
+    fi
     echo "A matching image exists and will be created using images:${system}"
     echo "匹配的镜像存在，将使用 images:${system} 进行创建"
 else
@@ -72,7 +81,12 @@ else
     exit 1
 fi
 rm -rf "$name"
-lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+if [ "$status_tuna" == "T" ]; then
+    lxc init tuna-images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+else
+    lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+fi
+fi
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
     echo "Container creation failed, please check the previous output message"

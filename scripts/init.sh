@@ -30,6 +30,9 @@ check_china() {
 check_china
 rm -rf log
 lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=256MiB
+if [ $? -ne 0 ]; then
+  lxc init tuna-images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=256MiB
+fi
 # 硬盘大小
 lxc config device override "$1" root size=1GB
 lxc config device set "$1" root limits.max 1GB

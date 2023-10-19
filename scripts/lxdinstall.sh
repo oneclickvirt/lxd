@@ -320,6 +320,8 @@ export PATH=$PATH:/snap/bin
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
 lxc config set images.auto_update_interval 0
+# 增加第三方镜像链接避免官方镜像失联
+lxc remote add tuna-images https://mirrors.tuna.tsinghua.edu.cn/lxc-images/ --protocol=simplestreams --public>/dev/null 2>&1
 # 设置自动配置内网IPV6地址
 lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
