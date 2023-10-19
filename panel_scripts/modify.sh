@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.09.02
+# 2023.10.19
 
 # 输入
 # ./modify.sh 服务器名称 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N)
@@ -34,7 +34,7 @@ else
     lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
     lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
 fi
-if echo "$system" | grep -qiE "alpine"; then
+if echo "$system" | grep -qiE "alpine" || echo "$system" | grep -qiE "openwrt"; then
     if [ ! -f /usr/local/bin/ssh_sh.sh ]; then
         curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh -o /usr/local/bin/ssh_sh.sh
         chmod 777 /usr/local/bin/ssh_sh.sh
