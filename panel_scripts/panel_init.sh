@@ -323,8 +323,8 @@ lxc config set images.auto_update_interval 0
 lxc network set lxdbr0 ipv6.address auto
 # 下载预制文件
 files=(
-    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh"
-    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/alpinessh.sh"
+    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh"
+    "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh"
     "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh"
     "https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/buildone.sh"
 )
@@ -335,8 +335,8 @@ for file in "${files[@]}"; do
     chmod 777 "$filename"
     dos2unix "$filename"
 done
-cp /root/alpinessh.sh /usr/local/bin
-cp /root/ssh.sh /usr/local/bin
+cp /root/ssh_sh.sh /usr/local/bin
+cp /root/ssh_bash.sh /usr/local/bin
 cp /root/config.sh /usr/local/bin
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking

@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.09.01
+# 2023.10.19
 
 # cd /root
 red() { echo -e "\033[31m\033[01m$@\033[0m"; }
@@ -57,10 +57,15 @@ pre_check() {
     if ! command -v dos2unix >/dev/null 2>&1; then
         apt-get install dos2unix -y
     fi
-    if [ ! -f ssh.sh ]; then
-        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh" -o ssh.sh
-        chmod 777 ssh.sh
-        dos2unix ssh.sh
+    if [ ! -f ssh_bash.sh ]; then
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh" -o ssh_bash.sh
+        chmod 777 ssh_bash.sh
+        dos2unix ssh_bash.sh
+    fi
+    if [ ! -f ssh_sh.sh ]; then
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh" -o ssh_sh.sh
+        chmod 777 ssh_sh.sh
+        dos2unix ssh_sh.sh
     fi
     if [ ! -f config.sh ]; then
         curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh" -o config.sh

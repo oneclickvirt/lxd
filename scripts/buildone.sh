@@ -134,26 +134,26 @@ else
     lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
 fi
 if echo "$system" | grep -qiE "alpine"; then
-    if [ ! -f /usr/local/bin/alpinessh.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/alpinessh.sh -o /usr/local/bin/alpinessh.sh
-        chmod 777 /usr/local/bin/alpinessh.sh
-        dos2unix /usr/local/bin/alpinessh.sh
+    if [ ! -f /usr/local/bin/ssh_sh.sh ]; then
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh -o /usr/local/bin/ssh_sh.sh
+        chmod 777 /usr/local/bin/ssh_sh.sh
+        dos2unix /usr/local/bin/ssh_sh.sh
     fi
-    cp /usr/local/bin/alpinessh.sh /root
-    lxc file push /root/alpinessh.sh "$name"/root/
-    lxc exec "$name" -- chmod 777 alpinessh.sh
-    lxc exec "$name" -- ./alpinessh.sh ${passwd}
+    cp /usr/local/bin/ssh_sh.sh /root
+    lxc file push /root/ssh_sh.sh "$name"/root/
+    lxc exec "$name" -- chmod 777 ssh_sh.sh
+    lxc exec "$name" -- ./ssh_sh.sh ${passwd}
 else
-    if [ ! -f /usr/local/bin/ssh.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
-        chmod 777 /usr/local/bin/ssh.sh
-        dos2unix /usr/local/bin/ssh.sh
+    if [ ! -f /usr/local/bin/ssh_bash.sh ]; then
+        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
+        chmod 777 /usr/local/bin/ssh_bash.sh
+        dos2unix /usr/local/bin/ssh_bash.sh
     fi
-    cp /usr/local/bin/ssh.sh /root
-    lxc file push /root/ssh.sh "$name"/root/
-    lxc exec "$name" -- chmod 777 ssh.sh
-    lxc exec "$name" -- dos2unix ssh.sh
-    lxc exec "$name" -- sudo ./ssh.sh $passwd
+    cp /usr/local/bin/ssh_bash.sh /root
+    lxc file push /root/ssh_bash.sh "$name"/root/
+    lxc exec "$name" -- chmod 777 ssh_bash.sh
+    lxc exec "$name" -- dos2unix ssh_bash.sh
+    lxc exec "$name" -- sudo ./ssh_bash.sh $passwd
     if [ ! -f /usr/local/bin/config.sh ]; then
         curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
         chmod 777 /usr/local/bin/config.sh
@@ -185,7 +185,7 @@ fi
 lxc stop "$name"
 lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
 lxc start "$name"
-rm -rf ssh.sh config.sh alpinessh.sh
+rm -rf ssh_bash.sh config.sh ssh_sh.sh
 if echo "$system" | grep -qiE "alpine"; then
     sleep 3
     lxc stop "$name"

@@ -54,12 +54,12 @@ for port in "${blocked_ports[@]}"; do
     iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
     iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
 done
-if [ ! -f /usr/local/bin/ssh.sh ]; then
-    curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh.sh -o /usr/local/bin/ssh.sh
-    chmod 777 /usr/local/bin/ssh.sh
-    dos2unix /usr/local/bin/ssh.sh
+if [ ! -f /usr/local/bin/ssh_bash.sh ]; then
+    curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
+    chmod 777 /usr/local/bin/ssh_bash.sh
+    dos2unix /usr/local/bin/ssh_bash.sh
 fi
-cp /usr/local/bin/ssh.sh /root
+cp /usr/local/bin/ssh_bash.sh /root
 if [ ! -f /usr/local/bin/config.sh ]; then
     curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
     chmod 777 /usr/local/bin/config.sh
@@ -86,10 +86,10 @@ for ((a = 1; a <= "$2"; a++)); do
     lxc exec "$1"$a -- sudo apt-get update -y
     lxc exec "$1"$a -- sudo apt-get install curl -y --fix-missing
     lxc exec "$1"$a -- sudo apt-get install -y --fix-missing dos2unix
-    lxc file push /root/ssh.sh "$1"$a/root/
-    lxc exec "$1"$a -- chmod 777 ssh.sh
-    lxc exec "$1"$a -- dos2unix ssh.sh
-    lxc exec "$1"$a -- sudo ./ssh.sh $passwd
+    lxc file push /root/ssh_bash.sh "$1"$a/root/
+    lxc exec "$1"$a -- chmod 777 ssh_bash.sh
+    lxc exec "$1"$a -- dos2unix ssh_bash.sh
+    lxc exec "$1"$a -- sudo ./ssh_bash.sh $passwd
     lxc file push /root/config.sh "$1"$a/root/
     lxc exec "$1"$a -- chmod +x config.sh
     lxc exec "$1"$a -- dos2unix config.sh
@@ -97,4 +97,4 @@ for ((a = 1; a <= "$2"; a++)); do
     lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
     echo "$name $sshn $passwd" >>log
 done
-rm -rf ssh.sh config.sh alpinessh.sh
+rm -rf ssh_bash.sh config.sh ssh_sh.sh
