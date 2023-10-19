@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.10.09
+# 2023.10.19
 
 # 输入
-# ./buildone.sh 服务器名称 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
+# ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
 # 如果 外网起端口 外网止端口 都设置为0则不做区间外网端口映射了，只映射基础的SSH端口，注意不能为空，不进行映射需要设置为0
 
 # 创建容器
@@ -32,14 +32,16 @@ check_china() {
 
 check_china
 name="${1:-test}"
-memory="${2:-256}"
-disk="${3:-2}"
-sshn="${4:-20001}"
-nat1="${5:-20002}"
-nat2="${6:-20025}"
-in="${7:-300}"
-out="${8:-300}"
-system="${10:-debian11}"
+cpu="${2:-1}"
+memory="${3:-256}"
+disk="${4:-2}"
+sshn="${5:-20001}"
+nat1="${6:-20002}"
+nat2="${7:-20025}"
+in="${8:-300}"
+out="${9:-300}"
+enable_ipv6="${10:-N}"
+system="${11:-debian11}"
 a="${system%%[0-9]*}"
 b="${system##*[!0-9.]}"
 output=$(lxc image list images:${a}/${b})
@@ -70,7 +72,7 @@ else
     exit 1
 fi
 rm -rf "$name"
-lxc init images:${system} "$name" -c limits.cpu=1 -c limits.memory="$memory"MiB
+lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
     echo "Container creation failed, please check the previous output message"
@@ -166,8 +168,8 @@ else
 fi
 lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
 # 是否要创建V6地址
-if [ -n "$9" ]; then
-    if [ "$9" == "Y" ]; then
+if [ -n "$enable_ipv6" ]; then
+    if [ "$enable_ipv6" == "Y" ]; then
         if [ ! -f "./build_ipv6_network.sh" ]; then
             # 如果不存在，则从指定 URL 下载并添加可执行权限
             curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1

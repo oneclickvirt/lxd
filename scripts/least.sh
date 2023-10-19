@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# by https://github.com/spiritLHLS/lxd
+# from
+# https://github.com/spiritLHLS/lxd
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2023.10.09
+# 2023.10.19
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then

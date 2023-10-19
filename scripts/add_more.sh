@@ -127,6 +127,16 @@ build_new_containers() {
         fi
     done
     while true; do
+        green "How many Cores are allocated per container? (Number of CPU cores per container, if you need 1 core, enter 1):"
+        reading "每个小鸡分配几个CPU？(每个小鸡CPU核数，若需要1核，输入1)：" cpu_nums
+        if [[ "$cpu_nums" =~ ^[1-9][0-9]*$ ]]; then
+            break
+        else
+            yellow "Invalid input, please enter a positive integer."
+            yellow "输入无效，请输入一个正整数。"
+        fi
+    done
+    while true; do
         green "How much memory is allocated per container? (Memory size per container, enter 256 if 256MB of memory is required):"
         reading "每个小鸡分配多少内存？(每个小鸡内存大小，若需要256MB内存，输入256)：" memory_nums
         if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
@@ -210,7 +220,7 @@ build_new_containers() {
         ssh_port=$(($ssh_port + 1))
         public_port_start=$(($public_port_end + 1))
         public_port_end=$(($public_port_start + 25))
-        ./buildone.sh $container_name $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums $status_ipv6 $system
+        ./buildone.sh $container_name $cpu_nums $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums $status_ipv6 $system
         cat "$container_name" >>log
         rm -rf $container_name
     done
