@@ -128,12 +128,14 @@ if echo "$system" | grep -qiE "centos|almalinux"; then
 elif echo "$system" | grep -qiE "alpine"; then
     lxc exec "$name" -- apk update
     lxc exec "$name" -- apk add --no-cache curl
+elif echo "$system" | grep -qiE "openwrt"; then
+    lxc exec "$name" -- opkg update
 else
     lxc exec "$name" -- sudo apt-get update -y
     lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
     lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
 fi
-if echo "$system" | grep -qiE "alpine"; then
+if echo "$system" | grep -qiE "alpine|openwrt"; then
     if [ ! -f /usr/local/bin/ssh_sh.sh ]; then
         curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh -o /usr/local/bin/ssh_sh.sh
         chmod 777 /usr/local/bin/ssh_sh.sh

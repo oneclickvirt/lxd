@@ -7,7 +7,7 @@ if [ "$(id -u)" -ne 0 ]; then
   echo "This script must be executed with root privileges."
   exit 1
 fi
-if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" == "alpine" ]; then
+if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2 | tr -d '"')" == "alpine" ]; then
   apk update
   apk add --no-cache openssh-server
   apk add --no-cache sshpass
@@ -32,7 +32,7 @@ if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" == "alpine" ]; 
   rc-update add sshd default
   echo root:"$1" | chpasswd root
   chattr +i /etc/ssh/sshd_config
-elif [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" == "openwrt" ]; then
+elif [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2 | tr -d '"')" == "openwrt" ]; then
   opkg update
   opkg install openssh-server
   opkg install bash
@@ -52,8 +52,8 @@ elif [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" == "openwrt" 
   sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config
   sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config
   sed -i '/^AuthorizedKeysFile/s/^/#/' /etc/ssh/sshd_config
-  echo -e "$1\n$1" | passwd root
   chattr +i /etc/ssh/sshd_config
+  echo -e "$1\n$1" | passwd root
   /etc/init.d/sshd restart
 fi
 if [ -f "/etc/motd" ]; then
