@@ -70,10 +70,10 @@ install_required_modules() {
 
 checkupdate
 install_required_modules
-sudo service ssh restart
-sudo service sshd restart
-sudo systemctl restart sshd
-sudo systemctl restart ssh
+sudo service ssh start
+sudo service sshd start
+sudo systemctl start sshd
+sudo systemctl start ssh
 if [ -f "/etc/motd" ]; then
     echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
     echo '--by https://t.me/spiritlhl' >>/etc/motd
