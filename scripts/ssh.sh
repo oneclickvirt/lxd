@@ -72,6 +72,9 @@ install_required_modules() {
 
 checkupdate
 install_required_modules
+/etc/init.d/sshd enable
+/etc/init.d/sshd start
+
 if [ -f "/etc/motd" ]; then
     echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
     echo '--by https://t.me/spiritlhl' >>/etc/motd
@@ -108,6 +111,7 @@ if [ -f /etc/ssh/sshd_config.d/50-cloud-init.conf ]; then
 fi
 sudo service ssh restart
 sudo service sshd restart
+/etc/init.d/sshd restart
 sudo systemctl restart sshd
 sudo systemctl restart ssh
 rm -rf "$0"
