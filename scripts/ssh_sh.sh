@@ -52,11 +52,15 @@ elif [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2)" == "openwrt" 
   sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config
   sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config
   sed -i '/^AuthorizedKeysFile/s/^/#/' /etc/ssh/sshd_config
-  echo root:"$1" | chpasswd root
+  echo -e "$1\n$1" | passwd root
   chattr +i /etc/ssh/sshd_config
   /etc/init.d/sshd restart
 fi
 if [ -f "/etc/motd" ]; then
+  echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
+  echo '--by https://t.me/spiritlhl' >>/etc/motd
+fi
+if [ -f "/etc/banner" ]; then
   echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
   echo '--by https://t.me/spiritlhl' >>/etc/motd
 fi
