@@ -88,7 +88,6 @@ if [ "$status_tuna" == "T" ]; then
 else
     lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
 fi
-fi
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
     echo "Container creation failed, please check the previous output message"
