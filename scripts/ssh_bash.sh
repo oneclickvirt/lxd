@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.10.19
+# 2023.10.20
 
 if [ -f "/etc/resolv.conf" ]; then
     cp /etc/resolv.conf /etc/resolv.conf.bak
@@ -74,6 +74,7 @@ sudo service ssh start
 sudo service sshd start
 sudo systemctl start sshd
 sudo systemctl start ssh
+sleep 3
 if [ -f "/etc/motd" ]; then
     echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
     echo '--by https://t.me/spiritlhl' >>/etc/motd

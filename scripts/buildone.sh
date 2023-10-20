@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.10.19
+# 2023.10.20
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -67,10 +67,13 @@ else
     if [ $? -ne 0 ]; then
         status_tuna="F"
     else
-        echo "A matching image exists and will be created using tuna-images:${system}"
-        echo "匹配的镜像存在，将使用 images:${system} 进行创建"
-        # tuna-images
-        status_tuna="T"
+        if echo "$system" | grep -q "${a}"; then
+            echo "A matching image exists and will be created using tuna-images:${system}"
+            echo "匹配的镜像存在，将使用 tuna-images:${system} 进行创建"
+            status_tuna="T"
+        else
+            status_tuna="F"
+        fi
     fi
     if [ "$status_tuna" == "F" ]; then
         echo "No matching image found, please execute"
@@ -136,7 +139,7 @@ if [[ "${CN}" == true ]]; then
     lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
     lxc exec "$name" -- rm -rf ChangeMirrors.sh
 fi
-if echo "$system" | grep -qiE "centos" || echo "$system" | grep -qiE "almalinux" || echo "$system" | grep -qiE "fedora" || echo "$system" | grep -qiE "rocky"; then
+if echo "$system" | grep -qiE "centos" || echo "$system" | grep -qiE "almalinux" || echo "$system" | grep -qiE "fedora" || echo "$system" | grep -qiE "rocky" || echo "$system" | grep -qiE "oracle"; then
     lxc exec "$name" -- sudo yum update -y
     lxc exec "$name" -- sudo yum install -y curl
     lxc exec "$name" -- sudo yum install -y dos2unix
@@ -145,6 +148,11 @@ elif echo "$system" | grep -qiE "alpine"; then
     lxc exec "$name" -- apk add --no-cache curl
 elif echo "$system" | grep -qiE "openwrt"; then
     lxc exec "$name" -- opkg update
+elif echo "$system" | grep -qiE "archlinux"; then
+    lxc exec "$name" -- pacman -Sy
+    lxc exec "$name" -- pacman -Sy --noconfirm --needed curl
+    lxc exec "$name" -- pacman -Sy --noconfirm --needed dos2unix
+    lxc exec "$name" -- pacman -Sy --noconfirm --needed bash
 else
     lxc exec "$name" -- sudo apt-get update -y
     lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
