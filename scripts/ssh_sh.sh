@@ -61,7 +61,7 @@ if [ -f "/etc/motd" ]; then
   echo '--by https://t.me/spiritlhl' >>/etc/motd
 fi
 if [ -f "/etc/banner" ]; then
-  echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
-  echo '--by https://t.me/spiritlhl' >>/etc/motd
+  echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/banner
+  echo '--by https://t.me/spiritlhl' >>/etc/banner
 fi
 rm -f "$0"
