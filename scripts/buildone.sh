@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.10.20
+# 2023.10.23
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -28,6 +28,40 @@ check_china() {
             fi
         fi
     fi
+}
+
+enable_ipv6()
+{
+ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
+ipv6_name=$(curl -s -6 ip.sb -m 2 2> /dev/null )
+# ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
+ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+if [ -z "$ip_network_gam" ]; then
+    ipv6_network_name="he-ipv6"
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+fi
+if [ -n "$ip_network_gam" ];
+    then
+    if ! grep "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1" /etc/sysctl.conf  >/dev/null
+    then
+        echo "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1">>/etc/sysctl.conf
+        sysctl -p
+    fi
+    if ! grep "net.ipv6.conf.all.forwarding = 1" /etc/sysctl.conf  >/dev/null
+    then
+        echo "net.ipv6.conf.all.forwarding = 1">>/etc/sysctl.conf
+        sysctl -p
+    fi
+    if ! grep "net.ipv6.conf.all.proxy_ndp=1" /etc/sysctl.conf  >/dev/null
+    then
+        echo "net.ipv6.conf.all.proxy_ndp=1">>/etc/sysctl.conf
+        sysctl -p
+    fi
+    ipv6_lala=$(ipcalc ${ip_network_gam} | grep "Prefix:" | awk '{print $2}')
+    randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
+    lxc_ipv6="${ipv6_lala%/*}${randbits}"
+    lxc config device add "$name" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+fi
 }
 
 check_china
@@ -195,11 +229,12 @@ lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tc
 # 是否要创建V6地址
 if [ -n "$enable_ipv6" ]; then
     if [ "$enable_ipv6" == "Y" ]; then
-        if [ ! -f "./build_ipv6_network.sh" ]; then
-            # 如果不存在，则从指定 URL 下载并添加可执行权限
-            curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
-        fi
-        ./build_ipv6_network.sh "$name" >/dev/null 2>&1
+        # if [ ! -f "./build_ipv6_network.sh" ]; then
+        #     # 如果不存在，则从指定 URL 下载并添加可执行权限
+        #     curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
+        # fi
+        # ./build_ipv6_network.sh "$name" >/dev/null 2>&1
+        enable_ipv6
     fi
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
