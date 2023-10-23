@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.07.03
+# 2023.10.23
 
 # ./build_ipv6_network.sh LXC容器名称
 
@@ -23,7 +23,7 @@ fi
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
-    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent")
+    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "ipcalc")
     for module in "${modules[@]}"; do
         if command -v $module >/dev/null 2>&1; then
             _green "$module is installed!"
@@ -77,58 +77,96 @@ fi
 _blue "The IPV6 subnet prefix is $SUBNET_PREFIX"
 _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 
-# 寻找未使用的子网内的一个IPV6地址
-for i in $(seq 1 65535); do
-    IPV6="${SUBNET_PREFIX}$i"
-    if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
-        continue
-    fi
-    if ip -6 addr show dev "$interface" | grep -q $IPV6; then
-        continue
-    fi
-    if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
-        if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
-            _green "$IPV6"
-            break
-        fi
-    fi
-    _yellow "$IPV6"
-done
+# 用 iptables 映射的IPV6网络
 
-# 检查是否找到未使用的 IPV6 地址
-if [ -z "$IPV6" ]; then
-    _red "No IPV6 address available, no auto mapping"
-    _red "无可用 IPV6 地址，不进行自动映射"
-    exit 1
-fi
+# # 寻找未使用的子网内的一个IPV6地址
+# for i in $(seq 1 65535); do
+#     IPV6="${SUBNET_PREFIX}$i"
+#     if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
+#         continue
+#     fi
+#     if ip -6 addr show dev "$interface" | grep -q $IPV6; then
+#         continue
+#     fi
+#     if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
+#         if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
+#             _green "$IPV6"
+#             break
+#         fi
+#     fi
+#     _yellow "$IPV6"
+# done
 
-# 映射 IPV6 地址到容器的私有 IPV6 地址
-ip addr add "$IPV6"/"$ipv6_length" dev "$interface"
-ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
-# 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
-if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
-    chmod +x /usr/local/bin/add-ipv6.sh
-else
-    echo "Script already exists. Skipping installation."
-fi
-if [ ! -f /etc/systemd/system/add-ipv6.service ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.service -O /etc/systemd/system/add-ipv6.service
-    chmod +x /etc/systemd/system/add-ipv6.service
-    systemctl daemon-reload
-    systemctl enable add-ipv6.service
-    systemctl start add-ipv6.service
-else
-    echo "Service already exists. Skipping installation."
-fi
+# # 检查是否找到未使用的 IPV6 地址
+# if [ -z "$IPV6" ]; then
+#     _red "No IPV6 address available, no auto mapping"
+#     _red "无可用 IPV6 地址，不进行自动映射"
+#     exit 1
+# fi
 
-if [ ! -f "/etc/iptables/rules.v6" ]; then
-    touch /etc/iptables/rules.v6
+# # 映射 IPV6 地址到容器的私有 IPV6 地址
+# ip addr add "$IPV6"/"$ipv6_length" dev "$interface"
+# ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
+# # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
+# if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
+#     wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
+#     chmod +x /usr/local/bin/add-ipv6.sh
+# else
+#     echo "Script already exists. Skipping installation."
+# fi
+# if [ ! -f /etc/systemd/system/add-ipv6.service ]; then
+#     wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.service -O /etc/systemd/system/add-ipv6.service
+#     chmod +x /etc/systemd/system/add-ipv6.service
+#     systemctl daemon-reload
+#     systemctl enable add-ipv6.service
+#     systemctl start add-ipv6.service
+# else
+#     echo "Service already exists. Skipping installation."
+# fi
+
+# if [ ! -f "/etc/iptables/rules.v6" ]; then
+#     touch /etc/iptables/rules.v6
+# fi
+# ip6tables-save >/etc/iptables/rules.v6
+# netfilter-persistent save
+# netfilter-persistent reload
+# service netfilter-persistent restart
+
+enable_ipv6()
+{
+ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
+ipv6_name=$(curl -s -6 ip.sb -m 2 2> /dev/null )
+# ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
+ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+if [ -z "$ip_network_gam" ]; then
+    ipv6_network_name="he-ipv6"
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
 fi
-ip6tables-save >/etc/iptables/rules.v6
-netfilter-persistent save
-netfilter-persistent reload
-service netfilter-persistent restart
+if [ -n "$ip_network_gam" ];
+    then
+    if ! grep "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1" /etc/sysctl.conf  >/dev/null
+    then
+        echo "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1">>/etc/sysctl.conf
+        sysctl -p
+    fi
+    if ! grep "net.ipv6.conf.all.forwarding = 1" /etc/sysctl.conf  >/dev/null
+    then
+        echo "net.ipv6.conf.all.forwarding = 1">>/etc/sysctl.conf
+        sysctl -p
+    fi
+    if ! grep "net.ipv6.conf.all.proxy_ndp=1" /etc/sysctl.conf  >/dev/null
+    then
+        echo "net.ipv6.conf.all.proxy_ndp=1">>/etc/sysctl.conf
+        sysctl -p
+    fi
+    ipv6_lala=$(ipcalc ${ip_network_gam} | grep "Prefix:" | awk '{print $2}')
+    randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
+    lxc_ipv6="${ipv6_lala%/*}${randbits}"
+    lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+fi
+}
+
+enable_ipv6
 
 # 打印信息并测试是否通畅
 if ping6 -c 3 $IPV6 &>/dev/null; then
