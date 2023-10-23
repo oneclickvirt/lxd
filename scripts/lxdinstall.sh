@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.10.09
+# 2023.10.23
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -108,6 +108,7 @@ install_package dos2unix
 install_package ufw
 install_package jq
 install_package uidmap
+install_package ipcalc
 # install_package lxcfs
 check_cdn_file
 rebuild_cloud_init
