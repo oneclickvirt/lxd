@@ -163,9 +163,11 @@ if [ -n "$ip_network_gam" ];
     randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+    IPV6=${lxc_ipv6}
 fi
 }
 
+IPV6=""
 enable_ipv6
 
 # 打印信息并测试是否通畅
