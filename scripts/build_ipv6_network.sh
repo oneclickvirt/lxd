@@ -164,16 +164,15 @@ if [ -n "$ip_network_gam" ];
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
     IPV6=${lxc_ipv6}
-    # 打印信息并测试是否通畅
-    if ping6 -c 3 $IPV6 &>/dev/null; then
-        _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
-        _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
-    else
-        _red "Mapping failure"
-        _red "映射失败"
-        exit 1
-    fi
-    
+    # # 打印信息并测试是否通畅
+    # if ping6 -c 3 $IPV6 &>/dev/null; then
+    #     _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
+    #     _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
+    # else
+    #     _red "Mapping failure"
+    #     _red "映射失败"
+    #     exit 1
+    # fi
     # 写入信息
     echo "$IPV6" >>"$1_v6"
 fi
