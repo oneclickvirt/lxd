@@ -223,7 +223,7 @@ if [ -n "$enable_ipv6" ]; then
             # 如果不存在，则从指定 URL 下载并添加可执行权限
             curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
         fi
-        ./build_ipv6_network.sh "$name" >/dev/null 2>&1
+        ./build_ipv6_network.sh "$name"
     fi
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
