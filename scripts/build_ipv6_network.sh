@@ -37,6 +37,64 @@ install_required_modules() {
 }
 install_required_modules
 
+is_private_ipv6() {
+    local address=$1
+    # 输入不含:符号
+    if [[ $ip_address != *":"* ]]; then
+        return 0
+    fi
+    # 输入为空
+    if [[ -z $ip_address ]]; then
+        return 0
+    fi
+    # 检查IPv6地址是否以fe80开头（链接本地地址）
+    if [[ $address == fe80:* ]]; then
+        return 0
+    fi
+    # 检查IPv6地址是否以fc00或fd00开头（唯一本地地址）
+    if [[ $address == fc00:* || $address == fd00:* ]]; then
+        return 0
+    fi
+    # 检查IPv6地址是否以2001:db8开头（文档前缀）
+    if [[ $address == 2001:db8* ]]; then
+        return 0
+    fi
+    # 检查IPv6地址是否以::1开头（环回地址）
+    if [[ $address == ::1 ]]; then
+        return 0
+    fi
+    # 检查IPv6地址是否以::ffff:开头（IPv4映射地址）
+    if [[ $address == ::ffff:* ]]; then
+        return 0
+    fi
+    # 检查IPv6地址是否以2002:开头（6to4隧道地址）
+    if [[ $address == 2002:* ]]; then
+        return 0
+    fi
+    # 检查IPv6地址是否以2001:开头（Teredo隧道地址）
+    if [[ $address == 2001:* ]]; then
+        return 0
+    fi
+    # 其他情况为公网地址
+    return 1
+}
+
+check_ipv6() {
+    IPV6=$(ip -6 addr show | grep global | awk '{print $2}' | cut -d '/' -f1 | head -n 1)
+    if is_private_ipv6 "$IPV6"; then # 由于是内网IPV6地址，需要通过API获取外网地址
+        IPV6=""
+        API_NET=("ipv6.ip.sb" "https://ipget.net" "ipv6.ping0.cc" "https://api.my-ip.io/ip" "https://ipv6.icanhazip.com")
+        for p in "${API_NET[@]}"; do
+            response=$(curl -sLk6m8 "$p" | tr -d '[:space:]')
+            if [ $? -eq 0 ] && ! (echo "$response" | grep -q "error"); then
+                IPV6="$response"
+                break
+            fi
+            sleep 1
+        done
+    fi
+}
+
 # 查询网卡
 interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
 _yellow "NIC $interface"
@@ -132,19 +190,19 @@ _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 # netfilter-persistent reload
 # service netfilter-persistent restart
 
-enable_ipv6()
-{
-ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
-ipv6_name=$(curl -s -6 ip.sb -m 2 2> /dev/null )
+check_ipv6
+ipv6_name=${IPV6}
 # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
-ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
-if [ -z "$ip_network_gam" ]; then
+if grep -q "auto he-ipv6" /etc/network/interfaces; then
     ipv6_network_name="he-ipv6"
     ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+else
+    ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
 fi
+echo "$ip_network_gam"
 if [ -n "$ip_network_gam" ];
     then
-    _blue "宿主机配置：$ip_network_gam"
     if ! grep "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1" /etc/sysctl.conf  >/dev/null
     then
         echo "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1">>/etc/sysctl.conf
@@ -163,9 +221,8 @@ if [ -n "$ip_network_gam" ];
     ipv6_lala=$(ipcalc ${ip_network_gam} | grep "Prefix:" | awk '{print $2}')
     randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
-    _blue "容器配置：$lxc_ipv6"
+    echo "$lxc_ipv6"
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
-    IPV6=${lxc_ipv6}
     # # 打印信息并测试是否通畅
     # if ping6 -c 3 $IPV6 &>/dev/null; then
     #     _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
@@ -176,8 +233,5 @@ if [ -n "$ip_network_gam" ];
     #     exit 1
     # fi
     # 写入信息
-    echo "$IPV6" >>"$CONTAINER_NAME_v6"
+    echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
 fi
-}
-
-enable_ipv6
