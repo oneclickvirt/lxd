@@ -144,6 +144,7 @@ if [ -z "$ip_network_gam" ]; then
 fi
 if [ -n "$ip_network_gam" ];
     then
+    _blue "宿主机配置：$ip_network_gam"
     if ! grep "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1" /etc/sysctl.conf  >/dev/null
     then
         echo "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1">>/etc/sysctl.conf
@@ -162,6 +163,7 @@ if [ -n "$ip_network_gam" ];
     ipv6_lala=$(ipcalc ${ip_network_gam} | grep "Prefix:" | awk '{print $2}')
     randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
+    _blue "容器配置：$lxc_ipv6"
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
     IPV6=${lxc_ipv6}
     # # 打印信息并测试是否通畅
