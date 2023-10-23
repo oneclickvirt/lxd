@@ -64,6 +64,7 @@ nat2="${7:-20025}"
 in="${8:-300}"
 out="${9:-300}"
 enable_ipv6="${10:-N}"
+enable_ipv6=$(echo "$enable_ipv6" | tr '[:upper:]' '[:lower:]')
 system="${11:-debian11}"
 a="${system%%[0-9]*}"
 b="${system##*[!0-9.]}"
@@ -217,7 +218,7 @@ fi
 lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
 # 是否要创建V6地址
 if [ -n "$enable_ipv6" ]; then
-    if [ "$enable_ipv6" == "Y" ]; then
+    if [ "$enable_ipv6" == "y" ]; then
         if [ ! -f "./build_ipv6_network.sh" ]; then
             # 如果不存在，则从指定 URL 下载并添加可执行权限
             curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
