@@ -174,7 +174,7 @@ if [ -n "$ip_network_gam" ];
     #     exit 1
     # fi
     # 写入信息
-    echo "$IPV6" >>"$1_v6"
+    echo "$IPV6" >>"$CONTAINER_NAME_v6"
 fi
 }
 
