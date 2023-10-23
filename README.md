@@ -6,9 +6,9 @@
 
 ## 更新
 
-2023.10.20
+2023.10.23
 
-- 开设出的容器尝试支持kali，archlinux，rockylinux，oralce，fedora系统
+- 替换原先使用 iptables 的方式给容器分配IPV6地址的方法，使用 ipvlan 解决分配问题
 
 [更新日志](CHANGELOG.md)
 
