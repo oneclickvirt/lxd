@@ -36,6 +36,10 @@ ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`
 ipv6_name=$(curl -s -6 ip.sb -m 2 2> /dev/null )
 # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
 ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+if [ -z "$ip_network_gam" ]; then
+    ipv6_network_name="he-ipv6"
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+fi
 if [ -n "$ip_network_gam" ];
     then
     if ! grep "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1" /etc/sysctl.conf  >/dev/null
