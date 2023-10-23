@@ -1,5 +1,9 @@
 ### 更新日志
 
+2023.10.20
+
+- 开设出的容器尝试支持kali，archlinux，rockylinux，oralce，fedora系统
+
 2023.10.19
 
 - 一键脚本支持自定义设置CPU限制数量，增加参数设置
