@@ -30,41 +30,30 @@ check_china() {
     fi
 }
 
-enable_ipv6()
-{
-ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
-ipv6_name=$(curl -s -6 ip.sb -m 2 2> /dev/null )
-# ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
-ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
-if [ -z "$ip_network_gam" ]; then
-    ipv6_network_name="he-ipv6"
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
-fi
-if [ -n "$ip_network_gam" ];
-    then
-    if ! grep "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1" /etc/sysctl.conf  >/dev/null
-    then
-        echo "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1">>/etc/sysctl.conf
-        sysctl -p
+check_cdn() {
+    local o_url=$1
+    for cdn_url in "${cdn_urls[@]}"; do
+        if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" >/dev/null 2>&1; then
+            export cdn_success_url="$cdn_url"
+            return
+        fi
+        sleep 0.5
+    done
+    export cdn_success_url=""
+}
+
+check_cdn_file() {
+    check_cdn "https://raw.githubusercontent.com/spiritLHLS/ecs/main/back/test"
+    if [ -n "$cdn_success_url" ]; then
+        echo "CDN available, using CDN"
+    else
+        echo "No CDN available, no use CDN"
     fi
-    if ! grep "net.ipv6.conf.all.forwarding = 1" /etc/sysctl.conf  >/dev/null
-    then
-        echo "net.ipv6.conf.all.forwarding = 1">>/etc/sysctl.conf
-        sysctl -p
-    fi
-    if ! grep "net.ipv6.conf.all.proxy_ndp=1" /etc/sysctl.conf  >/dev/null
-    then
-        echo "net.ipv6.conf.all.proxy_ndp=1">>/etc/sysctl.conf
-        sysctl -p
-    fi
-    ipv6_lala=$(ipcalc ${ip_network_gam} | grep "Prefix:" | awk '{print $2}')
-    randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
-    lxc_ipv6="${ipv6_lala%/*}${randbits}"
-    lxc config device add "$name" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
-fi
 }
 
 check_china
+cdn_urls=("https://cdn0.spiritlhl.top/" "http://cdn3.spiritlhl.net/" "http://cdn1.spiritlhl.net/" "https://ghproxy.com/" "http://cdn2.spiritlhl.net/")
+check_cdn_file
 name="${1:-test}"
 cpu="${2:-1}"
 memory="${3:-256}"
@@ -194,7 +183,7 @@ else
 fi
 if echo "$system" | grep -qiE "alpine" || echo "$system" | grep -qiE "openwrt"; then
     if [ ! -f /usr/local/bin/ssh_sh.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh -o /usr/local/bin/ssh_sh.sh
+        curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh -o /usr/local/bin/ssh_sh.sh
         chmod 777 /usr/local/bin/ssh_sh.sh
         dos2unix /usr/local/bin/ssh_sh.sh
     fi
@@ -204,7 +193,7 @@ if echo "$system" | grep -qiE "alpine" || echo "$system" | grep -qiE "openwrt"; 
     lxc exec "$name" -- ./ssh_sh.sh ${passwd}
 else
     if [ ! -f /usr/local/bin/ssh_bash.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
+        curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
         chmod 777 /usr/local/bin/ssh_bash.sh
         dos2unix /usr/local/bin/ssh_bash.sh
     fi
@@ -214,7 +203,7 @@ else
     lxc exec "$name" -- dos2unix ssh_bash.sh
     lxc exec "$name" -- sudo ./ssh_bash.sh $passwd
     if [ ! -f /usr/local/bin/config.sh ]; then
-        curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
+        curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
         chmod 777 /usr/local/bin/config.sh
         dos2unix /usr/local/bin/config.sh
     fi
@@ -229,12 +218,11 @@ lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tc
 # 是否要创建V6地址
 if [ -n "$enable_ipv6" ]; then
     if [ "$enable_ipv6" == "Y" ]; then
-        # if [ ! -f "./build_ipv6_network.sh" ]; then
-        #     # 如果不存在，则从指定 URL 下载并添加可执行权限
-        #     curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
-        # fi
-        # ./build_ipv6_network.sh "$name" >/dev/null 2>&1
-        enable_ipv6
+        if [ ! -f "./build_ipv6_network.sh" ]; then
+            # 如果不存在，则从指定 URL 下载并添加可执行权限
+            curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
+        fi
+        ./build_ipv6_network.sh "$name" >/dev/null 2>&1
     fi
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
