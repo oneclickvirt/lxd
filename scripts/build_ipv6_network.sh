@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.10.23
+# 2023.10.25
 
 # ./build_ipv6_network.sh LXC容器名称
 
@@ -23,7 +23,7 @@ fi
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
-    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "ipcalc")
+    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "ipcalc" "sipcalc")
     for module in "${modules[@]}"; do
         if command -v $module >/dev/null 2>&1; then
             _green "$module is installed!"
@@ -195,10 +195,10 @@ ipv6_name=${IPV6}
 # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
 if grep -q "auto he-ipv6" /etc/network/interfaces; then
     ipv6_network_name="he-ipv6"
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/48|${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
 else
     ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/48|${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
 fi
 echo "$ip_network_gam"
 if [ -n "$ip_network_gam" ];
@@ -218,7 +218,7 @@ if [ -n "$ip_network_gam" ];
         echo "net.ipv6.conf.all.proxy_ndp=1">>/etc/sysctl.conf
         sysctl -p
     fi
-    ipv6_lala=$(ipcalc ${ip_network_gam} | grep "Prefix:" | awk '{print $2}')
+    ipv6_lala=$(sipcalc "$ip_network_gam" | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
     randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
     echo "$lxc_ipv6"
