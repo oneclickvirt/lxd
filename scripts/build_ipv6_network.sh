@@ -23,7 +23,8 @@ fi
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
-    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "ipcalc" "sipcalc")
+    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "sipcalc") 
+    # "ipcalc" 
     for module in "${modules[@]}"; do
         if command -v $module >/dev/null 2>&1; then
             _green "$module is installed!"
@@ -218,7 +219,7 @@ if [ -n "$ip_network_gam" ];
         echo "net.ipv6.conf.all.proxy_ndp=1">>/etc/sysctl.conf
         sysctl -p
     fi
-    ipv6_lala=$(sipcalc "$ip_network_gam" | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
+    ipv6_lala=$(sipcalc ${ip_network_gam} | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
     randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
     echo "$lxc_ipv6"
