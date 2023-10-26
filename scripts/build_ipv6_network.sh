@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.10.25
+# 2023.10.26
 
 # ./build_ipv6_network.sh LXC容器名称
 
@@ -192,14 +192,13 @@ _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 # service netfilter-persistent restart
 
 check_ipv6
-ipv6_name=${IPV6}
 # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
 if grep -q "auto he-ipv6" /etc/network/interfaces; then
     ipv6_network_name="he-ipv6"
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/48|${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2> /dev/null)
 else
     ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${ipv6_name}/48|${ipv6_name}/64|${ipv6_name}/80|${ipv6_name}/96|${ipv6_name}/112" | grep global | awk '{print $2}' 2> /dev/null)
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2> /dev/null)
 fi
 echo "$ip_network_gam"
 if [ -n "$ip_network_gam" ];

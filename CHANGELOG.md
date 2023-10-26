@@ -1,5 +1,9 @@
 ### 更新日志
 
+2023.10.23
+
+- 替换原先使用 iptables 的方式给容器分配IPV6地址的方法，使用lxc设备直接绑定地址的方法解决分配问题
+
 2023.10.20
 
 - 开设出的容器尝试支持kali，archlinux，rockylinux，oralce，fedora系统
