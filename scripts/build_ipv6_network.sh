@@ -208,7 +208,7 @@ if [ -n "$ip_network_gam" ];
         echo "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1">>/etc/sysctl.conf
         sysctl -p
     fi
-    if ! grep "net.ipv6.conf.all.forwarding = 1" /etc/sysctl.conf  >/dev/null
+    if ! grep "net.ipv6.conf.all.forwarding= 1" /etc/sysctl.conf  >/dev/null
     then
         echo "net.ipv6.conf.all.forwarding = 1">>/etc/sysctl.conf
         sysctl -p
