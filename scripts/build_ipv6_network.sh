@@ -96,6 +96,17 @@ check_ipv6() {
     fi
 }
 
+update_sysctl() {
+  sysctl_config="$1"
+  if grep -q "^$sysctl_config" /etc/sysctl.conf; then
+    if grep -q "^#$sysctl_config" /etc/sysctl.conf; then
+      sed -i "s/^#$sysctl_config/$sysctl_config/" /etc/sysctl.conf
+    fi
+  else
+    echo "$sysctl_config" >> /etc/sysctl.conf
+  fi
+}
+
 # 查询网卡
 interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
 _yellow "NIC $interface"
@@ -203,21 +214,11 @@ fi
 echo "$ip_network_gam"
 if [ -n "$ip_network_gam" ];
     then
-    if ! grep "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1" /etc/sysctl.conf  >/dev/null
-    then
-        echo "net.ipv6.conf.${ipv6_network_name}.proxy_ndp = 1">>/etc/sysctl.conf
-        sysctl -p
-    fi
-    if ! grep "net.ipv6.conf.all.forwarding= 1" /etc/sysctl.conf  >/dev/null
-    then
-        echo "net.ipv6.conf.all.forwarding = 1">>/etc/sysctl.conf
-        sysctl -p
-    fi
-    if ! grep "net.ipv6.conf.all.proxy_ndp=1" /etc/sysctl.conf  >/dev/null
-    then
-        echo "net.ipv6.conf.all.proxy_ndp=1">>/etc/sysctl.conf
-        sysctl -p
-    fi
+    update_sysctl "net.ipv6.conf.${ipv6_network_name}.proxy_ndp=1"
+    update_sysctl "net.ipv6.conf.all.forwarding=1"
+    update_sysctl "net.ipv6.conf.all.proxy_ndp=1"
+    sysctl_path=$(which sysctl)
+    ${sysctl_path} -p
     ipv6_lala=$(sipcalc ${ip_network_gam} | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
     randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
