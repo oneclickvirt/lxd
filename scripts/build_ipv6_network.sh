@@ -204,7 +204,7 @@ _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 
 check_ipv6
 # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
-if grep -q "auto he-ipv6" /etc/network/interfaces; then
+if ip -f inet6 addr | grep -q "he-ipv6"; then
     ipv6_network_name="he-ipv6"
     ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2> /dev/null)
     # 删除默认路由避免隧道冲突
