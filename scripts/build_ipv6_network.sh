@@ -207,6 +207,14 @@ check_ipv6
 if grep -q "auto he-ipv6" /etc/network/interfaces; then
     ipv6_network_name="he-ipv6"
     ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2> /dev/null)
+    # 删除默认路由避免隧道冲突
+    default_route=$(ip -6 route show | awk '/default via/{print $3}')
+    if [ -n "$default_route" ]; then
+        echo "Deleting default route via $default_route"
+        ip -6 route del default via $default_route dev eth0
+    else
+        echo "No default route found."
+    fi
 else
     ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
     ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2> /dev/null)
