@@ -256,7 +256,9 @@ if [ -n "$ip_network_gam" ];
     if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
         inter=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
         del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
-        ip addr del ${del_ip} dev ${inter}
+        if [ -n "$del_ip" ]; then
+            ip addr del ${del_ip} dev ${inter}
+        fi
     fi
     # # 打印信息并测试是否通畅
     # if ping6 -c 3 $IPV6 &>/dev/null; then
