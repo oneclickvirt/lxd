@@ -138,6 +138,27 @@ else
     exit 1
 fi
 
+#fe80检测
+output=$(ip -6 route show | awk '/default via/{print $3}')
+num_lines=$(echo "$output" | wc -l)
+ipv6_gateway=""
+if [ $num_lines -eq 1 ]; then
+    ipv6_gateway="$output"
+elif [ $num_lines -ge 2 ]; then
+    non_fe80_lines=$(echo "$output" | grep -v '^fe80')
+    if [ -n "$non_fe80_lines" ]; then
+        ipv6_gateway=$(echo "$non_fe80_lines" | head -n 1)
+    else
+        ipv6_gateway=$(echo "$output" | head -n 1)
+    fi
+fi
+# 判断fe80是否已加白
+if [[ $ipv6_gateway == fe80* ]]; then
+    ipv6_gateway_fe80="Y"
+else
+    ipv6_gateway_fe80="N"
+fi
+
 # 检查是否存在 IPV6
 if [ -z "$SUBNET_PREFIX" ]; then
     _red "No IPV6 subnet, no automatic mapping"
@@ -232,6 +253,11 @@ if [ -n "$ip_network_gam" ];
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
     echo "$lxc_ipv6"
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+    if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
+        inter=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
+        del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
+        ip addr del ${del_ip} dev ${inter}
+    fi
     # # 打印信息并测试是否通畅
     # if ping6 -c 3 $IPV6 &>/dev/null; then
     #     _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
