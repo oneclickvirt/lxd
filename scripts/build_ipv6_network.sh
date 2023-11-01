@@ -260,7 +260,11 @@ if [ -n "$ip_network_gam" ]; then
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
     _green "Conatiner $CONTAINER_NAME IPV6:"
     _green "$lxc_ipv6"
+    lxc stop "$CONTAINER_NAME"
+    sleep 1
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+    sleep 1
+    lxc start "$CONTAINER_NAME"
     if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
         inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
         del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
