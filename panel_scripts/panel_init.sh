@@ -1,12 +1,12 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.10.19
+# 2023.11.01
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
-    mkdir -p "$directory"
+    mkdir -p /usr/local/bin
 fi
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 _green() { echo -e "\033[32m\033[01m$@\033[0m"; }

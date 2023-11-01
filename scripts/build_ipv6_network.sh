@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.10.28
+# 2023.11.01
 
 # ./build_ipv6_network.sh LXC容器名称
 
@@ -20,11 +20,14 @@ else
     export LANGUAGE="$utf8_locale"
     _green "Locale set to $utf8_locale"
 fi
+if [ ! -d "/usr/local/bin" ]; then
+    mkdir -p /usr/local/bin
+fi
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
-    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "sipcalc") 
-    # "ipcalc" 
+    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "sipcalc")
+    # "ipcalc"
     for module in "${modules[@]}"; do
         if command -v $module >/dev/null 2>&1; then
             _green "$module is installed!"
@@ -97,14 +100,14 @@ check_ipv6() {
 }
 
 update_sysctl() {
-  sysctl_config="$1"
-  if grep -q "^$sysctl_config" /etc/sysctl.conf; then
-    if grep -q "^#$sysctl_config" /etc/sysctl.conf; then
-      sed -i "s/^#$sysctl_config/$sysctl_config/" /etc/sysctl.conf
+    sysctl_config="$1"
+    if grep -q "^$sysctl_config" /etc/sysctl.conf; then
+        if grep -q "^#$sysctl_config" /etc/sysctl.conf; then
+            sed -i "s/^#$sysctl_config/$sysctl_config/" /etc/sysctl.conf
+        fi
+    else
+        echo "$sysctl_config" >>/etc/sysctl.conf
     fi
-  else
-    echo "$sysctl_config" >> /etc/sysctl.conf
-  fi
 }
 
 # 查询网卡
@@ -169,7 +172,6 @@ _blue "The IPV6 subnet prefix is $SUBNET_PREFIX"
 _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 
 # 用 iptables 映射的IPV6网络
-
 # # 寻找未使用的子网内的一个IPV6地址
 # for i in $(seq 1 65535); do
 #     IPV6="${SUBNET_PREFIX}$i"
@@ -227,22 +229,27 @@ check_ipv6
 # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
 if ip -f inet6 addr | grep -q "he-ipv6"; then
     ipv6_network_name="he-ipv6"
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2> /dev/null)
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
     # 删除默认路由避免隧道冲突
     default_route=$(ip -6 route show | awk '/default via/{print $3}')
     if [ -n "$default_route" ]; then
         echo "Deleting default route via $default_route"
-        ip -6 route del default via $default_route dev eth0
+        ip -6 route del default via $default_route dev $interface
+        echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
+        echo "ip -6 route del default via $default_route dev $interface" >>/usr/local/bin/remove_route.sh
+        chmod 777 /usr/local/bin/remove_route.sh
+        if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
+            echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
+        fi
     else
         echo "No default route found."
     fi
 else
-    ipv6_network_name=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2> /dev/null)
+    ipv6_network_name=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
+    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
 fi
 echo "$ip_network_gam"
-if [ -n "$ip_network_gam" ];
-    then
+if [ -n "$ip_network_gam" ]; then
     update_sysctl "net.ipv6.conf.${ipv6_network_name}.proxy_ndp=1"
     update_sysctl "net.ipv6.conf.all.forwarding=1"
     update_sysctl "net.ipv6.conf.all.proxy_ndp=1"
@@ -254,10 +261,16 @@ if [ -n "$ip_network_gam" ];
     echo "$lxc_ipv6"
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
     if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
-        inter=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
+        inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
         del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
         if [ -n "$del_ip" ]; then
             ip addr del ${del_ip} dev ${inter}
+            echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
+            echo "ip addr del ${del_ip} dev ${inter}" >>/usr/local/bin/remove_route.sh
+            chmod 777 /usr/local/bin/remove_route.sh
+            if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
+                echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
+            fi
         fi
     fi
     # # 打印信息并测试是否通畅
