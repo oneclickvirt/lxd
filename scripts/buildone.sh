@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.10.23
+# 2023.11.01
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -153,8 +153,9 @@ lxc config set "$name" security.nesting true
 ori=$(date | md5sum)
 passwd=${ori:2:9}
 lxc start "$name"
-sleep 1
+sleep 3
 /usr/local/bin/check-dns.sh
+sleep 3
 if [[ "${CN}" == true ]]; then
     lxc exec "$name" -- yum install -y curl
     lxc exec "$name" -- apt-get install curl -y --fix-missing

@@ -258,7 +258,8 @@ if [ -n "$ip_network_gam" ]; then
     ipv6_lala=$(sipcalc ${ip_network_gam} | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
     randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
     lxc_ipv6="${ipv6_lala%/*}${randbits}"
-    echo "$lxc_ipv6"
+    _green "Conatiner $CONTAINER_NAME IPV6:"
+    _green "$lxc_ipv6"
     lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
     if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
         inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
