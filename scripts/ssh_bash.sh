@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.11.01
+# 2023.11.05
 
 if [ -f "/etc/resolv.conf" ]; then
     cp /etc/resolv.conf /etc/resolv.conf.bak
@@ -68,6 +68,17 @@ install_required_modules() {
     done
 }
 
+remove_duplicate_lines() {
+    chattr -i "$1"
+    # 预处理：去除行尾空格和制表符
+    sed -i 's/[ \t]*$//' "$1"
+    # 去除重复行并跳过空行和注释行
+    if [ -f "$1" ]; then
+        awk '{ line = $0; gsub(/^[ \t]+/, "", line); gsub(/[ \t]+/, " ", line); if (!NF || !seen[line]++) print $0 }' "$1" >"$1.tmp" && mv -f "$1.tmp" "$1"
+    fi
+    chattr +i "$1"
+}
+
 checkupdate
 install_required_modules
 sudo systemctl enable sshd
@@ -99,6 +110,7 @@ if [ -f /etc/ssh/sshd_config ]; then
     sudo sed -i 's/#ListenAddress ::/ListenAddress ::/' /etc/ssh/sshd_config
     sudo sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config
     sudo sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config
+    sudo sed -i '/^#UsePAM\|UsePAM/c #UsePAM no' /etc/ssh/sshd_config
     sudo sed -i '/^AuthorizedKeysFile/s/^/#/' /etc/ssh/sshd_config
 fi
 if [ -f /etc/ssh/sshd_config.d/50-cloud-init.conf ]; then
@@ -109,8 +121,11 @@ if [ -f /etc/ssh/sshd_config.d/50-cloud-init.conf ]; then
     sudo sed -i 's/#ListenAddress ::/ListenAddress ::/' /etc/ssh/sshd_config.d/50-cloud-init.conf
     sudo sed -i 's/#AddressFamily any/AddressFamily any/' /etc/ssh/sshd_config.d/50-cloud-init.conf
     sudo sed -i "s/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/g" /etc/ssh/sshd_config.d/50-cloud-init.conf
+    sudo sed -i '/^#UsePAM\|UsePAM/c #UsePAM no' /etc/ssh/sshd_config.d/50-cloud-init.conf
     sudo sed -i '/^AuthorizedKeysFile/s/^/#/' /etc/ssh/sshd_config.d/50-cloud-init.conf
 fi
+remove_duplicate_lines /etc/ssh/sshd_config
+remove_duplicate_lines /etc/ssh/sshd_config.d/50-cloud-init.conf
 sudo service ssh restart
 sudo service sshd restart
 sudo systemctl restart sshd
