@@ -4,7 +4,7 @@
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
-set -e
+# set -e
 
 # 字体颜色
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
