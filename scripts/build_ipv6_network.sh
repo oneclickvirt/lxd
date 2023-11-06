@@ -1,8 +1,8 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.11.01
+# 2023.11.06
 
-# ./build_ipv6_network.sh LXC容器名称
+# ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
 set -e
 
@@ -23,6 +23,10 @@ fi
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p /usr/local/bin
 fi
+
+CONTAINER_NAME="$1"
+use_iptables="${2:-N}"
+use_iptables=$(echo "$use_iptables" | tr '[:upper:]' '[:lower:]')
 
 # 检查所需模块是否存在，如果不存在则安装
 install_required_modules() {
@@ -116,7 +120,6 @@ _yellow "NIC $interface"
 _yellow "网卡 $interface"
 
 # 获取指定LXC容器的内网IPV6
-CONTAINER_NAME="$1"
 CONTAINER_IPV6=$(lxc list $CONTAINER_NAME --format=json | jq -r '.[0].state.network.eth0.addresses[] | select(.family=="inet6") | select(.scope=="global") | .address')
 if [ -z "$CONTAINER_IPV6" ]; then
     _red "Container has no intranet IPV6 address, no auto-mapping"
@@ -171,122 +174,141 @@ fi
 _blue "The IPV6 subnet prefix is $SUBNET_PREFIX"
 _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 
-# 用 iptables 映射的IPV6网络
-# # 寻找未使用的子网内的一个IPV6地址
-# for i in $(seq 1 65535); do
-#     IPV6="${SUBNET_PREFIX}$i"
-#     if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
-#         continue
-#     fi
-#     if ip -6 addr show dev "$interface" | grep -q $IPV6; then
-#         continue
-#     fi
-#     if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
-#         if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
-#             _green "$IPV6"
-#             break
-#         fi
-#     fi
-#     _yellow "$IPV6"
-# done
-
-# # 检查是否找到未使用的 IPV6 地址
-# if [ -z "$IPV6" ]; then
-#     _red "No IPV6 address available, no auto mapping"
-#     _red "无可用 IPV6 地址，不进行自动映射"
-#     exit 1
-# fi
-
-# # 映射 IPV6 地址到容器的私有 IPV6 地址
-# ip addr add "$IPV6"/"$ipv6_length" dev "$interface"
-# ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
-# # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
-# if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
-#     wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
-#     chmod +x /usr/local/bin/add-ipv6.sh
-# else
-#     echo "Script already exists. Skipping installation."
-# fi
-# if [ ! -f /etc/systemd/system/add-ipv6.service ]; then
-#     wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.service -O /etc/systemd/system/add-ipv6.service
-#     chmod +x /etc/systemd/system/add-ipv6.service
-#     systemctl daemon-reload
-#     systemctl enable add-ipv6.service
-#     systemctl start add-ipv6.service
-# else
-#     echo "Service already exists. Skipping installation."
-# fi
-
-# if [ ! -f "/etc/iptables/rules.v6" ]; then
-#     touch /etc/iptables/rules.v6
-# fi
-# ip6tables-save >/etc/iptables/rules.v6
-# netfilter-persistent save
-# netfilter-persistent reload
-# service netfilter-persistent restart
-
-check_ipv6
-# ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
-if ip -f inet6 addr | grep -q "he-ipv6"; then
-    ipv6_network_name="he-ipv6"
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
-    # 删除默认路由避免隧道冲突
-    default_route=$(ip -6 route show | awk '/default via/{print $3}')
-    if [ -n "$default_route" ]; then
-        echo "Deleting default route via $default_route"
-        ip -6 route del default via $default_route dev $interface
-        echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
-        echo "ip -6 route del default via $default_route dev $interface" >>/usr/local/bin/remove_route.sh
-        chmod 777 /usr/local/bin/remove_route.sh
-        if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
-            echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
-        fi
-    else
-        echo "No default route found."
-    fi
-else
-    ipv6_network_name=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
-    ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
-fi
-echo "$ip_network_gam"
-if [ -n "$ip_network_gam" ]; then
-    update_sysctl "net.ipv6.conf.${ipv6_network_name}.proxy_ndp=1"
-    update_sysctl "net.ipv6.conf.all.forwarding=1"
-    update_sysctl "net.ipv6.conf.all.proxy_ndp=1"
-    sysctl_path=$(which sysctl)
-    ${sysctl_path} -p
-    ipv6_lala=$(sipcalc ${ip_network_gam} | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
-    randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
-    lxc_ipv6="${ipv6_lala%/*}${randbits}"
-    _green "Conatiner $CONTAINER_NAME IPV6:"
-    _green "$lxc_ipv6"
-    lxc stop "$CONTAINER_NAME"
-    sleep 1
-    lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
-    sleep 1
-    lxc start "$CONTAINER_NAME"
-    if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
-        inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
-        del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
-        if [ -n "$del_ip" ]; then
-            ip addr del ${del_ip} dev ${inter}
+if [[ $use_iptables == n ]]; then
+    check_ipv6
+    # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
+    if ip -f inet6 addr | grep -q "he-ipv6"; then
+        ipv6_network_name="he-ipv6"
+        ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
+        # 删除默认路由避免隧道冲突
+        default_route=$(ip -6 route show | awk '/default via/{print $3}')
+        if [ -n "$default_route" ]; then
+            echo "Deleting default route via $default_route"
+            ip -6 route del default via $default_route dev $interface
             echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
-            echo "ip addr del ${del_ip} dev ${inter}" >>/usr/local/bin/remove_route.sh
+            echo "ip -6 route del default via $default_route dev $interface" >>/usr/local/bin/remove_route.sh
             chmod 777 /usr/local/bin/remove_route.sh
             if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
                 echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
             fi
+        else
+            echo "No default route found."
         fi
+    else
+        ipv6_network_name=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
+        ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
     fi
-    # # 打印信息并测试是否通畅
-    # if ping6 -c 3 $IPV6 &>/dev/null; then
-    #     _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
-    #     _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
-    # else
-    #     _red "Mapping failure"
-    #     _red "映射失败"
-    #     exit 1
-    # fi
-    # 写入信息
+    echo "$ip_network_gam"
+    if [ -n "$ip_network_gam" ]; then
+        update_sysctl "net.ipv6.conf.${ipv6_network_name}.proxy_ndp=1"
+        update_sysctl "net.ipv6.conf.all.forwarding=1"
+        update_sysctl "net.ipv6.conf.all.proxy_ndp=1"
+        sysctl_path=$(which sysctl)
+        ${sysctl_path} -p
+        ipv6_lala=$(sipcalc ${ip_network_gam} | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
+        randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
+        lxc_ipv6="${ipv6_lala%/*}${randbits}"
+        _green "Conatiner $CONTAINER_NAME IPV6:"
+        _green "$lxc_ipv6"
+
+        # lxc stop "$CONTAINER_NAME"
+        # sleep 1
+        # lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+        # sleep 1
+        # lxc start "$CONTAINER_NAME"
+
+        # 停止容器
+        lxc stop "$CONTAINER_NAME"
+        # 等待容器停止
+        while lxc info "$CONTAINER_NAME" | grep -q "Status: Stopped"; do
+            sleep 1
+        done
+        # 添加设备
+        lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+        # 等待设备添加完成
+        while ! lxc info "$CONTAINER_NAME" | grep -q "eth1"; do
+            sleep 1
+        done
+        # 启动容器
+        lxc start "$CONTAINER_NAME"
+        if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
+            inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
+            del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
+            if [ -n "$del_ip" ]; then
+                ip addr del ${del_ip} dev ${inter}
+                echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
+                echo "ip addr del ${del_ip} dev ${inter}" >>/usr/local/bin/remove_route.sh
+                chmod 777 /usr/local/bin/remove_route.sh
+                if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
+                    echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
+                fi
+            fi
+        fi
+        # # 打印信息并测试是否通畅
+        # if ping6 -c 3 $IPV6 &>/dev/null; then
+        #     _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
+        #     _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
+        # else
+        #     _red "Mapping failure"
+        #     _red "映射失败"
+        #     exit 1
+        # fi
+        # 写入信息
+        echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
+    fi
+else
+    # 用 iptables 映射的IPV6网络
+    # 寻找未使用的子网内的一个IPV6地址
+    for i in $(seq 1 65535); do
+        lxc_ipv6="${SUBNET_PREFIX}$i"
+        if [[ $lxc_ipv6 == $CONTAINER_IPV6 ]]; then
+            continue
+        fi
+        if ip -6 addr show dev "$interface" | grep -q $lxc_ipv6; then
+            continue
+        fi
+        if ! ping6 -c1 -w1 -q $lxc_ipv6 &>/dev/null; then
+            if ! ip6tables -t nat -C PREROUTING -d $lxc_ipv6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
+                _green "$lxc_ipv6"
+                break
+            fi
+        fi
+        _yellow "$lxc_ipv6"
+    done
+
+    # 检查是否找到未使用的 IPV6 地址
+    if [ -z "$lxc_ipv6" ]; then
+        _red "No IPV6 address available, no auto mapping"
+        _red "无可用 IPV6 地址，不进行自动映射"
+        exit 1
+    fi
+
+    # 映射 IPV6 地址到容器的私有 IPV6 地址
+    ip addr add "$lxc_ipv6"/"$ipv6_length" dev "$interface"
+    ip6tables -t nat -A PREROUTING -d $lxc_ipv6 -j DNAT --to-destination $CONTAINER_IPV6
+    # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
+    if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
+        wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
+        chmod +x /usr/local/bin/add-ipv6.sh
+    else
+        echo "Script already exists. Skipping installation."
+    fi
+    if [ ! -f /etc/systemd/system/add-ipv6.service ]; then
+        wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.service -O /etc/systemd/system/add-ipv6.service
+        chmod +x /etc/systemd/system/add-ipv6.service
+        systemctl daemon-reload
+        systemctl enable add-ipv6.service
+        systemctl start add-ipv6.service
+    else
+        echo "Service already exists. Skipping installation."
+    fi
+
+    if [ ! -f "/etc/iptables/rules.v6" ]; then
+        touch /etc/iptables/rules.v6
+    fi
+    ip6tables-save >/etc/iptables/rules.v6
+    netfilter-persistent save
+    netfilter-persistent reload
+    service netfilter-persistent restart
     echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
 fi
