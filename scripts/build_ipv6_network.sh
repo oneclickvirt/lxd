@@ -182,18 +182,18 @@ if [[ $use_iptables == n ]]; then
         ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
         # 删除默认路由避免隧道冲突
         default_route=$(ip -6 route show | awk '/default via/{print $3}')
-        if [ -n "$default_route" ]; then
-            echo "Deleting default route via $default_route"
-            ip -6 route del default via $default_route dev $interface
-            echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
-            echo "ip -6 route del default via $default_route dev $interface" >>/usr/local/bin/remove_route.sh
-            chmod 777 /usr/local/bin/remove_route.sh
-            if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
-                echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
-            fi
-        else
-            echo "No default route found."
-        fi
+        # if [ -n "$default_route" ]; then
+        #     echo "Deleting default route via $default_route"
+        #     ip -6 route del default via $default_route dev $interface
+        #     echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
+        #     echo "ip -6 route del default via $default_route dev $interface" >>/usr/local/bin/remove_route.sh
+        #     chmod 777 /usr/local/bin/remove_route.sh
+        #     if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
+        #         echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
+        #     fi
+        # else
+        #     echo "No default route found."
+        # fi
     else
         ipv6_network_name=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
         ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
@@ -220,15 +220,12 @@ if [[ $use_iptables == n ]]; then
         # 停止容器
         lxc stop "$CONTAINER_NAME"
         # 等待容器停止
-        while lxc info "$CONTAINER_NAME" | grep -q "Status: Stopped"; do
+        while ! lxc info "$CONTAINER_NAME" | grep -q "Stopped"; do
             sleep 1
         done
         # 添加设备
         lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
-        # 等待设备添加完成
-        while ! lxc info "$CONTAINER_NAME" | grep -q "eth1"; do
-            sleep 1
-        done
+        sleep 2
         # 启动容器
         lxc start "$CONTAINER_NAME"
         if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
@@ -239,7 +236,7 @@ if [[ $use_iptables == n ]]; then
                 echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
                 echo "ip addr del ${del_ip} dev ${inter}" >>/usr/local/bin/remove_route.sh
                 chmod 777 /usr/local/bin/remove_route.sh
-                if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh'; then
+                if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh' &>/dev/null; then
                     echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
                 fi
             fi
