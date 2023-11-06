@@ -4,7 +4,7 @@
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
-# set -e
+set -e
 
 # 字体颜色
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
@@ -256,7 +256,7 @@ if [[ $use_iptables == n ]]; then
 else
     # 用 iptables 映射的IPV6网络
     # 寻找未使用的子网内的一个IPV6地址
-    for i in $(seq 1 65535); do
+    for i in $(seq 3 65535); do
         lxc_ipv6="${SUBNET_PREFIX}$i"
         if [[ $lxc_ipv6 == $CONTAINER_IPV6 ]]; then
             continue
