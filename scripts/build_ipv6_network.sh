@@ -283,7 +283,6 @@ else
     fi
     ip addr add "$lxc_ipv6"/128 dev "$interface"
     ip6tables -t nat -A PREROUTING -d $lxc_ipv6 -j DNAT --to-destination $CONTAINER_IPV6
-    systemctl restart ip6tables
     # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
     if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
         wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
