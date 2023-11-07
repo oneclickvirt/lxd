@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.11.06
+# 2023.11.07
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
@@ -28,22 +28,20 @@ CONTAINER_NAME="$1"
 use_iptables="${2:-N}"
 use_iptables=$(echo "$use_iptables" | tr '[:upper:]' '[:lower:]')
 
-# 检查所需模块是否存在，如果不存在则安装
-install_required_modules() {
-    modules=("sudo" "lshw" "jq" "net-tools" "netfilter-persistent" "sipcalc")
-    # "ipcalc"
-    for module in "${modules[@]}"; do
-        if command -v $module >/dev/null 2>&1; then
-            _green "$module is installed!"
-            _green "$module 已经安装！"
-        else
-            apt-get install -y $module
-            _green "$module has been successfully installed!"
-            _green "$module 已成功安装！"
+install_package() {
+    package_name=$1
+    if command -v $package_name >/dev/null 2>&1; then
+        _green "$package_name has been installed"
+        _green "$package_name 已经安装"
+    else
+        apt-get install -y $package_name
+        if [ $? -ne 0 ]; then
+            apt-get install -y $package_name --fix-missing
         fi
-    done
+        _green "$package_name has attempted to install"
+        _green "$package_name 已尝试安装"
+    fi
 }
-install_required_modules
 
 is_private_ipv6() {
     local address=$1
@@ -114,6 +112,14 @@ update_sysctl() {
     fi
 }
 
+
+# 检查所需模块是否存在，如果不存在则安装
+install_package sudo
+install_package lshw
+install_package jq 
+install_package net-tools
+# install_package ipcalc
+
 # 查询网卡
 interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
 _yellow "NIC $interface"
@@ -175,6 +181,8 @@ _blue "The IPV6 subnet prefix is $SUBNET_PREFIX"
 _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 
 if [[ $use_iptables == n ]]; then
+    # 用新增网络设备的方式映射IPV6网络
+    install_package sipcalc
     check_ipv6
     # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
     if ip -f inet6 addr | grep -q "he-ipv6"; then
@@ -210,23 +218,10 @@ if [[ $use_iptables == n ]]; then
         lxc_ipv6="${ipv6_lala%/*}${randbits}"
         _green "Conatiner $CONTAINER_NAME IPV6:"
         _green "$lxc_ipv6"
-
-        # lxc stop "$CONTAINER_NAME"
-        # sleep 1
-        # lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
-        # sleep 1
-        # lxc start "$CONTAINER_NAME"
-
-        # 停止容器
         lxc stop "$CONTAINER_NAME"
-        # 等待容器停止
-        while ! lxc info "$CONTAINER_NAME" | grep -q "Stopped"; do
-            sleep 1
-        done
-        # 添加设备
+        sleep 2
         lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
         sleep 2
-        # 启动容器
         lxc start "$CONTAINER_NAME"
         if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
             inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
@@ -241,20 +236,11 @@ if [[ $use_iptables == n ]]; then
                 fi
             fi
         fi
-        # # 打印信息并测试是否通畅
-        # if ping6 -c 3 $IPV6 &>/dev/null; then
-        #     _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
-        #     _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
-        # else
-        #     _red "Mapping failure"
-        #     _red "映射失败"
-        #     exit 1
-        # fi
-        # 写入信息
         echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
     fi
 else
-    # 用 iptables 映射的IPV6网络
+    # 用 iptables 映射IPV6网络
+    install_package netfilter-persistent
     # 寻找未使用的子网内的一个IPV6地址
     for i in $(seq 3 65535); do
         lxc_ipv6="${SUBNET_PREFIX}$i"
@@ -307,5 +293,15 @@ else
     netfilter-persistent save
     netfilter-persistent reload
     service netfilter-persistent restart
-    echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
+    # 打印信息并测试是否通畅
+    if ping6 -c 3 $IPV6 &>/dev/null; then
+        _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
+        _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
+        # 写入信息
+        echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
+    else
+        _red "Mapping failure"
+        _red "映射失败"
+        exit 1
+    fi
 fi
