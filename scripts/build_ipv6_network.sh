@@ -268,8 +268,22 @@ else
 
     # 映射 IPV6 地址到容器的私有 IPV6 地址
     # ip addr add "$lxc_ipv6"/"$ipv6_length" dev "$interface"
+    if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
+        inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
+        del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
+        if [ -n "$del_ip" ]; then
+            ip addr del ${del_ip} dev ${inter}
+            echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
+            echo "ip addr del ${del_ip} dev ${inter}" >>/usr/local/bin/remove_route.sh
+            chmod 777 /usr/local/bin/remove_route.sh
+            if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh' &>/dev/null; then
+                echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
+            fi
+        fi
+    fi
     ip addr add "$lxc_ipv6"/128 dev "$interface"
     ip6tables -t nat -A PREROUTING -d $lxc_ipv6 -j DNAT --to-destination $CONTAINER_IPV6
+    systemctl restart ip6tables
     # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
     if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
         wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
