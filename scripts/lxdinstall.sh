@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.11.01
+# 2023.11.07
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -379,6 +379,11 @@ if grep -q "^net.ipv4.ip_forward=1" /etc/sysctl.conf; then
 else
     echo "net.ipv4.ip_forward=1" >>/etc/sysctl.conf
 fi
+lxc network set lxdbr0 raw.dnsmasq dhcp-option=6,8.8.8.8,8.8.4.4
+lxc network set lxdbr0 dns.mode managed
+# managed none dynamic
+lxc network set lxdbr0 ipv4.dhcp true
+lxc network set lxdbr0 ipv6.dhcp true
 ${sysctl_path} -p
 # 解除进程数限制
 if [ -f "/etc/security/limits.conf" ]; then

@@ -267,7 +267,8 @@ else
     fi
 
     # 映射 IPV6 地址到容器的私有 IPV6 地址
-    ip addr add "$lxc_ipv6"/"$ipv6_length" dev "$interface"
+    # ip addr add "$lxc_ipv6"/"$ipv6_length" dev "$interface"
+    ip addr add "$lxc_ipv6"/128 dev "$interface"
     ip6tables -t nat -A PREROUTING -d $lxc_ipv6 -j DNAT --to-destination $CONTAINER_IPV6
     # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
     if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
