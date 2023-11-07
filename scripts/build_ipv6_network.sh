@@ -242,7 +242,7 @@ else
     # 用 iptables 映射IPV6网络
     install_package netfilter-persistent
     # 寻找未使用的子网内的一个IPV6地址
-    for i in $(seq 1 65535); do
+    for i in $(seq 3 65535); do
         IPV6="${SUBNET_PREFIX}$i"
         if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
             continue
