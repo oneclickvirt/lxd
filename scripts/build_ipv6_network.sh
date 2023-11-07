@@ -242,47 +242,31 @@ else
     # 用 iptables 映射IPV6网络
     install_package netfilter-persistent
     # 寻找未使用的子网内的一个IPV6地址
-    for i in $(seq 3 65535); do
-        lxc_ipv6="${SUBNET_PREFIX}$i"
-        if [[ $lxc_ipv6 == $CONTAINER_IPV6 ]]; then
+    for i in $(seq 1 65535); do
+        IPV6="${SUBNET_PREFIX}$i"
+        if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
             continue
         fi
-        if ip -6 addr show dev "$interface" | grep -q $lxc_ipv6; then
+        if ip -6 addr show dev "$interface" | grep -q $IPV6; then
             continue
         fi
-        if ! ping6 -c1 -w1 -q $lxc_ipv6 &>/dev/null; then
-            if ! ip6tables -t nat -C PREROUTING -d $lxc_ipv6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
-                _green "$lxc_ipv6"
+        if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
+            if ! ip6tables -t nat -C PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6 &>/dev/null; then
+                _green "$IPV6"
                 break
             fi
         fi
-        _yellow "$lxc_ipv6"
+        _yellow "$IPV6"
     done
-
     # 检查是否找到未使用的 IPV6 地址
-    if [ -z "$lxc_ipv6" ]; then
+    if [ -z "$IPV6" ]; then
         _red "No IPV6 address available, no auto mapping"
         _red "无可用 IPV6 地址，不进行自动映射"
         exit 1
     fi
-
     # 映射 IPV6 地址到容器的私有 IPV6 地址
-    # ip addr add "$lxc_ipv6"/"$ipv6_length" dev "$interface"
-    if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
-        inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
-        del_ip=$(ip -6 addr show dev ${inter} | awk '/inet6 fe80/ {print $2}')
-        if [ -n "$del_ip" ]; then
-            ip addr del ${del_ip} dev ${inter}
-            echo '#!/bin/bash' >/usr/local/bin/remove_route.sh
-            echo "ip addr del ${del_ip} dev ${inter}" >>/usr/local/bin/remove_route.sh
-            chmod 777 /usr/local/bin/remove_route.sh
-            if ! crontab -l | grep -q '/usr/local/bin/remove_route.sh' &>/dev/null; then
-                echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
-            fi
-        fi
-    fi
-    ip addr add "$lxc_ipv6"/128 dev "$interface"
-    ip6tables -t nat -A PREROUTING -d $lxc_ipv6 -j DNAT --to-destination $CONTAINER_IPV6
+    ip addr add "$IPV6"/"$ipv6_length" dev "$interface"
+    ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
     # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
     if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
         wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
@@ -299,7 +283,6 @@ else
     else
         echo "Service already exists. Skipping installation."
     fi
-
     if [ ! -f "/etc/iptables/rules.v6" ]; then
         touch /etc/iptables/rules.v6
     fi
@@ -308,14 +291,14 @@ else
     netfilter-persistent reload
     service netfilter-persistent restart
     # 打印信息并测试是否通畅
-    if ping6 -c 3 $lxc_ipv6 &>/dev/null; then
-        _green "$CONTAINER_NAME The external IPV6 address of the container is $lxc_ipv6"
-        _green "$CONTAINER_NAME 容器的外网IPV6地址为 $lxc_ipv6"
+    if ping6 -c 3 $IPV6 &>/dev/null; then
+        _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
+        _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
     else
         _red "Mapping failure"
         _red "映射失败"
         exit 1
     fi
     # 写入信息
-    echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
+    echo "$IPV6" >>"$1_v6"
 fi
