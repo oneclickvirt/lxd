@@ -308,14 +308,14 @@ else
     netfilter-persistent reload
     service netfilter-persistent restart
     # 打印信息并测试是否通畅
-    if ping6 -c 3 $IPV6 &>/dev/null; then
-        _green "$CONTAINER_NAME The external IPV6 address of the container is $IPV6"
-        _green "$CONTAINER_NAME 容器的外网IPV6地址为 $IPV6"
-        # 写入信息
-        echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
+    if ping6 -c 3 $lxc_ipv6 &>/dev/null; then
+        _green "$CONTAINER_NAME The external IPV6 address of the container is $lxc_ipv6"
+        _green "$CONTAINER_NAME 容器的外网IPV6地址为 $lxc_ipv6"
     else
         _red "Mapping failure"
         _red "映射失败"
         exit 1
     fi
+    # 写入信息
+    echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
 fi
