@@ -43,50 +43,10 @@ install_package() {
     fi
 }
 
-is_private_ipv6() {
-    local address=$1
-    # 输入不含:符号
-    if [[ $ip_address != *":"* ]]; then
-        return 0
-    fi
-    # 输入为空
-    if [[ -z $ip_address ]]; then
-        return 0
-    fi
-    # 检查IPv6地址是否以fe80开头（链接本地地址）
-    if [[ $address == fe80:* ]]; then
-        return 0
-    fi
-    # 检查IPv6地址是否以fc00或fd00开头（唯一本地地址）
-    if [[ $address == fc00:* || $address == fd00:* ]]; then
-        return 0
-    fi
-    # 检查IPv6地址是否以2001:db8开头（文档前缀）
-    if [[ $address == 2001:db8* ]]; then
-        return 0
-    fi
-    # 检查IPv6地址是否以::1开头（环回地址）
-    if [[ $address == ::1 ]]; then
-        return 0
-    fi
-    # 检查IPv6地址是否以::ffff:开头（IPv4映射地址）
-    if [[ $address == ::ffff:* ]]; then
-        return 0
-    fi
-    # 检查IPv6地址是否以2002:开头（6to4隧道地址）
-    if [[ $address == 2002:* ]]; then
-        return 0
-    fi
-    # 检查IPv6地址是否以2001:开头（Teredo隧道地址）
-    if [[ $address == 2001:* ]]; then
-        return 0
-    fi
-    # 其他情况为公网地址
-    return 1
-}
+
 
 check_ipv6() {
-    IPV6=$(ip -6 addr show | grep global | awk '{print $2}' | cut -d '/' -f1 | head -n 1)
+    IPV6=$(ip -6 addr show | grep global | awk '{print length, $2}' | sort -nr | head -n 1 | awk '{print $2}' | cut -d '/' -f1)
     if is_private_ipv6 "$IPV6"; then # 由于是内网IPV6地址，需要通过API获取外网地址
         IPV6=""
         API_NET=("ipv6.ip.sb" "https://ipget.net" "ipv6.ping0.cc" "https://api.my-ip.io/ip" "https://ipv6.icanhazip.com")
