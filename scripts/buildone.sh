@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.11.01
+# 2023.11.28
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -222,7 +222,8 @@ if [ -n "$enable_ipv6" ]; then
     if [ "$enable_ipv6" == "y" ]; then
         if [ ! -f "./build_ipv6_network.sh" ]; then
             # 如果不存在，则从指定 URL 下载并添加可执行权限
-            curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh >/dev/null 2>&1
+            curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh
+            chmod +x build_ipv6_network.sh
         fi
         ./build_ipv6_network.sh "$name"
     fi
