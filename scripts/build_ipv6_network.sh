@@ -82,6 +82,10 @@ is_private_ipv6() {
     if [[ $address == 2001:* ]]; then
         temp="9"
     fi
+    # 检查IPv6地址是否以fd42开头（lxdbr0的地址）
+    if [[ $address == fd42:* ]]; then
+        temp="10"
+    fi
     if [ "$temp" -gt 0 ]; then
         # 非公网情况
         return 0
