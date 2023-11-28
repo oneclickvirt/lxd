@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.11.07
+# 2023.11.28
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
@@ -105,6 +105,7 @@ check_ipv6() {
             sleep 1
         done
     fi
+    echo $IPV6 >/usr/local/bin/lxd_check_ipv6
 }
 
 update_sysctl() {
@@ -189,7 +190,10 @@ _blue "宿主机的IPV6子网前缀为 $SUBNET_PREFIX"
 if [[ $use_iptables == n ]]; then
     # 用新增网络设备的方式映射IPV6网络
     install_package sipcalc
-    check_ipv6
+    if [ ! -f /usr/local/bin/lxd_check_ipv6 ] || [ ! -s /usr/local/bin/lxd_check_ipv6 ] || [ "$(sed -e '/^[[:space:]]*$/d' /usr/local/bin/lxd_check_ipv6)" = "" ]; then
+        check_ipv6
+    fi
+    IPV6=$(cat /usr/local/bin/lxd_check_ipv6)
     # ifconfig ${ipv6_network_name} | awk '/inet6/{print $2}'
     if ip -f inet6 addr | grep -q "he-ipv6"; then
         ipv6_network_name="he-ipv6"
@@ -210,9 +214,9 @@ if [[ $use_iptables == n ]]; then
         # fi
     else
         ipv6_network_name=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
-        ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}' 2>/dev/null)
+        ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}')
     fi
-    echo "$ip_network_gam"
+    _yellow "Local IPV6 address: $ip_network_gam"
     if [ -n "$ip_network_gam" ]; then
         update_sysctl "net.ipv6.conf.${ipv6_network_name}.proxy_ndp=1"
         update_sysctl "net.ipv6.conf.all.forwarding=1"
