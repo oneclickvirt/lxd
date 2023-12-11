@@ -3,7 +3,7 @@
 # https://github.com/spiritLHLS/lxd
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2023.10.19
+# 2023.12.11
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -39,7 +39,9 @@ lxc config device set "$1" root limits.write 500MB
 lxc config device set "$1" root limits.read 5000iops
 lxc config device set "$1" root limits.write 5000iops
 lxc config device set "$1" root limits.max 300MB
-lxc config device override "$1" eth0 limits.egress=300Mbit limits.ingress=300Mbit
+lxc config device override "$1" eth0 limits.egress=300Mbit 
+lxc config device override "$1" eth0 limits.ingress=300Mbit
+lxc config device override "$1" eth0 limits.max=300Mbit
 lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.cpu.allowance 50%
 lxc config set "$1" limits.cpu.allowance 25ms/100ms
