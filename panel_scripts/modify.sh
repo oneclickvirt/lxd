@@ -87,7 +87,15 @@ if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
 fi
 # 网速
 lxc stop "$name"
-lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit
+lxc config device override "$name" eth0 limits.egress="$out"Mbit 
+lxc config device override "$name" eth0 limits.ingress="$in"Mbit
+# 网速限制 取二者中最大值
+if ((in == out)); then
+    speed_limit="$in"
+else
+    speed_limit=$(($in > $out ? $in : $out))
+fi
+lxc config device override "$name" eth0 limits.max="$speed_limit"Mbit
 lxc start "$name"
 rm -rf ssh_bash.sh config.sh ssh_sh.sh
 if echo "$system" | grep -qiE "alpine"; then
