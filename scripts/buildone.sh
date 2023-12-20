@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/spiritLHLS/lxd
-# 2023.12.11
+# 2023.12.20
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -226,6 +226,8 @@ if [ -n "$enable_ipv6" ]; then
             chmod +x build_ipv6_network.sh
         fi
         ./build_ipv6_network.sh "$name"
+        sleep 1
+        lxc exec "$name" -- echo '*/1 * * * * curl -m 6 -s ipv6.ip.sb && curl -m 6 -s ipv6.ip.sb' | crontab -
     fi
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.11.28
+# 2023.12.20
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
@@ -249,6 +249,9 @@ if [[ $use_iptables == n ]]; then
                     echo '@reboot /usr/local/bin/remove_route.sh' | crontab -
                 fi
             fi
+        fi
+        if ! crontab -l | grep -q '*/1 * * * * curl -m 6 -s ipv6.ip.sb && curl -m 6 -s ipv6.ip.sb'; then
+            echo '*/1 * * * * curl -m 6 -s ipv6.ip.sb && curl -m 6 -s ipv6.ip.sb' | crontab -
         fi
         echo "$lxc_ipv6" >>"$CONTAINER_NAME"_v6
     fi
