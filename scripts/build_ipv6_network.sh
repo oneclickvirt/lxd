@@ -127,6 +127,7 @@ install_package sudo
 install_package lshw
 install_package jq 
 install_package net-tools
+install_package cron
 # install_package ipcalc
 
 # 查询网卡
