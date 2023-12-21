@@ -74,13 +74,13 @@ lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tc
 # 是否要创建V6地址
 if [ -n "$7" ]; then
     if [ "$7" == "Y" ]; then
+        lxc exec "$name" -- echo '*/1 * * * * curl -m 6 -s ipv6.ip.sb && curl -m 6 -s ipv6.ip.sb' | crontab -
+        sleep 1
         if [ ! -f "./build_ipv6_network.sh" ]; then
             # 如果不存在，则从指定 URL 下载并添加可执行权限
             curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh && chmod +x build_ipv6_network.sh
         fi
         ./build_ipv6_network.sh "$name"
-        sleep 1
-        lxc exec "$name" -- echo '*/1 * * * * curl -m 6 -s ipv6.ip.sb && curl -m 6 -s ipv6.ip.sb' | crontab -
     fi
 fi
 if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then

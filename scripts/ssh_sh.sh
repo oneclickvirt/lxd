@@ -1,6 +1,6 @@
 #!/bin/sh
 # by https://github.com/spiritLHLS/lxd
-# 2023.10.19
+# 2023.12.21
 
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -15,6 +15,8 @@ if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2 | tr -d '"')" == 
   apk add --no-cache bash
   apk add --no-cache curl
   apk add --no-cache wget
+  apk add --no-cache cronie
+  apk add --no-cache cron
   cd /etc/ssh
   ssh-keygen -A
   chattr -i /etc/ssh/sshd_config
@@ -39,6 +41,8 @@ elif [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2 | tr -d '"')" =
   opkg install openssh-keygen
   opkg install shadow-chpasswd
   opkg install chattr
+  opkg install cronie
+  opkg install cron
   /etc/init.d/sshd enable
   /etc/init.d/sshd start
   cd /etc/ssh
