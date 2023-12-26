@@ -237,11 +237,11 @@ if [[ $use_iptables == n ]]; then
         lxc stop "$CONTAINER_NAME"
         sleep 3
         while [ $elapsed_time -lt $timeout ]; do
-            status=$(lxc info "$CONTAINER_NAME" | grep "Status: RUNNING")
-            if [[ "$status" == *RUNNING* ]]; then
+            status=$(lxc info "$CONTAINER_NAME" | grep "Status: STOPPED")
+            if [[ "$status" == *STOPPED* ]]; then
                 break
             fi
-            echo "Waiting for the conatiner "$CONTAINER_NAME" to running..."
+            echo "Waiting for the conatiner "$CONTAINER_NAME" to stop..."
             echo "${status}"
             sleep $interval
             elapsed_time=$((elapsed_time + interval))
