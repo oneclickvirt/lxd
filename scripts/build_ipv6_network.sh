@@ -21,9 +21,6 @@ fi
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p /usr/local/bin
 fi
-timeout=24
-interval=3
-elapsed_time=0
 
 CONTAINER_NAME="$1"
 use_iptables="${2:-N}"
@@ -138,6 +135,21 @@ interface=$(lshw -C network | awk '/logical name:/{print $3}' | head -1)
 _yellow "NIC $interface"
 _yellow "网卡 $interface"
 
+# 检测容器是否已启动
+timeout=24
+interval=3
+elapsed_time=0
+while [ $elapsed_time -lt $timeout ]; do
+    status=$(lxc info "$CONTAINER_NAME" | grep "Status: RUNNING")
+    if [[ "$status" == *RUNNING* ]]; then
+        break
+    fi
+    echo "Waiting for the conatiner "$CONTAINER_NAME" to run..."
+    echo "${status}"
+    sleep $interval
+    elapsed_time=$((elapsed_time + interval))
+done
+
 # 获取指定LXC容器的内网IPV6
 CONTAINER_IPV6=$(lxc list $CONTAINER_NAME --format=json | jq -r '.[0].state.network.eth0.addresses[] | select(.family=="inet6") | select(.scope=="global") | .address')
 if [ -z "$CONTAINER_IPV6" ]; then
@@ -236,6 +248,9 @@ if [[ $use_iptables == n ]]; then
         _green "$lxc_ipv6"
         lxc stop "$CONTAINER_NAME"
         sleep 3
+        timeout=24
+        interval=3
+        elapsed_time=0
         while [ $elapsed_time -lt $timeout ]; do
             status=$(lxc info "$CONTAINER_NAME" | grep "Status: STOPPED")
             if [[ "$status" == *STOPPED* ]]; then
