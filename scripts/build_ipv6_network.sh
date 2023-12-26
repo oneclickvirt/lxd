@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.12.21
+# 2023.12.26
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
@@ -21,6 +21,9 @@ fi
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p /usr/local/bin
 fi
+timeout=24
+interval=3
+elapsed_time=0
 
 CONTAINER_NAME="$1"
 use_iptables="${2:-N}"
@@ -232,9 +235,19 @@ if [[ $use_iptables == n ]]; then
         _green "Conatiner $CONTAINER_NAME IPV6:"
         _green "$lxc_ipv6"
         lxc stop "$CONTAINER_NAME"
-        sleep 2
+        sleep 3
+        while [ $elapsed_time -lt $timeout ]; do
+            status=$(lxc info "$CONTAINER_NAME" | grep "Status: RUNNING")
+            if [[ "$status" == *RUNNING* ]]; then
+                break
+            fi
+            echo "Waiting for the conatiner "$CONTAINER_NAME" to running..."
+            echo "${status}"
+            sleep $interval
+            elapsed_time=$((elapsed_time + interval))
+        done
         lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
-        sleep 2
+        sleep 3
         lxc start "$CONTAINER_NAME"
         if [[ "${ipv6_gateway_fe80}" == "N" ]]; then
             inter=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
