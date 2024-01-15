@@ -446,6 +446,7 @@ lxc config set core.https_address :9969
 # 加载修改脚本
 wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/panel_scripts/modify.sh -O /root/modify.sh
 chmod 777 /root/modify.sh
+ufw disable
 _green "脚本当天运行次数:${TODAY}，累计运行次数:${TOTAL}"
 _green "If you need to turn on more than 100 cts, it is recommended to wait for a few minutes before performing a reboot to reboot the machine to make the settings take effect"
 _green "The reboot will ensure that the DNS detection mechanism takes effect, otherwise the batch opening process may cause the host's DNS to be overwritten by the merchant's preset"
