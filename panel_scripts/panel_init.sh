@@ -1,10 +1,21 @@
 #!/bin/bash
 # by https://github.com/spiritLHLS/lxd
-# 2023.11.07
+# 2024.01.15
 
 # curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
 cd /root >/dev/null 2>&1
+REGEX=("debian|astra" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "fedora" "arch" "freebsd")
+RELEASE=("Debian" "Ubuntu" "CentOS" "CentOS" "Fedora" "Arch" "FreeBSD")
+CMD=("$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(hostnamectl 2>/dev/null | grep -i system | cut -d : -f2)" "$(lsb_release -sd 2>/dev/null)" "$(grep -i description /etc/lsb-release 2>/dev/null | cut -d \" -f2)" "$(grep . /etc/redhat-release 2>/dev/null)" "$(grep . /etc/issue 2>/dev/null | cut -d \\ -f1 | sed '/^[ ]*$/d')" "$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(uname -s)")
+SYS="${CMD[0]}"
+[[ -n $SYS ]] || exit 1
+for ((int = 0; int < ${#REGEX[@]}; int++)); do
+    if [[ $(echo "$SYS" | tr '[:upper:]' '[:lower:]') =~ ${REGEX[int]} ]]; then
+        SYSTEM="${RELEASE[int]}"
+        [[ -n $SYSTEM ]] && break
+    fi
+done
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p /usr/local/bin
 fi
@@ -211,25 +222,32 @@ removezfs() {
     apt-get update
 }
 
-# https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/index.html
+# https://openzfs.github.io/openzfs-docs/Getting%20Started/
 checkzfs() {
     if echo "$temp" | grep -q "'zfs' isn't available" && [[ $status == false ]]; then
         _green "zfs module call failed, trying to compile zfs module plus load kernel..."
         _green "zfs模块调用失败，尝试编译zfs模块加载入内核..."
-        #   apt-get install -y linux-headers-amd64
-        codename=$(lsb_release -cs)
-        lineToRemove="deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"
-        echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free" | sudo tee -a /etc/apt/sources.list && apt-get update
-        #   apt-get install -y linux-headers-amd64
-        install_package ${codename}-backports
-        if grep -q "deb http://deb.debian.org/debian bookworm-backports main contrib" /etc/apt/sources.list.d/bookworm-backports.list && grep -q "deb-src http://deb.debian.org/debian bookworm-backports main contrib" /etc/apt/sources.list.d/bookworm-backports.list; then
-            echo "已修改源"
-        else
-            echo "deb http://deb.debian.org/debian bookworm-backports main contrib" >/etc/apt/sources.list.d/bookworm-backports.list
-            echo "deb-src http://deb.debian.org/debian bookworm-backports main contrib" >>/etc/apt/sources.list.d/bookworm-backports.list
-            echo "Package: src:zfs-linux
+        if [ $SYSTEM == "Debian" ]; then
+            #   apt-get install -y linux-headers-amd64
+            codename=$(lsb_release -cs)
+            lineToRemove="deb http://deb.debian.org/debian ${codename}-backports main contrib non-free"
+            echo "deb http://deb.debian.org/debian ${codename}-backports main contrib non-free" | sudo tee -a /etc/apt/sources.list && apt-get update
+            #   apt-get install -y linux-headers-amd64
+            install_package ${codename}-backports
+            if grep -q "deb http://deb.debian.org/debian bookworm-backports main contrib" /etc/apt/sources.list.d/bookworm-backports.list && grep -q "deb-src http://deb.debian.org/debian bookworm-backports main contrib" /etc/apt/sources.list.d/bookworm-backports.list; then
+                echo "已修改源"
+            else
+                echo "deb http://deb.debian.org/debian bookworm-backports main contrib" >/etc/apt/sources.list.d/bookworm-backports.list
+                echo "deb-src http://deb.debian.org/debian bookworm-backports main contrib" >>/etc/apt/sources.list.d/bookworm-backports.list
+                echo "Package: src:zfs-linux
 Pin: release n=bookworm-backports
 Pin-Priority: 990" >/etc/apt/preferences.d/90_zfs
+            fi
+        elif [ $SYSTEM == "Ubuntu" ]; then
+            # deb http://archive.ubuntu.com/ubuntu <CODENAME> main universe
+            codename=$(lsb_release -cs)
+            lineToRemove="deb http://archive.ubuntu.com/ubuntu ${codename} main universe"
+            echo "deb http://archive.ubuntu.com/ubuntu ${codename} main universe" | sudo tee -a /etc/apt/sources.list && apt-get update
         fi
         apt-get update
         apt-get install -y dpkg-dev linux-headers-generic linux-image-generic
