@@ -4,6 +4,10 @@
 
 ## 一键母鸡开小鸡
 
+缘由: https://t.me/spiritlhl/176
+
+往后只会将精力放到 https://github.com/oneclickvirt/incus 的维护上了，本项目最迟2024.03.01将归档
+
 ## 更新
 
 2023.12.26
