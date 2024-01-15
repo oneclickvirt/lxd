@@ -1,12 +1,11 @@
 #!/bin/bash
 #from https://github.com/spiritLHLS/lxd
-# 2023.09.02
+# 2024.01.15
 
 DNS_SERVER="2001:4860:4860::8844"
 RESOLV_CONF="/etc/resolv.conf"
-
+ufw disable
 grep -q "^nameserver ${DNS_SERVER}$" ${RESOLV_CONF}
-
 if [ $? -eq 0 ]; then
     echo "DNS server ${DNS_SERVER} already exists in ${RESOLV_CONF}."
 else
