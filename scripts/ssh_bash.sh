@@ -1,5 +1,5 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 # 2023.12.21
 
 if [ -f "/etc/resolv.conf" ]; then
@@ -94,7 +94,7 @@ sudo service sshd start
 sudo systemctl start sshd
 sudo systemctl start ssh
 if [ -f "/etc/motd" ]; then
-    echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
+    echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/motd
     echo '--by https://t.me/spiritlhl' >>/etc/motd
 fi
 sudo service iptables stop 2>/dev/null

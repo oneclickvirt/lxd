@@ -29,7 +29,7 @@ apt install curl wget sudo dos2unix ufw -y
 sleep 0.5
 ufw disable
 sleep 0.5
-curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/swap2.sh -o swap2.sh && chmod +x swap2.sh && dos2unix swap2.sh
+curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/swap2.sh -o swap2.sh && chmod +x swap2.sh && dos2unix swap2.sh
 sleep 0.5
 bash swap2.sh
 sleep 0.5
@@ -50,7 +50,7 @@ sleep 0.5
 lxc config set images.auto_update_interval 0
 sleep 0.5
 rm -rf init2.sh
-curl -L https://github.com/spiritLHLS/lxd/raw/main/init.sh -o init2.sh
+curl -L https://github.com/oneclickvirt/lxd/raw/main/init.sh -o init2.sh
 chmod 777 init2.sh
 apt install dos2unix -y
 dos2unix init2.sh

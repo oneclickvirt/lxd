@@ -1,5 +1,5 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 # 2022.12.20
 
 # Check if lxd is installed

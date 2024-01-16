@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
-# https://github.com/spiritLHLS/lxd
-# 2023.12.21
+# https://github.com/oneclickvirt/lxd
+# 2024.01.16
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -122,11 +122,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 # 硬盘大小
+if [ -f /usr/local/bin/lxd_storage_type ]; then
+    storage_type=$(cat /usr/local/bin/lxd_storage_type)
+else
+    storage_type="btrfs"
+fi
 if [[ $disk == *.* ]]; then
     disk_mb=$(echo "$disk * 1024" | bc | cut -d '.' -f 1)
+    lxc storage create "$name" "$storage_type" size="$disk_mb"MB >/dev/null 2>&1
     lxc config device override "$name" root size="$disk_mb"MB
     lxc config device set "$name" root limits.max "$disk_mb"MB
 else
+    lxc storage create "$name" "$storage_type" size="$disk"GB >/dev/null 2>&1
     lxc config device override "$name" root size="$disk"GB
     lxc config device set "$name" root limits.max "$disk"GB
 fi
@@ -185,7 +192,7 @@ else
 fi
 if echo "$system" | grep -qiE "alpine" || echo "$system" | grep -qiE "openwrt"; then
     if [ ! -f /usr/local/bin/ssh_sh.sh ]; then
-        curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh -o /usr/local/bin/ssh_sh.sh
+        curl -L ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_sh.sh -o /usr/local/bin/ssh_sh.sh
         chmod 777 /usr/local/bin/ssh_sh.sh
         dos2unix /usr/local/bin/ssh_sh.sh
     fi
@@ -195,7 +202,7 @@ if echo "$system" | grep -qiE "alpine" || echo "$system" | grep -qiE "openwrt"; 
     lxc exec "$name" -- ./ssh_sh.sh ${passwd}
 else
     if [ ! -f /usr/local/bin/ssh_bash.sh ]; then
-        curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
+        curl -L ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
         chmod 777 /usr/local/bin/ssh_bash.sh
         dos2unix /usr/local/bin/ssh_bash.sh
     fi
@@ -205,7 +212,7 @@ else
     lxc exec "$name" -- dos2unix ssh_bash.sh
     lxc exec "$name" -- sudo ./ssh_bash.sh $passwd
     if [ ! -f /usr/local/bin/config.sh ]; then
-        curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
+        curl -L ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
         chmod 777 /usr/local/bin/config.sh
         dos2unix /usr/local/bin/config.sh
     fi
@@ -224,7 +231,7 @@ if [ -n "$enable_ipv6" ]; then
         sleep 1
         if [ ! -f "./build_ipv6_network.sh" ]; then
             # 如果不存在，则从指定 URL 下载并添加可执行权限
-            curl -L ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh
+            curl -L ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/build_ipv6_network.sh -o build_ipv6_network.sh
             chmod +x build_ipv6_network.sh
         fi
         ./build_ipv6_network.sh "$name"

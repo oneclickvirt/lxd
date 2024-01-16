@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 # 2023.06.29
 
 Green="\033[32m"

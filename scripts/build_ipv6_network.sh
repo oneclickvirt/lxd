@@ -1,5 +1,5 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 # 2023.12.26
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
@@ -313,13 +313,13 @@ else
     ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
     # 创建守护进程，避免重启服务器后绑定的IPV6地址丢失
     if [ ! -f /usr/local/bin/add-ipv6.sh ]; then
-        wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
+        wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/add-ipv6.sh -O /usr/local/bin/add-ipv6.sh
         chmod +x /usr/local/bin/add-ipv6.sh
     else
         echo "Script already exists. Skipping installation."
     fi
     if [ ! -f /etc/systemd/system/add-ipv6.service ]; then
-        wget ${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/add-ipv6.service -O /etc/systemd/system/add-ipv6.service
+        wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/add-ipv6.service -O /etc/systemd/system/add-ipv6.service
         chmod +x /etc/systemd/system/add-ipv6.service
         systemctl daemon-reload
         systemctl enable add-ipv6.service

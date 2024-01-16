@@ -1,5 +1,5 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 # 2023.06.29
 # 预检测本机是否符合开设小鸡的要求
 

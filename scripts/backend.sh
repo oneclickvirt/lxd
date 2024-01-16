@@ -1,5 +1,5 @@
 #!/bin/bash
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 # 2023.09.05
 
 # 环境安装

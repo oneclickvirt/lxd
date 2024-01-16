@@ -1,6 +1,6 @@
 #!/bin/bash
 # from
-# https://github.com/spiritLHLS/lxd
+# https://github.com/oneclickvirt/lxd
 # 2023.10.19
 
 # cd /root
@@ -58,22 +58,22 @@ pre_check() {
         apt-get install dos2unix -y
     fi
     if [ ! -f ssh_bash.sh ]; then
-        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh" -o ssh_bash.sh
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_bash.sh" -o ssh_bash.sh
         chmod 777 ssh_bash.sh
         dos2unix ssh_bash.sh
     fi
     if [ ! -f ssh_sh.sh ]; then
-        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_sh.sh" -o ssh_sh.sh
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_sh.sh" -o ssh_sh.sh
         chmod 777 ssh_sh.sh
         dos2unix ssh_sh.sh
     fi
     if [ ! -f config.sh ]; then
-        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh" -o config.sh
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/config.sh" -o config.sh
         chmod 777 config.sh
         dos2unix config.sh
     fi
     if [ ! -f buildone.sh ]; then
-        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/buildone.sh" -o buildone.sh
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/buildone.sh" -o buildone.sh
         chmod 777 buildone.sh
         dos2unix buildone.sh
     fi

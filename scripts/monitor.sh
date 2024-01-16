@@ -1,6 +1,6 @@
 #!/bin/bash
 # from
-# https://github.com/spiritLHLS/lxd
+# https://github.com/oneclickvirt/lxd
 # 2023.06.29
 
 if ! command -v jq >/dev/null 2>&1; then

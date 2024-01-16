@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 #./swap2.sh 内存大小(以MB计算)
 # 2023.06.29
 

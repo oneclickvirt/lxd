@@ -1,5 +1,5 @@
 #!/bin/sh
-# by https://github.com/spiritLHLS/lxd
+# by https://github.com/oneclickvirt/lxd
 # 2023.12.21
 
 
@@ -61,11 +61,11 @@ elif [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2 | tr -d '"')" =
   /etc/init.d/sshd restart
 fi
 if [ -f "/etc/motd" ]; then
-  echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/motd
+  echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/motd
   echo '--by https://t.me/spiritlhl' >>/etc/motd
 fi
 if [ -f "/etc/banner" ]; then
-  echo 'Related repo https://github.com/spiritLHLS/lxd' >>/etc/banner
+  echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/banner
   echo '--by https://t.me/spiritlhl' >>/etc/banner
 fi
 rm -f "$0"

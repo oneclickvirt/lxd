@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # from
-# https://github.com/spiritLHLS/lxd
+# https://github.com/oneclickvirt/lxd
 # cd /root
 # ./init.sh NAT服务器前缀 数量
-# 2023.12.11
+# 2024.01.16
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -34,6 +34,12 @@ if [ $? -ne 0 ]; then
   lxc init tuna-images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=256MiB
 fi
 # 硬盘大小
+if [ -f /usr/local/bin/lxd_storage_type ]; then
+    storage_type=$(cat /usr/local/bin/lxd_storage_type)
+else
+    storage_type="btrfs"
+fi
+lxc storage create "$1" "$storage_type" size=1GB >/dev/null 2>&1
 lxc config device override "$1" root size=1GB
 lxc config device set "$1" root limits.max 1GB
 # IO
@@ -67,13 +73,13 @@ for port in "${blocked_ports[@]}"; do
   iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
 done
 if [ ! -f /usr/local/bin/ssh_bash.sh ]; then
-  curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
+  curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
   chmod 777 /usr/local/bin/ssh_bash.sh
   dos2unix /usr/local/bin/ssh_bash.sh
 fi
 cp /usr/local/bin/ssh_bash.sh /root
 if [ ! -f /usr/local/bin/config.sh ]; then
-  curl -L https://raw.githubusercontent.com/spiritLHLS/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
+  curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/config.sh -o /usr/local/bin/config.sh
   chmod 777 /usr/local/bin/config.sh
   dos2unix /usr/local/bin/config.sh
 fi

@@ -1,5 +1,5 @@
 #!/bin/bash
-#from https://github.com/spiritLHLS/lxd
+#from https://github.com/oneclickvirt/lxd
 # 2024.01.15
 
 DNS_SERVER="2001:4860:4860::8844"

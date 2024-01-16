@@ -1,5 +1,5 @@
 #!/bin/bash
-# from https://github.com/spiritLHLS/lxd
+# from https://github.com/oneclickvirt/lxd
 # 2023.06.29
 
 divert_install_script() {
