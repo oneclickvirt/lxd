@@ -6,7 +6,7 @@
 
 缘由: https://t.me/spiritlhl/176
 
-往后只会将精力放到 https://github.com/oneclickvirt/incus 的维护上了，本项目最迟2024.03.01将归档
+往后将大部分精力放到 https://github.com/oneclickvirt/incus 的开发和维护上了，本项目于2024.03.01后仅提供有限的维护
 
 ## 说明文档
 
