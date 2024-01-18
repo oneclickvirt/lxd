@@ -30,6 +30,10 @@ https://github.com/spiritLHLS/ecs
 
 https://github.com/MXCCO/lxdpro
 
+## Sponsor
+
+Thanks to [dartnode](https://dartnode.com/?via=server) for compilation support.
+
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/spiritLHLS/lxd.svg)](https://starchart.cc/spiritLHLS/lxd)
+[![Stargazers over time](https://starchart.cc/oneclickvirt/lxd.svg)](https://starchart.cc/oneclickvirt/lxd)
