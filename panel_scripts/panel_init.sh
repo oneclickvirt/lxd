@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2024.01.16
+# 2024.01.20
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -239,6 +239,13 @@ if [[ $status == false ]]; then
         /snap/bin/lxd init --storage-backend lvm --storage-create-device $DISK --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto
         echo "lvm" >/usr/local/bin/lxd_storage_type
     elif [ "$STORAGE_BACKEND" = "dir" ]; then
+        if [ ! -f /usr/local/bin/lxd_reboot ];then
+            install_package btrfs-progs
+            _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the btrfs kernel, after the reboot you will need to enter the configuration you need init again"
+            _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载btrfs内核，重启后需要再次输入你需要的初始化的配置"
+            echo "" > /usr/local/bin/lxd_reboot
+            exit 1
+        fi
         _green "Infinite storage pool size using default dir type due to no btrfs"
         _green "由于无btrfs，使用默认dir类型无限定存储池大小"
         /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
