@@ -357,13 +357,6 @@ lxc config set core.https_address :9969
 wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/panel_scripts/modify.sh -O /root/modify.sh
 chmod 777 /root/modify.sh
 ufw disable
-# 预设谷歌的DNS
-if [ -f "/etc/resolv.conf" ]; then
-    cp /etc/resolv.conf /etc/resolv.conf.bak
-    sudo chattr -i /etc/resolv.conf
-    echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf >/dev/null
-    sudo chattr +i /etc/resolv.conf
-fi
 if [ ! -f /usr/local/bin/check-dns.sh ]; then
     wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
     chmod +x /usr/local/bin/check-dns.sh
