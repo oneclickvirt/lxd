@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2024.01.20
+# 2024.01.22
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -292,28 +292,6 @@ cp /root/ssh_bash.sh /usr/local/bin
 cp /root/config.sh /usr/local/bin
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
-# 预设谷歌的DNS
-if [ -f "/etc/resolv.conf" ]; then
-    cp /etc/resolv.conf /etc/resolv.conf.bak
-    sudo chattr -i /etc/resolv.conf
-    echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf >/dev/null
-    sudo chattr +i /etc/resolv.conf
-fi
-if [ ! -f /usr/local/bin/check-dns.sh ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
-    chmod +x /usr/local/bin/check-dns.sh
-else
-    echo "Script already exists. Skipping installation."
-fi
-if [ ! -f /etc/systemd/system/check-dns.service ]; then
-    wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
-    chmod +x /etc/systemd/system/check-dns.service
-    systemctl daemon-reload
-    systemctl enable check-dns.service
-    systemctl start check-dns.service
-else
-    echo "Service already exists. Skipping installation."
-fi
 # 加载iptables并设置回源且允许NAT端口转发
 install_package iptables
 install_package iptables-persistent
@@ -379,6 +357,28 @@ lxc config set core.https_address :9969
 wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/panel_scripts/modify.sh -O /root/modify.sh
 chmod 777 /root/modify.sh
 ufw disable
+# 预设谷歌的DNS
+if [ -f "/etc/resolv.conf" ]; then
+    cp /etc/resolv.conf /etc/resolv.conf.bak
+    sudo chattr -i /etc/resolv.conf
+    echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf >/dev/null
+    sudo chattr +i /etc/resolv.conf
+fi
+if [ ! -f /usr/local/bin/check-dns.sh ]; then
+    wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/check-dns.sh -O /usr/local/bin/check-dns.sh
+    chmod +x /usr/local/bin/check-dns.sh
+else
+    echo "Script already exists. Skipping installation."
+fi
+if [ ! -f /etc/systemd/system/check-dns.service ]; then
+    wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
+    chmod +x /etc/systemd/system/check-dns.service
+    systemctl daemon-reload
+    systemctl enable check-dns.service
+    systemctl start check-dns.service
+else
+    echo "Service already exists. Skipping installation."
+fi
 _green "脚本当天运行次数:${TODAY}，累计运行次数:${TOTAL}"
 _green "If you need to turn on more than 100 cts, it is recommended to wait for a few minutes before performing a reboot to reboot the machine to make the settings take effect"
 _green "The reboot will ensure that the DNS detection mechanism takes effect, otherwise the batch opening process may cause the host's DNS to be overwritten by the merchant's preset"
