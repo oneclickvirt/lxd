@@ -4,7 +4,11 @@ snap install distrobuilder --classic
 apt-get install genisoimage libwin-hivex-perl -y
 apt-get install wimtools -y
 apt-get install virt-viewer -y
-sudo distrobuilder repack-windows  --windows-version w11 --windows-arch amd64 --debug Win11_23H2_Chinese_x64.iso Win11_23H2_Chinese_x64_fix.iso
+# --windows-version
+# w11 w10 2k12 2k16 2k19 2k22
+# --windows-arch
+# amd64 ARM64
+sudo distrobuilder repack-windows --windows-version w11 --windows-arch amd64 --debug Win11_23H2_Chinese_x64.iso Win11_23H2_Chinese_x64_fix.iso
 lxc init win11 --vm --empty -c limits.cpu=4 -c limits.memory=8GB
 lxc config device add win11 install disk source=/root/Win11_23H2_Chinese_x64_fix.iso boot.priority=100
 lxc config device add win11 vtpm tpm
