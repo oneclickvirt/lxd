@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2024.01.16
+# 2024.02.06
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
@@ -61,8 +61,8 @@ disk="${4:-2}"
 sshn="${5:-20001}"
 nat1="${6:-20002}"
 nat2="${7:-20025}"
-in="${8:-300}"
-out="${9:-300}"
+in="${8:-10240}"
+out="${9:-10240}"
 enable_ipv6="${10:-N}"
 enable_ipv6=$(echo "$enable_ipv6" | tr '[:upper:]' '[:lower:]')
 system="${11:-debian11}"

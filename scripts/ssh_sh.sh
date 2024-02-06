@@ -1,6 +1,6 @@
 #!/bin/sh
 # by https://github.com/oneclickvirt/lxd
-# 2023.12.21
+# 2024.02.06
 
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -61,10 +61,12 @@ elif [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2 | tr -d '"')" =
   /etc/init.d/sshd restart
 fi
 if [ -f "/etc/motd" ]; then
+  echo '' >/etc/motd
   echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/motd
   echo '--by https://t.me/spiritlhl' >>/etc/motd
 fi
 if [ -f "/etc/banner" ]; then
+  echo '' >/etc/banner
   echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/banner
   echo '--by https://t.me/spiritlhl' >>/etc/banner
 fi

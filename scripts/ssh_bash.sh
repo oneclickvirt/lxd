@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2023.12.21
+# 2024.02.06
 
 if [ -f "/etc/resolv.conf" ]; then
     cp /etc/resolv.conf /etc/resolv.conf.bak
@@ -94,6 +94,7 @@ sudo service sshd start
 sudo systemctl start sshd
 sudo systemctl start ssh
 if [ -f "/etc/motd" ]; then
+    echo '' >/etc/motd
     echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/motd
     echo '--by https://t.me/spiritlhl' >>/etc/motd
 fi
