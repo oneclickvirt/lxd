@@ -6,7 +6,15 @@
 
 缘由: https://t.me/spiritlhl/176
 
-往后将大部分精力放到 https://github.com/oneclickvirt/incus 的开发和维护上了，本项目于2024.03.01后仅提供有限的维护
+往后将大部分精力放到 https://github.com/oneclickvirt/incus 的开发和维护上了，本项目于2024.03.01后仅提供有限的维护，建议新环境搭建使用新项目 incus
+
+如果LXD的官方第三方源不可用，自行添加
+
+https://mirror.nju.edu.cn/lxc-images/
+
+https://mirrors.tuna.tsinghua.edu.cn/help/lxc-images/
+
+lxd收归ubuntu官方后第三方源将需要一段时间才能支持，详情：[跳转](https://discourse.ubuntu.com/t/an-update-on-the-licence-change-and-community-image-server/41549)
 
 ## 说明文档
 
