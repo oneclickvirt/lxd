@@ -68,7 +68,6 @@ enable_ipv6=$(echo "$enable_ipv6" | tr '[:upper:]' '[:lower:]')
 system="${11:-debian11}"
 a="${system%%[0-9]*}"
 b="${system##*[!0-9.]}"
-output=$(lxc image list images:${a}/${b})
 sys_bit=""
 sysarch="$(uname -m)"
 case "${sysarch}" in
@@ -82,6 +81,7 @@ case "${sysarch}" in
     #     "ppc64") sys_bit="ppc64";;
 *) sys_bit="x86_64" ;;
 esac
+output=$(lxc image list images:${a}/${b})
 if echo "$output" | grep -q "${a}"; then
     system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
     echo "A matching image exists and will be created using images:${system}"

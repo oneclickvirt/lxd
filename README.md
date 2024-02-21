@@ -40,7 +40,7 @@ https://github.com/MXCCO/lxdpro
 
 ## Sponsor
 
-Thanks to [dartnode](https://dartnode.com/?via=server) for compilation support.
+Thanks to [dartnode](https://dartnode.com/?via=server) for test support.
 
 ## Stargazers over time
 
