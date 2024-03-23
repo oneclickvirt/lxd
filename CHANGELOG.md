@@ -6,6 +6,14 @@
 
 ## 更新日志
 
+2024.03.23
+
+如果LXD的官方第三方源不可用，自行添加
+
+https://mirror.nju.edu.cn/lxc-images/
+
+https://mirrors.tuna.tsinghua.edu.cn/help/lxc-images/
+
 2024.01.15
 
 - 对无zfs的ubuntu系统增加处理

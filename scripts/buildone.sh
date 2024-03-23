@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2024.02.06
+# 2024.03.23
 
 # 输入
-# ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian11)
+# ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian12)
 # 如果 外网起端口 外网止端口 都设置为0则不做区间外网端口映射了，只映射基础的SSH端口，注意不能为空，不进行映射需要设置为0
 
 # 创建容器
@@ -65,7 +65,7 @@ in="${8:-10240}"
 out="${9:-10240}"
 enable_ipv6="${10:-N}"
 enable_ipv6=$(echo "$enable_ipv6" | tr '[:upper:]' '[:lower:]')
-system="${11:-debian11}"
+system="${11:-debian12}"
 a="${system%%[0-9]*}"
 b="${system##*[!0-9.]}"
 sys_bit=""
@@ -81,40 +81,14 @@ case "${sysarch}" in
     #     "ppc64") sys_bit="ppc64";;
 *) sys_bit="x86_64" ;;
 esac
-output=$(lxc image list images:${a}/${b})
+output=$(lxc image list opsmaru:${a}/${b})
 if echo "$output" | grep -q "${a}"; then
-    system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
-    echo "A matching image exists and will be created using images:${system}"
-    echo "匹配的镜像存在，将使用 images:${system} 进行创建"
-else
-    system=$(lxc image list tuna-images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
-    if [ $? -ne 0 ]; then
-        status_tuna="F"
-    else
-        if echo "$system" | grep -q "${a}"; then
-            echo "A matching image exists and will be created using tuna-images:${system}"
-            echo "匹配的镜像存在，将使用 tuna-images:${system} 进行创建"
-            status_tuna="T"
-        else
-            status_tuna="F"
-        fi
-    fi
-    if [ "$status_tuna" == "F" ]; then
-        echo "No matching image found, please execute"
-        echo "lxc image list images:system/version_number OR lxc image list tuna-images:system/version_number"
-        echo "Check if a corresponding image exists"
-        echo "未找到匹配的镜像，请执行"
-        echo "lxc image list images:系统/版本号 或 lxc image list tuna-images:系统/版本号"
-        echo "查询是否存在对应镜像"
-        exit 1
-    fi
+    system=$(lxc image list opsmaru:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+    echo "A matching image exists and will be created using opsmaru:${system}"
+    echo "匹配的镜像存在，将使用 opsmaru:${system} 进行创建"
 fi
 rm -rf "$name"
-if [ "$status_tuna" == "T" ]; then
-    lxc init tuna-images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
-else
-    lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
-fi
+lxc init opsmaru:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
     echo "Container creation failed, please check the previous output message"

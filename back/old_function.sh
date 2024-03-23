@@ -97,3 +97,30 @@ Pin-Priority: 990" >/etc/apt/preferences.d/90_zfs
 }
 
 checkzfs
+
+if [ "$status_tuna" == "T" ]; then
+    lxc init tuna-images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+
+
+else
+    system=$(lxc image list tuna-images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+    if [ $? -ne 0 ]; then
+        status_tuna="F"
+    else
+        if echo "$system" | grep -q "${a}"; then
+            echo "A matching image exists and will be created using tuna-images:${system}"
+            echo "匹配的镜像存在，将使用 tuna-images:${system} 进行创建"
+            status_tuna="T"
+        else
+            status_tuna="F"
+        fi
+    fi
+    if [ "$status_tuna" == "F" ]; then
+        echo "No matching image found, please execute"
+        echo "lxc image list images:system/version_number OR lxc image list tuna-images:system/version_number"
+        echo "Check if a corresponding image exists"
+        echo "未找到匹配的镜像，请执行"
+        echo "lxc image list images:系统/版本号 或 lxc image list tuna-images:系统/版本号"
+        echo "查询是否存在对应镜像"
+        exit 1
+    fi

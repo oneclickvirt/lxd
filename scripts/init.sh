@@ -3,7 +3,7 @@
 # https://github.com/oneclickvirt/lxd
 # cd /root
 # ./init.sh NAT服务器前缀 数量
-# 2024.01.16
+# 2024.03.23
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -29,10 +29,7 @@ check_china() {
 
 check_china
 rm -rf log
-lxc init images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=256MiB
-if [ $? -ne 0 ]; then
-  lxc init tuna-images:debian/11 "$1" -c limits.cpu=1 -c limits.memory=256MiB
-fi
+lxc init opsmaru:debian/12 "$1" -c limits.cpu=1 -c limits.memory=256MiB
 # 硬盘大小
 if [ -f /usr/local/bin/lxd_storage_type ]; then
     storage_type=$(cat /usr/local/bin/lxd_storage_type)
