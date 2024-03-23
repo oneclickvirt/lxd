@@ -197,7 +197,7 @@ done
 # 资源池设置-硬盘
 # lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 # btrfs 检测与安装
-temp=$(/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+temp=$(/snap/bin/lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
 if [[ $? -ne 0 ]]; then
     status=false
 else
@@ -206,7 +206,7 @@ fi
 echo "$temp"
 if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
     /snap/bin/lxd.migrate
-    temp=$(/snap/bin/lxd init --storage-backend zfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+    temp=$(/snap/bin/lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
     if [[ $? -ne 0 ]]; then
         status=false
     else
@@ -224,16 +224,16 @@ if [[ $status == false ]]; then
         if command -v $backend >/dev/null; then
             STORAGE_BACKEND=$backend
             if [ "$STORAGE_BACKEND" = "dir" ]; then
-                if [ ! -f /usr/local/bin/incus_reboot ];then
+                if [ ! -f /usr/local/bin/lxd_reboot ];then
                     install_package btrfs-progs
                     _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the btrfs kernel, after the reboot you will need to enter the configuration you need init again"
                     _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载btrfs内核，重启后需要再次输入你需要的初始化的配置"
-                    echo "" > /usr/local/bin/incus_reboot
+                    echo "" > /usr/local/bin/lxd_reboot
                     exit 1
                 fi
                 _green "Infinite storage pool size using default dir type due to no btrfs"
                 _green "由于无btrfs，使用默认dir类型无限定存储池大小"
-                echo "dir" >/usr/local/bin/incus_storage_type
+                echo "dir" >/usr/local/bin/lxd_storage_type
                 /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
             else
                 _green "Infinite storage pool size using default $backend type due to no btrfs"
@@ -245,7 +245,7 @@ if [[ $status == false ]]; then
                 _yellow "Use $STORAGE_BACKEND storage type failed."
                 _yellow "使用 $STORAGE_BACKEND 存储类型失败。"
             else
-                echo $backend >/usr/local/bin/incus_storage_type
+                echo $backend >/usr/local/bin/lxd_storage_type
                 break
             fi
         fi
@@ -256,7 +256,7 @@ if [[ $status == false ]]; then
         exit 1
     fi
 else
-    echo "btrfs" >/usr/local/bin/incus_storage_type
+    echo "btrfs" >/usr/local/bin/lxd_storage_type
 fi
 install_package uidmap
 
