@@ -1,7 +1,7 @@
 #!/bin/bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2023.10.19
+# 2024.04.14
 
 # cd /root
 red() { echo -e "\033[31m\033[01m$@\033[0m"; }
@@ -224,7 +224,7 @@ build_new_containers() {
         container_name="${container_prefix}${container_num}"
         ssh_port=$(($ssh_port + 1))
         public_port_start=$(($public_port_end + 1))
-        public_port_end=$(($public_port_start + 25))
+        public_port_end=$(($public_port_start + 24))
         ./buildone.sh $container_name $cpu_nums $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums $status_ipv6 $system
         cat "$container_name" >>log
         rm -rf $container_name
