@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2024.04.29
+# 2024.05.13
 
 if [ -f "/etc/resolv.conf" ]; then
     cp /etc/resolv.conf /etc/resolv.conf.bak
@@ -132,6 +132,16 @@ if [ -f /etc/ssh/sshd_config.d/50-cloud-init.conf ]; then
 fi
 remove_duplicate_lines /etc/ssh/sshd_config
 remove_duplicate_lines /etc/ssh/sshd_config.d/50-cloud-init.conf
+config_dir="/etc/ssh/sshd_config.d/"
+for file in "$config_dir"*
+do
+    if [ -f "$file" ] && [ -r "$file" ]; then
+        if grep -q "PasswordAuthentication no" "$file"; then
+            sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' "$file"
+            echo "File $file updated"
+        fi
+    fi
+done
 sudo service ssh restart
 sudo service sshd restart
 sudo systemctl restart sshd
