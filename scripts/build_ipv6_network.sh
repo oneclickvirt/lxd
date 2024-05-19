@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2023.12.26
+# 2024.05.19
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
@@ -232,7 +232,8 @@ if [[ $use_iptables == n ]]; then
         # fi
     else
         ipv6_network_name=$(ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)")
-        ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}')
+        # ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep -E "${IPV6}/24|${IPV6}/48|${IPV6}/64|${IPV6}/80|${IPV6}/96|${IPV6}/112" | grep global | awk '{print $2}')
+        ip_network_gam=$(ip -6 addr show ${ipv6_network_name} | grep global | awk '{print $2}' | head -n 1)
     fi
     _yellow "Local IPV6 address: $ip_network_gam"
     if [ -n "$ip_network_gam" ]; then
