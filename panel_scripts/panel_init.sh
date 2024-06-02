@@ -168,6 +168,7 @@ fi
 snap set lxd lxcfs.loadavg=true
 snap set lxd lxcfs.pidfd=true
 snap set lxd lxcfs.cfs=true
+lxc config set core.https_address 0.0.0.0:8443
 systemctl restart snap.lxd.daemon
 
 # 读取母鸡配置
