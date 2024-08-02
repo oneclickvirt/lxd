@@ -345,7 +345,9 @@ vnstati -v
 # 加装证书
 wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/panel_scripts/client.crt -O /root/snap/lxd/common/config/client.crt
 chmod 777 /root/snap/lxd/common/config/client.crt
+# 双确认，部分版本切换了命令
 lxc config trust add /root/snap/lxd/common/config/client.crt
+lxc config trust add-certificate /root/snap/lxd/common/config/client.crt
 lxc config set core.https_address :8443
 # 加载修改脚本
 wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/panel_scripts/modify.sh -O /root/modify.sh
