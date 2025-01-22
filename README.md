@@ -1,6 +1,8 @@
 # LXD
 
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxd&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com) [<img src="https://api.gitsponsors.com/api/badge/img?id=488542981" height="20">](https://api.gitsponsors.com/api/badge/link?p=SOY0ZjHa6Awqjd6hj8j7mR7EcUD69da6mSjwxE7tlP29IggvweUsNy65K+b4yMihscnXLWe3yNOeRYpK8ju2WZ78onklPOLgJcBSIDbYl3G4iLPe3jF6j8XcvjHqW7WvHrVn9O9bP47pIuNmXvRTmg==)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxd&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
+
+[<img src="https://api.gitsponsors.com/api/badge/img?id=488542981" height="20">](https://api.gitsponsors.com/api/badge/link?p=SOY0ZjHa6Awqjd6hj8j7mR7EcUD69da6mSjwxE7tlP29IggvweUsNy65K+b4yMihscnXLWe3yNOeRYpK8ju2WZ78onklPOLgJcBSIDbYl3G4iLPe3jF6j8XcvjHqW7WvHrVn9O9bP47pIuNmXvRTmg==)
 
 ## 一键母鸡开小鸡
 
@@ -8,7 +10,7 @@
 
 往后将大部分精力放到 https://github.com/oneclickvirt/incus 的开发和维护上了，本项目于2024.03.01后仅提供有限的维护，建议新环境搭建使用新项目 incus
 
-lxd收归ubuntu官方后第三方源将需要一段时间才能支持，详情：[跳转](https://discourse.ubuntu.com/t/an-update-on-the-licence-change-and-community-image-server/41549)
+~~lxd收归ubuntu官方后第三方源将需要一段时间才能支持，详情：[跳转](https://discourse.ubuntu.com/t/an-update-on-the-licence-change-and-community-image-server/41549)~~
 
 ## 说明文档
 
