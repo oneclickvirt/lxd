@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2024.03.23
+# 2025.01.30
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -173,26 +173,42 @@ snap set lxd lxcfs.cfs=true
 systemctl restart snap.lxd.daemon
 
 # 读取母鸡配置
-while true; do
-    _green "How much virtual memory does the host need to open? (Virtual memory SWAP will occupy hard disk space, calculate by yourself, note that it is MB as the unit, need 1G virtual memory then enter 1024):"
-    reading "宿主机需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
-    if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
-        break
-    else
-        _yellow "Invalid input, please enter a positive integer."
-        _yellow "输入无效，请输入一个正整数。"
-    fi
-done
-while true; do
-    _green "How large a storage pool does the host need to open? (The storage pool is the size of the sum of the ct's hard disk, it is recommended that the SWAP and storage pool add up to 95% of the space of the hen's hard disk, note that it is in GB, enter 10 if you need 10G storage pool):"
-    reading "宿主机需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
-    if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
-        break
-    else
-        _yellow "Invalid input, please enter a positive integer."
-        _yellow "输入无效，请输入一个正整数。"
-    fi
-done
+# 函数：获取可用磁盘空间（GB为单位）
+get_available_space() {
+    local available_space
+    available_space=$(df -BG / | awk 'NR==2 {gsub("G","",$4); print $4}')
+    echo "$available_space"
+}
+
+# 检查是否启用了非交互模式
+if [ "${noninteractive:-false}" = true ]; then
+    # 获取可用空间并减去1GB用于swap
+    available_space=$(get_available_space)
+    memory_nums=1024  # 1GB作为swap空间
+    disk_nums=$((available_space - 1))  # 剩余空间用作存储池
+else
+    while true; do
+        _green "How much virtual memory does the host need to open? (Virtual memory SWAP will occupy hard disk space, calculate by yourself, note that it is MB as the unit, need 1G virtual memory then enter 1024):"
+        reading "宿主机需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
+        if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
+            break
+        else
+            _yellow "Invalid input, please enter a positive integer."
+            _yellow "输入无效，请输入一个正整数。"
+        fi
+    done
+
+    while true; do
+        _green "How large a storage pool does the host need to open? (The storage pool is the size of the sum of the ct's hard disk, it is recommended that the SWAP and storage pool add up to 95% of the space of the hen's hard disk, note that it is in GB, enter 10 if you need 10G storage pool):"
+        reading "宿主机需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
+        if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
+            break
+        else
+            _yellow "Invalid input, please enter a positive integer."
+            _yellow "输入无效，请输入一个正整数。"
+        fi
+    done
+fi
 
 # 资源池设置-硬盘
 # lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto
