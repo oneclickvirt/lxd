@@ -240,7 +240,7 @@ if [[ $status == false ]]; then
         if command -v $backend >/dev/null; then
             STORAGE_BACKEND=$backend
             if [ "$STORAGE_BACKEND" = "dir" ]; then
-                if [ ! -f /usr/local/bin/lxd_reboot ];then
+                if [ "${noninteractive:-false}" = false ] && [ ! -f /usr/local/bin/lxd_reboot ]; then
                     install_package btrfs-progs
                     _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the btrfs kernel, after the reboot you will need to enter the configuration you need init again"
                     _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载btrfs内核，重启后需要再次输入你需要的初始化的配置"
@@ -359,6 +359,7 @@ install_package iptables
 install_package iptables-persistent
 iptables -t nat -A POSTROUTING -j MASQUERADE
 _green "脚本当天运行次数:${TODAY}，累计运行次数:${TOTAL}"
+_green "LXD Version: $(lxc --version)"
 _green "If you need to turn on more than 100 cts, it is recommended to wait for a few minutes before performing a reboot to reboot the machine to make the settings take effect"
 _green "The reboot will ensure that the DNS detection mechanism takes effect, otherwise the batch opening process may cause the host's DNS to be overwritten by the merchant's preset"
 _green "如果你需要开启超过100个小鸡，建议等待几分钟后执行 reboot 重启本机以使得设置生效"
