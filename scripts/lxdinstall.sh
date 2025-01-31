@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2025.01.30
+# 2025.01.31
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -213,15 +213,10 @@ fi
 # 资源池设置-硬盘
 # lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto
 # btrfs 检测与安装
-temp=$(/snap/bin/lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
-if [[ $? -ne 0 ]]; then
-    status=false
+if [ "${noninteractive:-false}" = false ] && [ ! -f /usr/local/bin/lxd_reboot ]; then
+    echo "dir" >/usr/local/bin/lxd_storage_type
+    /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
 else
-    status=true
-fi
-echo "$temp"
-if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
-    /snap/bin/lxd.migrate
     temp=$(/snap/bin/lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
     if [[ $? -ne 0 ]]; then
         status=false
@@ -229,50 +224,60 @@ if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
         status=true
     fi
     echo "$temp"
-fi
-if [[ $status == false ]]; then
-    _yellow "trying to use another storage type ......"
-    _yellow "尝试使用其他存储类型......"
-    # 类型设置-硬盘
-    SUPPORTED_BACKENDS=("zfs" "lvm" "ceph" "dir")
-    STORAGE_BACKEND=""
-    for backend in "${SUPPORTED_BACKENDS[@]}"; do
-        if command -v $backend >/dev/null; then
-            STORAGE_BACKEND=$backend
-            if [ "$STORAGE_BACKEND" = "dir" ]; then
-                if [ "${noninteractive:-false}" = false ] && [ ! -f /usr/local/bin/lxd_reboot ]; then
-                    install_package btrfs-progs
-                    _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the btrfs kernel, after the reboot you will need to enter the configuration you need init again"
-                    _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载btrfs内核，重启后需要再次输入你需要的初始化的配置"
-                    echo "" > /usr/local/bin/lxd_reboot
-                    exit 1
-                fi
-                _green "Infinite storage pool size using default dir type due to no btrfs"
-                _green "由于无btrfs，使用默认dir类型无限定存储池大小"
-                echo "dir" >/usr/local/bin/lxd_storage_type
-                /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
-            else
-                _green "Infinite storage pool size using default $backend type due to no btrfs"
-                _green "由于无btrfs，使用默认 $backend 类型无限定存储池大小"
-                DISK=$(lsblk -p -o NAME,TYPE | awk '$2=="disk"{print $1}')
-                /snap/bin/lxd init --storage-backend lvm --storage-create-device $DISK --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto
-            fi
-            if [[ $? -ne 0 ]]; then
-                _yellow "Use $STORAGE_BACKEND storage type failed."
-                _yellow "使用 $STORAGE_BACKEND 存储类型失败。"
-            else
-                echo $backend >/usr/local/bin/lxd_storage_type
-                break
-            fi
+    if echo "$temp" | grep -q "lxd.migrate" && [[ $status == false ]]; then
+        /snap/bin/lxd.migrate
+        temp=$(/snap/bin/lxd init --storage-backend btrfs --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+        if [[ $? -ne 0 ]]; then
+            status=false
+        else
+            status=true
         fi
-    done
-    if [ -z "$STORAGE_BACKEND" ]; then
-        _yellow "No supported storage types, please contact the script maintainer"
-        _yellow "无可支持的存储类型，请联系脚本维护者"
-        exit 1
+        echo "$temp"
     fi
-else
-    echo "btrfs" >/usr/local/bin/lxd_storage_type
+    if [[ $status == false ]]; then
+        _yellow "trying to use another storage type ......"
+        _yellow "尝试使用其他存储类型......"
+        # 类型设置-硬盘
+        SUPPORTED_BACKENDS=("zfs" "lvm" "ceph" "dir")
+        STORAGE_BACKEND=""
+        for backend in "${SUPPORTED_BACKENDS[@]}"; do
+            if command -v $backend >/dev/null; then
+                STORAGE_BACKEND=$backend
+                if [ "$STORAGE_BACKEND" = "dir" ]; then
+                    if [ ! -f /usr/local/bin/lxd_reboot ]; then
+                        install_package btrfs-progs
+                        _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the btrfs kernel, after the reboot you will need to enter the configuration you need init again"
+                        _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载btrfs内核，重启后需要再次输入你需要的初始化的配置"
+                        echo "" > /usr/local/bin/lxd_reboot
+                        exit 1
+                    fi
+                    _green "Infinite storage pool size using default dir type due to no btrfs"
+                    _green "由于无btrfs，使用默认dir类型无限定存储池大小"
+                    echo "dir" >/usr/local/bin/lxd_storage_type
+                    /snap/bin/lxd init --storage-backend "$STORAGE_BACKEND" --auto
+                else
+                    _green "Infinite storage pool size using default $backend type due to no btrfs"
+                    _green "由于无btrfs，使用默认 $backend 类型无限定存储池大小"
+                    DISK=$(lsblk -p -o NAME,TYPE | awk '$2=="disk"{print $1}')
+                    /snap/bin/lxd init --storage-backend lvm --storage-create-device $DISK --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto
+                fi
+                if [[ $? -ne 0 ]]; then
+                    _yellow "Use $STORAGE_BACKEND storage type failed."
+                    _yellow "使用 $STORAGE_BACKEND 存储类型失败。"
+                else
+                    echo $backend >/usr/local/bin/lxd_storage_type
+                    break
+                fi
+            fi
+        done
+        if [ -z "$STORAGE_BACKEND" ]; then
+            _yellow "No supported storage types, please contact the script maintainer"
+            _yellow "无可支持的存储类型，请联系脚本维护者"
+            exit 1
+        fi
+    else
+        echo "btrfs" >/usr/local/bin/lxd_storage_type
+    fi
 fi
 install_package uidmap
 
