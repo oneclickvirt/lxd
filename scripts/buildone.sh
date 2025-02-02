@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2024.03.23
+# 2025.02.02
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian12)
@@ -81,14 +81,99 @@ case "${sysarch}" in
     #     "ppc64") sys_bit="ppc64";;
 *) sys_bit="x86_64" ;;
 esac
-output=$(lxc image list opsmaru:${a}/${b})
-if echo "$output" | grep -q "${a}"; then
-    system=$(lxc image list opsmaru:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
-    echo "A matching image exists and will be created using opsmaru:${system}"
-    echo "匹配的镜像存在，将使用 opsmaru:${system} 进行创建"
+
+# 处理镜像是否存在，是否使用自编译、官方、第三方镜像的问题
+image_download_url=""
+fixed_system=false
+if [[ "$sys_bit" == "x86_64" || "$sys_bit" == "arm64" ]]; then
+    self_fixed_images=($(curl -slk -m 6 ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd_images/main/${sys_bit}_fixed_images.txt))
+    for image_name in "${self_fixed_images[@]}"; do
+        if [ -z "${b}" ]; then
+            # 若无版本号，则仅识别系统名字匹配第一个链接，放宽系统识别
+            if [[ "$image_name" == "${a}"* ]]; then
+                fixed_system=true
+                # image_download_url=$(echo "$response" | jq -r ".assets[$i].browser_download_url")
+                image_download_url="https://github.com/oneclickvirt/lxd_images/releases/download/${a}/${image_name}"
+                image_alias_output=$(lxc image alias list)
+                if [[ "$image_alias_output" != *"$image_name"* ]]; then
+                    wget "${cdn_success_url}${image_download_url}"
+                    chmod 777 "$image_name"
+                    unzip "$image_name"
+                    rm -rf "$image_name"
+                    # 导入为对应镜像
+                    lxc image import lxd.tar.xz rootfs.squashfs --alias "$image_name"
+                    rm -rf lxd.tar.xz rootfs.squashfs
+                    echo "A matching image exists and will be created using ${image_download_url}"
+                    echo "匹配的镜像存在，将使用 ${image_download_url} 进行创建"
+                fi
+                break
+            fi
+        else
+            # 有版本号，精确识别系统
+            if [[ "$image_name" == "${a}_${b}"* ]]; then
+                fixed_system=true
+                # image_download_url=$(echo "$response" | jq -r ".assets[$i].browser_download_url")
+                image_download_url="https://github.com/oneclickvirt/lxd_images/releases/download/${a}/${image_name}"
+                image_alias_output=$(lxc image alias list)
+                if [[ "$image_alias_output" != *"$image_name"* ]]; then
+                    wget "${cdn_success_url}${image_download_url}"
+                    chmod 777 "$image_name"
+                    unzip "$image_name"
+                    rm -rf "$image_name"
+                    # 导入为对应镜像
+                    lxc image import lxd.tar.xz rootfs.squashfs --alias "$image_name"
+                    rm -rf lxd.tar.xz rootfs.squashfs
+                    echo "A matching image exists and will be created using ${image_download_url}"
+                    echo "匹配的镜像存在，将使用 ${image_download_url} 进行创建"
+                fi
+                break
+            fi
+        fi
+    done
+else
+    output=$(lxc image list images:${a}/${b})
 fi
+# 宿主机未识别到要下载的容器链接时
+if [ -z "$image_download_url" ]; then
+    system=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+    echo "A matching image exists and will be created using images:${system}"
+    echo "匹配的镜像存在，将使用 images:${system} 进行创建"
+    fixed_system=false
+fi
+if [ -z "$image_download_url" ] && [ -z "$system" ]; then
+    system=$(lxc image list opsmaru:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
+    if [ $? -ne 0 ]; then
+        status_tuna=false
+    else
+        if echo "$system" | grep -q "${a}"; then
+            echo "A matching image exists and will be created using opsmaru:${system}"
+            echo "匹配的镜像存在，将使用 opsmaru:${system} 进行创建"
+            status_tuna=true
+            fixed_system=false
+        else
+            status_tuna=false
+        fi
+    fi
+    if [ "$status_tuna" = false ]; then
+        echo "No matching image found, please execute"
+        echo "lxc image list images:system/version_number OR lxc image list opsmaru:system/version_number"
+        echo "Check if a corresponding image exists"
+        echo "未找到匹配的镜像，请执行"
+        echo "lxc image list images:系统/版本号 或 lxc image list opsmaru:系统/版本号"
+        echo "查询是否存在对应镜像"
+        exit 1
+    fi
+fi
+
+# 开始创建容器
 rm -rf "$name"
-lxc init opsmaru:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+if [ -z "$image_download_url" ] && [ "$status_tuna" = true ]; then
+    lxc init opsmaru:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+elif [ -z "$image_download_url" ]; then
+    lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+else
+    lxc init "$image_name" "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+fi
 # --config=user.network-config="network:\n  version: 2\n  ethernets:\n    eth0:\n      nameservers:\n        addresses: [8.8.8.8, 8.8.4.4]"
 if [ $? -ne 0 ]; then
     echo "Container creation failed, please check the previous output message"
@@ -137,32 +222,34 @@ lxc start "$name"
 sleep 3
 /usr/local/bin/check-dns.sh
 sleep 3
-if [[ "${CN}" == true ]]; then
-    lxc exec "$name" -- yum install -y curl
-    lxc exec "$name" -- apt-get install curl -y --fix-missing
-    lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
-    lxc exec "$name" -- chmod 777 ChangeMirrors.sh
-    lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
-    lxc exec "$name" -- rm -rf ChangeMirrors.sh
-fi
-if echo "$system" | grep -qiE "centos" || echo "$system" | grep -qiE "almalinux" || echo "$system" | grep -qiE "fedora" || echo "$system" | grep -qiE "rocky" || echo "$system" | grep -qiE "oracle"; then
-    lxc exec "$name" -- sudo yum update -y
-    lxc exec "$name" -- sudo yum install -y curl
-    lxc exec "$name" -- sudo yum install -y dos2unix
-elif echo "$system" | grep -qiE "alpine"; then
-    lxc exec "$name" -- apk update
-    lxc exec "$name" -- apk add --no-cache curl
-elif echo "$system" | grep -qiE "openwrt"; then
-    lxc exec "$name" -- opkg update
-elif echo "$system" | grep -qiE "archlinux"; then
-    lxc exec "$name" -- pacman -Sy
-    lxc exec "$name" -- pacman -Sy --noconfirm --needed curl
-    lxc exec "$name" -- pacman -Sy --noconfirm --needed dos2unix
-    lxc exec "$name" -- pacman -Sy --noconfirm --needed bash
-else
-    lxc exec "$name" -- sudo apt-get update -y
-    lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
-    lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
+if [ "$fixed_system" = false ]; then
+    if [[ "${CN}" == true ]]; then
+        lxc exec "$name" -- yum install -y curl
+        lxc exec "$name" -- apt-get install curl -y --fix-missing
+        lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
+        lxc exec "$name" -- chmod 777 ChangeMirrors.sh
+        lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
+        lxc exec "$name" -- rm -rf ChangeMirrors.sh
+    fi
+    if echo "$system" | grep -qiE "centos" || echo "$system" | grep -qiE "almalinux" || echo "$system" | grep -qiE "fedora" || echo "$system" | grep -qiE "rocky" || echo "$system" | grep -qiE "oracle"; then
+        lxc exec "$name" -- sudo yum update -y
+        lxc exec "$name" -- sudo yum install -y curl
+        lxc exec "$name" -- sudo yum install -y dos2unix
+    elif echo "$system" | grep -qiE "alpine"; then
+        lxc exec "$name" -- apk update
+        lxc exec "$name" -- apk add --no-cache curl
+    elif echo "$system" | grep -qiE "openwrt"; then
+        lxc exec "$name" -- opkg update
+    elif echo "$system" | grep -qiE "archlinux"; then
+        lxc exec "$name" -- pacman -Sy
+        lxc exec "$name" -- pacman -Sy --noconfirm --needed curl
+        lxc exec "$name" -- pacman -Sy --noconfirm --needed dos2unix
+        lxc exec "$name" -- pacman -Sy --noconfirm --needed bash
+    else
+        lxc exec "$name" -- sudo apt-get update -y
+        lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
+        lxc exec "$name" -- sudo apt-get install dos2unix -y --fix-missing
+    fi
 fi
 if echo "$system" | grep -qiE "alpine" || echo "$system" | grep -qiE "openwrt"; then
     if [ ! -f /usr/local/bin/ssh_sh.sh ]; then

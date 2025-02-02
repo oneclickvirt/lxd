@@ -8,9 +8,9 @@
 
 缘由: https://t.me/spiritlhl/176
 
-往后将大部分精力放到 https://github.com/oneclickvirt/incus 的开发和维护上了，本项目于2024.03.01后仅提供有限的维护，建议新环境搭建使用新项目 incus
+往后将大部分精力放到 https://github.com/oneclickvirt/incus 的开发和维护上了
 
-~~lxd收归ubuntu官方后第三方源将需要一段时间才能支持，详情：[跳转](https://discourse.ubuntu.com/t/an-update-on-the-licence-change-and-community-image-server/41549)~~
+本项目于2024.03.01后仅提供有限的维护，非Ubuntu的宿主机建议搭建使用新项目 [incus](https://github.com/oneclickvirt/incus)
 
 ## 说明文档
 
@@ -23,6 +23,10 @@
 [https://www.spiritlhl.net/en/](https://www.spiritlhl.net/en/)
 
 说明文档中 LXD 分区内容
+
+自修补的容器镜像源
+
+https://github.com/oneclickvirt/lxd_images
 
 ## 友链
 
