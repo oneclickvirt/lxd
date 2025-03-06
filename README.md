@@ -2,8 +2,6 @@
 
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FspiritLHLS%2Flxd&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
 
-[<img src="https://api.gitsponsors.com/api/badge/img?id=488542981" height="20">](https://api.gitsponsors.com/api/badge/link?p=SOY0ZjHa6Awqjd6hj8j7mR7EcUD69da6mSjwxE7tlP29IggvweUsNy65K+b4yMihscnXLWe3yNOeRYpK8ju2WZ78onklPOLgJcBSIDbYl3G4iLPe3jF6j8XcvjHqW7WvHrVn9O9bP47pIuNmXvRTmg==)
-
 ## 一键母鸡开小鸡
 
 缘由: https://t.me/spiritlhl/176
