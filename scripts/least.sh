@@ -3,7 +3,7 @@
 # https://github.com/oneclickvirt/lxd
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2024.03.23
+# 2025.04.22
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -35,7 +35,7 @@ lxc config device set "$1" root limits.write 500MB
 lxc config device set "$1" root limits.read 5000iops
 lxc config device set "$1" root limits.write 5000iops
 lxc config device set "$1" root limits.max 300MB
-lxc config device override "$1" eth0 limits.egress=300Mbit 
+lxc config device override "$1" eth0 limits.egress=300Mbit
 lxc config device override "$1" eth0 limits.ingress=300Mbit
 lxc config device override "$1" eth0 limits.max=300Mbit
 lxc config set "$1" limits.cpu.priority 0
@@ -69,33 +69,34 @@ fi
 cp /usr/local/bin/config.sh /root
 # 批量创建容器
 for ((a = 1; a <= "$2"; a++)); do
-    lxc copy "$1" "$1"$a
     name="$1"$a
+    lxc copy "$1" "$name"
     sshn=$((20000 + a))
     ori=$(date | md5sum)
     passwd=${ori:2:9}
-    lxc start "$1"$a
+    lxc start "$name"
     sleep 1
     if [[ "${CN}" == true ]]; then
         lxc exec "$name" -- yum install -y curl
         lxc exec "$name" -- apt-get install curl -y --fix-missing
-        lxc exec "$1"$a -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
-        lxc exec "$1"$a -- chmod 777 ChangeMirrors.sh
-        lxc exec "$1"$a -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
-        lxc exec "$1"$a -- rm -rf ChangeMirrors.sh
+        lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
+        lxc exec "$name" -- chmod 777 ChangeMirrors.sh
+        lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
+        lxc exec "$name" -- rm -rf ChangeMirrors.sh
     fi
-    lxc exec "$1"$a -- sudo apt-get update -y
-    lxc exec "$1"$a -- sudo apt-get install curl -y --fix-missing
-    lxc exec "$1"$a -- sudo apt-get install -y --fix-missing dos2unix
-    lxc file push /root/ssh_bash.sh "$1"$a/root/
-    lxc exec "$1"$a -- chmod 777 ssh_bash.sh
-    lxc exec "$1"$a -- dos2unix ssh_bash.sh
-    lxc exec "$1"$a -- sudo ./ssh_bash.sh $passwd
-    lxc file push /root/config.sh "$1"$a/root/
-    lxc exec "$1"$a -- chmod +x config.sh
-    lxc exec "$1"$a -- dos2unix config.sh
-    lxc exec "$1"$a -- bash config.sh
-    lxc config device add "$1"$a ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
+    lxc exec "$name" -- sudo apt-get update -y
+    lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
+    lxc exec "$name" -- sudo apt-get install -y --fix-missing dos2unix
+    lxc file push /root/ssh_bash.sh "$name"/root/
+    lxc exec "$name" -- chmod 777 ssh_bash.sh
+    lxc exec "$name" -- dos2unix ssh_bash.sh
+    lxc exec "$name" -- sudo ./ssh_bash.sh $passwd
+    lxc file push /root/config.sh "$name"/root/
+    lxc exec "$name" -- chmod +x config.sh
+    lxc exec "$name" -- dos2unix config.sh
+    lxc exec "$name" -- bash config.sh
+    lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
+    lxc config set "$name" user.description "$name $sshn $passwd"
     echo "$name $sshn $passwd" >>log
 done
 rm -rf ssh_bash.sh config.sh ssh_sh.sh

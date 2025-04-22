@@ -2,13 +2,24 @@
 
 [![Hits](https://hits.spiritlhl.net/lxd.svg?action=hit&title=Hits&title_bg=%23555555&count_bg=%230eecf8&edge_flat=false)](https://hits.spiritlhl.net)
 
-## 一键母鸡开小鸡
+## 前言
 
 缘由: https://t.me/spiritlhl/176
 
-往后将大部分精力放到 https://github.com/oneclickvirt/incus 的开发和维护上了
+所以更推荐：https://github.com/oneclickvirt/incus
 
 本项目于2024.03.01后仅提供有限的维护，非Ubuntu的宿主机建议搭建使用新项目 [incus](https://github.com/oneclickvirt/incus)
+
+## 更新
+
+2025.04.22
+
+- 调整CDN轮询顺序为随机顺序，避免单个CDN节点压力过大
+- 修复设置IPV6网络的时候，没有利用上cdn进行持久化映射设置
+- 提取公共代码，减少重复逻辑，模块化代码方便维护
+- 容器相关信息同时写入容器的config的user.description，方便web面板查看
+
+[更新日志](CHANGELOG.md)
 
 ## 说明文档
 
@@ -28,13 +39,11 @@ https://github.com/oneclickvirt/lxd_images
 
 ## 友链
 
-VPS融合怪测评脚本
+VPS融合怪测评项目
+
+https://github.com/oneclickvirt/ecs
 
 https://github.com/spiritLHLS/ecs
-
-朋友写的针对合租服务器使用的(需要有一定的LXD或LXC基础，否则你看不懂部分设置)(更新可能有点缓慢)
-
-https://github.com/MXCCO/lxdpro
 
 ## Sponsor
 

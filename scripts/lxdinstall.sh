@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2025.01.31
+# 2025.04.22
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -24,7 +24,7 @@ _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading() { read -rp "$(_green "$1")" "$2"; }
-cdn_urls=("https://cdn0.spiritlhl.top/" "http://cdn3.spiritlhl.net/" "http://cdn1.spiritlhl.net/" "https://ghproxy.com/" "http://cdn2.spiritlhl.net/")
+cdn_urls=("https://cdn0.spiritlhl.top/" "http://cdn1.spiritlhl.net/" "http://cdn2.spiritlhl.net/" "http://cdn3.spiritlhl.net/" "http://cdn4.spiritlhl.net/")
 utf8_locale=$(locale -a 2>/dev/null | grep -i -m 1 -E "utf8|UTF-8")
 export DEBIAN_FRONTEND=noninteractive
 if [[ -z "$utf8_locale" ]]; then
@@ -53,7 +53,8 @@ install_package() {
 
 check_cdn() {
     local o_url=$1
-    for cdn_url in "${cdn_urls[@]}"; do
+    local shuffled_cdn_urls=($(shuf -e "${cdn_urls[@]}")) # 打乱数组顺序
+    for cdn_url in "${shuffled_cdn_urls[@]}"; do
         if curl -sL -k "$cdn_url$o_url" --max-time 6 | grep -q "success" >/dev/null 2>&1; then
             export cdn_success_url="$cdn_url"
             return
@@ -183,8 +184,8 @@ get_available_space() {
 if [ "${noninteractive:-false}" = true ]; then
     # 获取可用空间并减去1GB用于swap
     available_space=$(get_available_space)
-    memory_nums=1024  # 1GB作为swap空间
-    disk_nums=$((available_space - 1))  # 剩余空间用作存储池
+    memory_nums=1024                   # 1GB作为swap空间
+    disk_nums=$((available_space - 1)) # 剩余空间用作存储池
 else
     while true; do
         _green "How much virtual memory does the host need to open? (Virtual memory SWAP will occupy hard disk space, calculate by yourself, note that it is MB as the unit, need 1G virtual memory then enter 1024):"
@@ -247,7 +248,7 @@ else
                         install_package btrfs-progs
                         _green "Please reboot the machine (perform a reboot reboot) and execute this script again to load the btrfs kernel, after the reboot you will need to enter the configuration you need init again"
                         _green "请重启本机(执行 reboot 重启)再次执行本脚本以加载btrfs内核，重启后需要再次输入你需要的初始化的配置"
-                        echo "" > /usr/local/bin/lxd_reboot
+                        echo "" >/usr/local/bin/lxd_reboot
                         exit 1
                     fi
                     _green "Infinite storage pool size using default dir type due to no btrfs"
