@@ -103,7 +103,7 @@ check_log() {
         container_prefix="${container_name%%[0-9]*}"
         container_num="${container_name##*[!0-9]}"
         yellow "Current information on the last container:"
-        yellow "目前最后一个小鸡的信息："
+        yellow "目前最后一个容器的信息："
         blue "容器前缀-Prefix: $container_prefix"
         blue "容器数量-num: $container_num"
         blue "SSH端口-ssh: $ssh_port"
@@ -124,7 +124,7 @@ check_log() {
 build_new_containers() {
     while true; do
         green "How many more containers need to be generated? (Enter how many new containers to add):"
-        reading "还需要生成几个小鸡？(输入新增几个小鸡)：" new_nums
+        reading "还需要生成几个容器？(输入新增几个容器)：" new_nums
         if [[ "$new_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
@@ -134,7 +134,7 @@ build_new_containers() {
     done
     while true; do
         green "How many Cores are allocated per container? (Number of CPU cores per container, if you need 1 core, enter 1):"
-        reading "每个小鸡分配几个CPU？(每个小鸡CPU核数，若需要1核，输入1)：" cpu_nums
+        reading "每个容器分配几个CPU？(每个容器CPU核数，若需要1核，输入1)：" cpu_nums
         if [[ "$cpu_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
@@ -144,7 +144,7 @@ build_new_containers() {
     done
     while true; do
         green "How much memory is allocated per container? (Memory size per container, enter 256 if 256MB of memory is required):"
-        reading "每个小鸡分配多少内存？(每个小鸡内存大小，若需要256MB内存，输入256)：" memory_nums
+        reading "每个容器分配多少内存？(每个容器内存大小，若需要256MB内存，输入256)：" memory_nums
         if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
@@ -154,7 +154,7 @@ build_new_containers() {
     done
     while true; do
         green "What size hard disk is allocated for each container? (per container hard drive size, enter 1 if 1G hard drive is required):"
-        reading "每个小鸡分配多大硬盘？(每个小鸡硬盘大小，若需要1G硬盘，输入1)：" disk_nums
+        reading "每个容器分配多大硬盘？(每个容器硬盘大小，若需要1G硬盘，输入1)：" disk_nums
         if [[ "$disk_nums" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             break
         else
@@ -164,7 +164,7 @@ build_new_containers() {
     done
     while true; do
         green "What is the download speed limit per container? (If you need the limit to be 300Mbit, enter 300):"
-        reading "每个小鸡下载速度限制多少？(若需要限制为300Mbit，输入300)：" input_nums
+        reading "每个容器下载速度限制多少？(若需要限制为300Mbit，输入300)：" input_nums
         if [[ "$input_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
@@ -174,7 +174,7 @@ build_new_containers() {
     done
     while true; do
         green "What is the upload speed limit per container? (If you need the limit to be 300Mbit, enter 300):"
-        reading "每个小鸡上传速度限制多少？(若需要限制为300Mbit，输入300)：" output_nums
+        reading "每个容器上传速度限制多少？(若需要限制为300Mbit，输入300)：" output_nums
         if [[ "$output_nums" =~ ^[1-9][0-9]*$ ]]; then
             break
         else
@@ -183,7 +183,7 @@ build_new_containers() {
         fi
     done
     green "Is IPV6 enabled for each chick?(Leave blank N by default, no V6 address is set):"
-    reading "每个小鸡是否启用IPV6？(默认留空为N，不设置V6地址)：" is_enabled_ipv6
+    reading "每个容器是否启用IPV6？(默认留空为N，不设置V6地址)：" is_enabled_ipv6
     sys_bit=""
     sysarch="$(uname -m)"
     case "${sysarch}" in
@@ -197,7 +197,7 @@ build_new_containers() {
     esac
     while true; do
         green "What is the system of each container? (Note that the incoming parameter is the system name + version number, e.g. debian11, ubuntu20, centos7):"
-        reading "每个小鸡的系统是什么？(注意传入参数为系统名字+版本号，如：debian11、ubuntu20、centos7)：" system
+        reading "每个容器的系统是什么？(注意传入参数为系统名字+版本号，如：debian11、ubuntu20、centos7)：" system
         a="${system%%[0-9]*}"
         b="${system##*[!0-9.]}"
         output=$(lxc image list images:${a}/${b} --format=json | jq -r --arg ARCHITECTURE "$sys_bit" '.[] | select(.type == "container" and .architecture == $ARCHITECTURE) | .aliases[0].name' | head -n 1)
@@ -236,5 +236,5 @@ pre_check
 check_log
 build_new_containers
 green "Generating new chicks is complete"
-green "生成新的小鸡完毕"
+green "生成新的容器完毕"
 check_log

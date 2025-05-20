@@ -184,7 +184,7 @@ while true; do
 done
 while true; do
     _green "How large a storage pool does the host need to open? (The storage pool is the size of the sum of the ct's hard disk, it is recommended that the SWAP and storage pool add up to 95% of the space of the hen's hard disk, note that it is in GB, enter 10 if you need 10G storage pool):"
-    reading "宿主机需要开设多大的存储池？(存储池就是小鸡硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
+    reading "宿主机需要开设多大的存储池？(存储池就是容器硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
     if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
         break
     else
@@ -377,5 +377,5 @@ iptables -t nat -A POSTROUTING -j MASQUERADE
 _green "脚本当天运行次数:${TODAY}，累计运行次数:${TOTAL}"
 _green "If you need to turn on more than 100 cts, it is recommended to wait for a few minutes before performing a reboot to reboot the machine to make the settings take effect"
 _green "The reboot will ensure that the DNS detection mechanism takes effect, otherwise the batch opening process may cause the host's DNS to be overwritten by the merchant's preset"
-_green "如果你需要开启超过100个小鸡，建议等待几分钟后执行 reboot 重启本机以使得设置生效"
+_green "如果你需要开启超过100个容器，建议等待几分钟后执行 reboot 重启本机以使得设置生效"
 _green "重启后可以保证DNS的检测机制生效，否则批量开启过程中可能导致宿主机的DNS被商家预设覆盖，所以最好重启系统一次"

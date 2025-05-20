@@ -1,7 +1,7 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
 # 2023.06.29
-# 预检测本机是否符合开设小鸡的要求
+# 预检测本机是否符合开设LXC容器的要求
 
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
