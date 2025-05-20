@@ -16,7 +16,8 @@ for ((int = 0; int < ${#REGEX[@]}; int++)); do
         [[ -n $SYSTEM ]] && break
     fi
 done
-
+TRIED_STORAGE_FILE="/usr/local/bin/incus_tried_storage"
+INSTALLED_STORAGE_FILE="/usr/local/bin/incus_installed_storage"
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p /usr/local/bin
 fi
@@ -484,7 +485,7 @@ main() {
     statistics_of_run_times
     install_lxd
     configure_resources
-    init_lxd_storage
+    setup_storage
     setup_swap
     configure_lxd_network
     download_preset_files
