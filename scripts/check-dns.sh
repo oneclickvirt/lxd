@@ -86,14 +86,13 @@ write_resolv_conf() {
     echo "写入 /etc/resolv.conf ..."
     {
         echo "# 由 /usr/local/bin/check-dns.sh 生成，覆盖写入"
-        echo "search spiritlhl.net"
         for dns in "${DNS_SERVERS_IPV4[@]}"; do
             echo "nameserver $dns"
         done
         for dns in "${DNS_SERVERS_IPV6[@]}"; do
             echo "nameserver $dns"
         done
-    } >/etc/resolv.conf
+    } >>/etc/resolv.conf
     echo "/etc/resolv.conf 更新完成"
 }
 
