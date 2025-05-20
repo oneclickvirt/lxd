@@ -134,6 +134,7 @@ install_base_packages() {
     install_package jq
     install_package uidmap
     install_package ipcalc
+    install_package unzip
 }
 
 install_lxd() {
