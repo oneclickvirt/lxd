@@ -269,7 +269,7 @@ init_storage_backend() {
     if [ "$backend" = "btrfs" ] && ! is_storage_installed "btrfs" ] && ! command -v btrfs >/dev/null; then
         _yellow "正在安装 btrfs-progs..."
         _yellow "Installing btrfs-progs..."
-        $PACKAGETYPE_INSTALL btrfs-progs
+        install_package btrfs-progs
         record_installed_storage "btrfs"
         modprobe btrfs || true
         _green "无法加载btrfs模块。请重启本机再次执行本脚本以加载btrfs内核。"
@@ -279,7 +279,7 @@ init_storage_backend() {
     elif [ "$backend" = "lvm" ] && ! is_storage_installed "lvm" ] && ! command -v lvm >/dev/null; then
         _yellow "正在安装 lvm2..."
         _yellow "Installing lvm2..."
-        $PACKAGETYPE_INSTALL lvm2
+        install_package lvm2
         record_installed_storage "lvm"
         modprobe dm-mod || true
         _green "无法加载LVM模块。请重启本机再次执行本脚本以加载LVM内核。"
@@ -289,7 +289,7 @@ init_storage_backend() {
     elif [ "$backend" = "zfs" ] && ! is_storage_installed "zfs" ] && ! command -v zfs >/dev/null; then
         _yellow "正在安装 zfsutils-linux..."
         _yellow "Installing zfsutils-linux..."
-        $PACKAGETYPE_INSTALL zfsutils-linux
+        install_package zfsutils-linux
         record_installed_storage "zfs"
         modprobe zfs || true
         _green "无法加载ZFS模块。请重启本机再次执行本脚本以加载ZFS内核。"
@@ -299,7 +299,7 @@ init_storage_backend() {
     elif [ "$backend" = "ceph" ] && ! is_storage_installed "ceph" ] && ! command -v ceph >/dev/null; then
         _yellow "正在安装 ceph-common..."
         _yellow "Installing ceph-common..."
-        $PACKAGETYPE_INSTALL ceph-common
+        install_package ceph-common
         record_installed_storage "ceph"
     fi
     if [ "$backend" = "btrfs" ] && is_storage_installed "btrfs" ] && ! grep -q btrfs /proc/filesystems; then
