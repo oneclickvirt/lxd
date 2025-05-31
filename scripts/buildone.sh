@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2025.04.22
+# 2025.05.31
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian12)
@@ -85,7 +85,7 @@ process_image() {
 
 # 处理自定义镜像
 process_self_fixed_images() {
-    self_fixed_images=($(curl -slk -m 6 ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd_images/main/${sys_bit}_fixed_images.txt))
+    self_fixed_images=($(curl -slk -m 6 ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd_images/main/${sys_bit}_all_images.txt))
     for image_name in "${self_fixed_images[@]}"; do
         if [ -z "${b}" ]; then
             if [[ "$image_name" == "${a}"* ]]; then
