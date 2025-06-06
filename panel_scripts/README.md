@@ -7,7 +7,7 @@ curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinsta
 ```
 
 ```shell
-bash lxd_install.sh
+bash lxdinstall.sh
 ```
 
 ```shell
