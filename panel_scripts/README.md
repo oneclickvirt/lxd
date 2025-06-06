@@ -3,7 +3,7 @@
 不要使用，仅对接本人自建网站，网站不开源
 
 ```shell
-curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxd_install.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
+curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 ```
 
 ```shell
