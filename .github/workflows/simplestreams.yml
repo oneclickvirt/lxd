@@ -1,0 +1,197 @@
+name: Simplestreams 
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 安装依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip curl
+
+      - name: 获取所有 Releases 信息
+        id: get_releases
+        run: |
+          curl -s "https://api.github.com/repos/${{ github.repository }}/releases" > releases.json
+          echo "::set-output name=data::$(cat releases.json | jq -c .)"
+
+      - name: 创建或获取 processed Release ID
+        id: get_processed_release
+        run: |
+          # 查询是否存在名为 processed 的 Release
+          existing_release=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases" | jq '.[] | select(.tag_name=="processed") | .id')
+          if [ -z "$existing_release" ]; then
+            # 创建 processed Release
+            echo "Creating new release 'processed'..."
+            release_response=$(curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"tag_name":"processed","name":"Processed Assets","draft":false,"prerelease":false}' \
+              "https://api.github.com/repos/${{ github.repository }}/releases")
+            processed_id=$(echo "$release_response" | jq '.id')
+          else
+            echo "Found existing release 'processed': $existing_release"
+            processed_id=$existing_release
+          fi
+          echo "::set-output name=release_id::$processed_id"
+
+      - name: 处理并上传解压文件
+        env:
+          RELEASES_DATA: ${{ steps.get_releases.outputs.data }}
+          PROCESSED_RELEASE_ID: ${{ steps.get_processed_release.outputs.release_id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir work
+          cd work
+
+          echo "$RELEASES_DATA" | jq -c '.[]' | while read -r release; do
+            tag_name=$(echo "$release" | jq -r '.tag_name')
+            # 跳过 processed Release 自己，避免递归
+            if [ "$tag_name" = "processed" ]; then
+              continue
+            fi
+
+            assets=$(echo "$release" | jq -c '.assets[]')
+            echo "$assets" | while read -r asset; do
+              name=$(echo "$asset" | jq -r '.name')
+              url=$(echo "$asset" | jq -r '.browser_download_url')
+
+              # 只处理 zip 文件，且符合命名格式
+              if [[ "$name" =~ ^([a-z0-9]+)_([0-9a-z\.\-]+)_([a-z0-9]+)_([a-z0-9]+)_([a-z]+)\.zip$ ]]; then
+                os="${BASH_REMATCH[1]}"
+                version="${BASH_REMATCH[2]}"
+                codename="${BASH_REMATCH[3]}"
+                arch="${BASH_REMATCH[4]}"
+                variant="${BASH_REMATCH[5]}"
+
+                echo "Processing $name from release $tag_name"
+
+                # 下载 zip
+                curl -L -o image.zip "$url"
+
+                # 解压
+                unzip -o image.zip
+
+                # 重命名并准备上传的文件名（确保唯一且可识别）
+                rootfs_file="${os}-${version}-${arch}-${variant}-rootfs.squashfs"
+                lxd_file="${os}-${version}-${arch}-${variant}-lxd.tar.xz"
+
+                if [ ! -f rootfs.squashfs ] || [ ! -f lxd.tar.xz ]; then
+                  echo "缺少必须文件 rootfs.squashfs 或 lxd.tar.xz，跳过 $name"
+                  continue
+                fi
+
+                mv rootfs.squashfs "$rootfs_file"
+                mv lxd.tar.xz "$lxd_file"
+
+                # 上传 rootfs 文件
+                echo "Uploading $rootfs_file ..."
+                curl --fail -X POST \
+                  -H "Authorization: token $GITHUB_TOKEN" \
+                  -H "Content-Type: application/octet-stream" \
+                  --data-binary @"$rootfs_file" \
+                  "https://uploads.github.com/repos/$REPO/releases/$PROCESSED_RELEASE_ID/assets?name=$(basename $rootfs_file)"
+
+                # 上传 lxd 文件
+                echo "Uploading $lxd_file ..."
+                curl --fail -X POST \
+                  -H "Authorization: token $GITHUB_TOKEN" \
+                  -H "Content-Type: application/octet-stream" \
+                  --data-binary @"$lxd_file" \
+                  "https://uploads.github.com/repos/$REPO/releases/$PROCESSED_RELEASE_ID/assets?name=$(basename $lxd_file)"
+
+                # 清理
+                rm "$rootfs_file" "$lxd_file" image.zip
+              fi
+            done
+          done
+
+      - name: 生成 Simplestreams JSON
+        env:
+          PROCESSED_RELEASE_ID: ${{ steps.get_processed_release.outputs.release_id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p pages/images/streams/v1
+          INDEX_JSON="pages/images/streams/v1/index.json"
+          PRODUCTS_JSON="pages/images/streams/v1/products.json"
+          echo '{ "index": { "images": {} } }' > $INDEX_JSON
+          echo '{ "products": {} }' > $PRODUCTS_JSON
+
+          # 获取 processed Release 资产列表
+          assets=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/releases/$PROCESSED_RELEASE_ID/assets")
+
+          # 解析 assets，将 rootfs 和 lxd 文件配对，构建 JSON
+          echo "$assets" | jq -c '.[]' | while read -r asset; do
+            name=$(echo "$asset" | jq -r '.name')
+            url=$(echo "$asset" | jq -r '.browser_download_url')
+
+            if [[ "$name" =~ ^([a-z0-9]+)-([0-9a-z\.\-]+)-([a-z0-9]+)-([a-z]+)-(rootfs|lxd)\.(squashfs|tar\.xz)$ ]]; then
+              os="${BASH_REMATCH[1]}"
+              version="${BASH_REMATCH[2]}"
+              arch="${BASH_REMATCH[3]}"
+              variant="${BASH_REMATCH[4]}"
+              filetype="${BASH_REMATCH[5]}" # rootfs 或 lxd
+
+              product_id="${os}-${version}-${arch}-${variant}"
+
+              # 缓存当前资产
+              echo "{\"name\":\"$name\",\"url\":\"$url\",\"product_id\":\"$product_id\",\"filetype\":\"$filetype\",\"version\":\"$version\",\"arch\":\"$arch\"}" >> /tmp/assets_list.json
+            fi
+          done
+
+          # 准备 jq 处理，先创建空的 JSON
+          echo '{"products":{}}' > products_tmp.json
+
+          # jq拼装products.json结构，先从缓存读取配对
+          cat /tmp/assets_list.json | jq -s '.' > /tmp/assets_array.json
+
+          jq -n --slurpfile assets /tmp/assets_array.json '
+            {
+              products: (
+                $assets
+                | group_by(.product_id)
+                | map(
+                    {
+                      key: .[0].product_id,
+                      value: {
+                        versions: (
+                          . 
+                          | group_by(.version)
+                          | map({
+                              key: .[0].version,
+                              value: {
+                                items: (
+                                  . 
+                                  | map({key: .arch, value: {
+                                      rootfs: (. | map(select(.filetype == "rootfs")) | .[0].url),
+                                      lxd: (. | map(select(.filetype == "lxd")) | .[0].url)
+                                    }})
+                                  | from_entries
+                                )
+                              }
+                            })
+                          | from_entries
+                        )
+                      }
+                    }
+                  )
+                | from_entries
+              )
+            }
+          ' > $PRODUCTS_JSON
+
+          # index.json 根据 products 生成
+          jq '{index: {images: ( .products | keys | map({(.): {product: .}}) | add )}}' $PRODUCTS_JSON > $INDEX_JSON
+
+      - name: 部署 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./pages
