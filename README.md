@@ -44,7 +44,7 @@ https://github.com/spiritLHLS/ecs
 
 ## Sponsor
 
-[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com/?via=server "Powered by DartNode - Free VPS for Open Source")
+[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com?aff=bonus "Powered by DartNode - Free VPS for Open Source")
 
 ## Stargazers over time
 
