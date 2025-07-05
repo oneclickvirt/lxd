@@ -81,7 +81,7 @@ for ((a = 1; a <= "$2"; a++)); do
         lxc exec "$name" -- apt-get install curl -y --fix-missing
         lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
         lxc exec "$name" -- chmod 777 ChangeMirrors.sh
-        lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --close-firewall true --backup true --updata-software false --clean-cache false --ignore-backup-tips
+        lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --backup true --updata-software false --clean-cache false --ignore-backup-tips
         lxc exec "$name" -- rm -rf ChangeMirrors.sh
     fi
     lxc exec "$name" -- sudo apt-get update -y
