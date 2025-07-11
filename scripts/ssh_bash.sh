@@ -89,6 +89,7 @@ install_required_modules
 sudo systemctl enable sshd
 sudo systemctl enable ssh
 sleep 3
+ssh-keygen -A
 sudo service ssh start
 sudo service sshd start
 sudo systemctl start sshd
@@ -98,7 +99,6 @@ if [ -f "/etc/motd" ]; then
     echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/motd
     echo '--by https://t.me/spiritlhl' >>/etc/motd
 fi
-ssh-keygen -A
 sudo service iptables stop 2>/dev/null
 chkconfig iptables off 2>/dev/null
 if [ -f "/etc/sysconfig/selinux" ]; then
