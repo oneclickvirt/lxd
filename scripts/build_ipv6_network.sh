@@ -159,7 +159,7 @@ setup_network_device_mapping() {
         lxc stop "$CONTAINER_NAME"
         sleep 3
         wait_for_container_status "$CONTAINER_NAME" "STOPPED" 24
-        lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6}
+        lxc config device add "$CONTAINER_NAME" eth1 nic nictype=routed parent=${ipv6_network_name} ipv6.address=${lxc_ipv6} nat=true
         sleep 3
         lxc start "$CONTAINER_NAME"
         handle_fe80_gateway

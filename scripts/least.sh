@@ -95,7 +95,7 @@ for ((a = 1; a <= "$2"; a++)); do
     lxc exec "$name" -- chmod +x config.sh
     lxc exec "$name" -- dos2unix config.sh
     lxc exec "$name" -- bash config.sh
-    lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
+    lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22 nat=true
     lxc config set "$name" user.description "$name $sshn $passwd"
     echo "$name $sshn $passwd" >>log
 done

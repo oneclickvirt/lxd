@@ -317,7 +317,7 @@ setup_ssh_bash() {
 
 # 配置SSH端口
 configure_ssh_port() {
-    lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
+    lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22 nat=true
 }
 
 # 配置IPv6
@@ -338,8 +338,8 @@ configure_ipv6() {
 # 配置NAT端口
 configure_nat_ports() {
     if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
-        lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
-        lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
+        lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2 nat=true
+        lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2 nat=true
     fi
 }
 
