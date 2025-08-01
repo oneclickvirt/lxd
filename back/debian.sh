@@ -14,7 +14,7 @@ lxc exec "$1" -- curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main
 lxc exec "$1" -- dos2unix ssh.sh
 lxc exec "$1" -- chmod +x ssh.sh
 lxc exec "$1" -- sudo ./ssh.sh "$2"
-lxc config device add "$1" ssh-port proxy listen=tcp:0.0.0.0:"$3" connect=tcp:127.0.0.1:22 nat=true
-lxc config device add "$1" nat-ports proxy listen=tcp:0.0.0.0:"$4"-"$5" connect=tcp:127.0.0.1:5000-5025 nat=true
+lxc config device add "$1" ssh-port proxy listen=tcp:0.0.0.0:"$3" connect=tcp:127.0.0.1:22
+lxc config device add "$1" nat-ports proxy listen=tcp:0.0.0.0:"$4"-"$5" connect=tcp:127.0.0.1:5000-5025
 echo "$2"
 rm -rf "$0"

@@ -105,9 +105,9 @@ for ((a = 1; a <= "$2"; a++)); do
   lxc exec "$name" -- chmod +x config.sh
   lxc exec "$name" -- dos2unix config.sh
   lxc exec "$name" -- bash config.sh
-  lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22 nat=true
-  lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2 nat=true
-  lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2 nat=true
+  lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
+  lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
+  lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
   lxc config set "$name" user.description "$name $sshn $passwd $nat1 $nat2"
   echo "$name $sshn $passwd $nat1 $nat2" >>log
 done
