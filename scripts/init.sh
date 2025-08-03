@@ -3,7 +3,7 @@
 # https://github.com/oneclickvirt/lxd
 # cd /root
 # ./init.sh NAT服务器前缀 数量
-# 2025.04.22
+# 2025.08.03
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -38,9 +38,9 @@ lxc config device set "$1" root limits.write 500MB
 lxc config device set "$1" root limits.read 5000iops
 lxc config device set "$1" root limits.write 5000iops
 # 网速
-lxc config device override "$1" eth0 limits.egress=300Mbit
-lxc config device override "$1" eth0 limits.ingress=300Mbit
-lxc config device override "$1" eth0 limits.max=300Mbit
+lxc config device override "$1" eth0 limits.egress=300Mbit \
+  limits.ingress=300Mbit \
+  limits.max=300Mbit
 # cpu
 lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.cpu.allowance 50%
@@ -86,6 +86,25 @@ for ((a = 1; a <= "$2"; a++)); do
   passwd=${ori:2:9}
   lxc start "$name"
   sleep 1
+  echo "Waiting for the container to start. Attempting to retrieve the container's IP address..."
+  max_retries=3
+  delay=5
+  for ((i=1; i<=max_retries; i++)); do
+      echo "Attempt $i: Waiting $delay seconds before retrieving container info..."
+      sleep $delay
+      container_ip=$(lxc list "$name" --format json | jq -r '.[0].state.network.eth0.addresses[]? | select(.family=="inet") | .address')
+      if [[ -n "$container_ip" ]]; then
+          echo "Container IPv4 address: $container_ip"
+          break
+      fi
+      delay=$((delay * 2))
+  done
+  if [[ -z "$container_ip" ]]; then
+      echo "Error: Container failed to start or no IP address was assigned."
+      exit 1
+  fi
+  ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
+  echo "Host IPv4 address: $ipv4_address"
   if [[ "${CN}" == true ]]; then
     lxc exec "$name" -- yum install -y curl
     lxc exec "$name" -- apt-get install curl -y --fix-missing
@@ -105,9 +124,15 @@ for ((a = 1; a <= "$2"; a++)); do
   lxc exec "$name" -- chmod +x config.sh
   lxc exec "$name" -- dos2unix config.sh
   lxc exec "$name" -- bash config.sh
-  lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
-  lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
-  lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
+  lxc stop "$name"
+  sleep 0.5
+  lxc config device set "$name" eth0 ipv4.address="$container_ip"
+  lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:0.0.0.0:22 nat=true
+  if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
+    lxc config device add "$name" nattcp-ports proxy listen=tcp:$ipv4_address:$nat1-$nat2 connect=tcp:0.0.0.0:$nat1-$nat2 nat=true
+    lxc config device add "$name" natudp-ports proxy listen=udp:$ipv4_address:$nat1-$nat2 connect=udp:0.0.0.0:$nat1-$nat2 nat=true
+  fi
+  lxc start "$name"
   lxc config set "$name" user.description "$name $sshn $passwd $nat1 $nat2"
   echo "$name $sshn $passwd $nat1 $nat2" >>log
 done

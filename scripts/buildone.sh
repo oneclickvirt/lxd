@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2025.05.31
+# 2025.08.03
 
 # 输入
 # ./buildone.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian12)
@@ -315,9 +315,33 @@ setup_ssh_bash() {
     lxc exec "$name" -- history -c
 }
 
-# 配置SSH端口
-configure_ssh_port() {
-    lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
+configure_port() {
+    lxc restart "$name"
+    echo "Waiting for the container to start. Attempting to retrieve the container's IP address..."
+    max_retries=3
+    delay=5
+    for ((i=1; i<=max_retries; i++)); do
+        echo "Attempt $i: Waiting $delay seconds before retrieving container info..."
+        sleep $delay
+        container_ip=$(lxc list "$name" --format json | jq -r '.[0].state.network.eth0.addresses[]? | select(.family=="inet") | .address')
+        if [[ -n "$container_ip" ]]; then
+            echo "Container IPv4 address: $container_ip"
+            break
+        fi
+        delay=$((delay * 2))
+    done
+    if [[ -z "$container_ip" ]]; then
+        echo "Error: Container failed to start or no IP address was assigned."
+        exit 1
+    fi
+    ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
+    echo "Host IPv4 address: $ipv4_address"
+    lxc config device set "$name" eth0 ipv4.address="$container_ip"
+    lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:0.0.0.0:22 nat=true
+    if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
+        lxc config device add "$name" nattcp-ports proxy listen=tcp:$ipv4_address:$nat1-$nat2 connect=tcp:0.0.0.0:$nat1-$nat2 nat=true
+        lxc config device add "$name" natudp-ports proxy listen=udp:$ipv4_address:$nat1-$nat2 connect=udp:0.0.0.0:$nat1-$nat2 nat=true
+    fi
 }
 
 # 配置IPv6
@@ -332,14 +356,6 @@ configure_ipv6() {
             fi
             ./build_ipv6_network.sh "$name"
         fi
-    fi
-}
-
-# 配置NAT端口
-configure_nat_ports() {
-    if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
-        lxc config device add "$name" nattcp-ports proxy listen=tcp:0.0.0.0:$nat1-$nat2 connect=tcp:127.0.0.1:$nat1-$nat2
-        lxc config device add "$name" natudp-ports proxy listen=udp:0.0.0.0:$nat1-$nat2 connect=udp:127.0.0.1:$nat1-$nat2
     fi
 }
 
@@ -405,8 +421,7 @@ main() {
     configure_memory
     configure_security
     setup_system
-    configure_ssh_port
-    configure_nat_ports
+    configure_port
     configure_network_speed
     cleanup_and_output
 }

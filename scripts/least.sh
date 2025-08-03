@@ -3,7 +3,7 @@
 # https://github.com/oneclickvirt/lxd
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2025.04.22
+# 2025.08.03
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -28,16 +28,16 @@ if [ -f /usr/local/bin/lxd_storage_type ]; then
 else
     storage_type="btrfs"
 fi
-lxc storage create "$1" "$storage_type" size=200MB >/dev/null 2>&1
-lxc config device override "$1" root size=200MB
+lxc storage create "$1" "$storage_type" size=1GB >/dev/null 2>&1
+lxc config device override "$1" root size=1GB
+lxc config device set "$1" root limits.max 1GB
 lxc config device set "$1" root limits.read 500MB
 lxc config device set "$1" root limits.write 500MB
 lxc config device set "$1" root limits.read 5000iops
 lxc config device set "$1" root limits.write 5000iops
-lxc config device set "$1" root limits.max 300MB
-lxc config device override "$1" eth0 limits.egress=300Mbit
-lxc config device override "$1" eth0 limits.ingress=300Mbit
-lxc config device override "$1" eth0 limits.max=300Mbit
+lxc config device override "$1" eth0 limits.egress=300Mbit \
+  limits.ingress=300Mbit \
+  limits.max=300Mbit
 lxc config set "$1" limits.cpu.priority 0
 lxc config set "$1" limits.cpu.allowance 50%
 lxc config set "$1" limits.cpu.allowance 25ms/100ms
@@ -95,7 +95,11 @@ for ((a = 1; a <= "$2"; a++)); do
     lxc exec "$name" -- chmod +x config.sh
     lxc exec "$name" -- dos2unix config.sh
     lxc exec "$name" -- bash config.sh
-    lxc config device add "$name" ssh-port proxy listen=tcp:0.0.0.0:$sshn connect=tcp:127.0.0.1:22
+    lxc stop "$name"
+    sleep 0.5
+    lxc config device set "$name" eth0 ipv4.address="$container_ip"
+    lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:0.0.0.0:22 nat=true
+    lxc start "$name"
     lxc config set "$name" user.description "$name $sshn $passwd"
     echo "$name $sshn $passwd" >>log
 done
