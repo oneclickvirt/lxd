@@ -336,10 +336,11 @@ configure_port() {
     fi
     ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
     echo "Host IPv4 address: $ipv4_address"
-    if lxc config device show "$name" | grep -q '^eth0:'; then
-        lxc config device override "$name" eth0 ipv4.address="$container_ip"
-    else
-        lxc config device set "$name" eth0 ipv4.address "$container_ip"
+    if ! lxc config device override "$name" eth0 ipv4.address="$container_ip" 2>/dev/null; then
+        if ! lxc config device set "$name" eth0 ipv4.address "$container_ip" 2>/dev/null; then
+            echo "Error: Failed to set ipv4.address for device 'eth0' in container '$name'." >&2
+            exit 1
+        fi
     fi
     lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:$container_ip:22 nat=true
     if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
