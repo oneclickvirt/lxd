@@ -124,15 +124,16 @@ for ((a = 1; a <= "$2"; a++)); do
   lxc exec "$name" -- chmod +x config.sh
   lxc exec "$name" -- dos2unix config.sh
   lxc exec "$name" -- bash config.sh
-  lxc stop "$name"
-  sleep 0.5
-  lxc config device set "$name" eth0 ipv4.address="$container_ip"
+  if lxc config device show "$name" | grep -q '^eth0:'; then
+      lxc config device override "$name" eth0 ipv4.address="$container_ip"
+  else
+      lxc config device set "$name" eth0 ipv4.address "$container_ip"
+  fi
   lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:0.0.0.0:22 nat=true
   if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
     lxc config device add "$name" nattcp-ports proxy listen=tcp:$ipv4_address:$nat1-$nat2 connect=tcp:0.0.0.0:$nat1-$nat2 nat=true
     lxc config device add "$name" natudp-ports proxy listen=udp:$ipv4_address:$nat1-$nat2 connect=udp:0.0.0.0:$nat1-$nat2 nat=true
   fi
-  lxc start "$name"
   lxc config set "$name" user.description "$name $sshn $passwd $nat1 $nat2"
   echo "$name $sshn $passwd $nat1 $nat2" >>log
 done

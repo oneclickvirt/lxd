@@ -76,6 +76,25 @@ for ((a = 1; a <= "$2"; a++)); do
     passwd=${ori:2:9}
     lxc start "$name"
     sleep 1
+    echo "Waiting for the container to start. Attempting to retrieve the container's IP address..."
+    max_retries=3
+    delay=5
+    for ((i=1; i<=max_retries; i++)); do
+        echo "Attempt $i: Waiting $delay seconds before retrieving container info..."
+        sleep $delay
+        container_ip=$(lxc list "$name" --format json | jq -r '.[0].state.network.eth0.addresses[]? | select(.family=="inet") | .address')
+        if [[ -n "$container_ip" ]]; then
+            echo "Container IPv4 address: $container_ip"
+            break
+        fi
+        delay=$((delay * 2))
+    done
+    if [[ -z "$container_ip" ]]; then
+        echo "Error: Container failed to start or no IP address was assigned."
+        exit 1
+    fi
+    ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
+    echo "Host IPv4 address: $ipv4_address"
     if [[ "${CN}" == true ]]; then
         lxc exec "$name" -- yum install -y curl
         lxc exec "$name" -- apt-get install curl -y --fix-missing
@@ -95,11 +114,12 @@ for ((a = 1; a <= "$2"; a++)); do
     lxc exec "$name" -- chmod +x config.sh
     lxc exec "$name" -- dos2unix config.sh
     lxc exec "$name" -- bash config.sh
-    lxc stop "$name"
-    sleep 0.5
-    lxc config device set "$name" eth0 ipv4.address="$container_ip"
+    if lxc config device show "$name" | grep -q '^eth0:'; then
+        lxc config device override "$name" eth0 ipv4.address="$container_ip"
+    else
+        lxc config device set "$name" eth0 ipv4.address "$container_ip"
+    fi
     lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:0.0.0.0:22 nat=true
-    lxc start "$name"
     lxc config set "$name" user.description "$name $sshn $passwd"
     echo "$name $sshn $passwd" >>log
 done

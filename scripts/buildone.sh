@@ -336,15 +336,16 @@ configure_port() {
     fi
     ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
     echo "Host IPv4 address: $ipv4_address"
-    lxc stop "$name"
-    sleep 0.5
-    lxc config device set "$name" eth0 ipv4.address="$container_ip"
-    lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:0.0.0.0:22 nat=true
+    if lxc config device show "$name" | grep -q '^eth0:'; then
+        lxc config device override "$name" eth0 ipv4.address="$container_ip"
+    else
+        lxc config device set "$name" eth0 ipv4.address "$container_ip"
+    fi
+    lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:$container_ip:22 nat=true
     if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
         lxc config device add "$name" nattcp-ports proxy listen=tcp:$ipv4_address:$nat1-$nat2 connect=tcp:0.0.0.0:$nat1-$nat2 nat=true
         lxc config device add "$name" natudp-ports proxy listen=udp:$ipv4_address:$nat1-$nat2 connect=udp:0.0.0.0:$nat1-$nat2 nat=true
     fi
-    lxc start "$name"
 }
 
 # 配置IPv6
