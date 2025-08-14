@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2025.06.03
+# 2025.08.14
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -106,16 +106,21 @@ done
 cp /root/ssh_sh.sh /usr/local/bin
 cp /root/ssh_bash.sh /usr/local/bin
 cp /root/config.sh /usr/local/bin
-sysctl net.ipv4.ip_forward=1
+sysctl -w net.ipv4.ip_forward=1 >/dev/null
 sysctl_path=$(which sysctl)
-if grep -q "^net.ipv4.ip_forward=1" /etc/sysctl.conf; then
-    if grep -q "^#net.ipv4.ip_forward=1" /etc/sysctl.conf; then
-        sed -i 's/^#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
+if [ -f "/etc/sysctl.conf" ]; then
+    if grep -q "^net.ipv4.ip_forward=1" /etc/sysctl.conf; then
+        sed -i 's/^#\?net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
+    else
+        echo "net.ipv4.ip_forward=1" >>/etc/sysctl.conf
     fi
-else
-    echo "net.ipv4.ip_forward=1" >>/etc/sysctl.conf
 fi
-${sysctl_path} -p
+SYSCTL_D_CONF="/etc/sysctl.d/99-custom.conf"
+mkdir -p /etc/sysctl.d
+if ! grep -q "^net.ipv4.ip_forward=1" "$SYSCTL_D_CONF" 2>/dev/null; then
+    echo "net.ipv4.ip_forward=1" >>"$SYSCTL_D_CONF"
+fi
+${sysctl_path} --system >/dev/null
 lxc network set lxdbr0 raw.dnsmasq dhcp-option=6,8.8.8.8,8.8.4.4
 lxc network set lxdbr0 dns.mode managed
 # managed none dynamic
