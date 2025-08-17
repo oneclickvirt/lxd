@@ -191,3 +191,8 @@ else
 fi
 # 设置IPV4优先
 sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
+lxc remote list
+lxc remote remove spiritlhl
+lxc remote add spiritlhl https://lxdimages.spiritlhl.net --protocol simplestreams --public
+lxc image list spiritlhl:debian
+lxc remote list
