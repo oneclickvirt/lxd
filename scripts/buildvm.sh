@@ -461,8 +461,11 @@ configure_network() {
         fi
     fi
     configure_firewall_ports
+    echo "Will wait 15 seconds for the virtual machine to shut down for subsequent configuration"
+    echo "将等待15秒等待虚拟机关机以进行后续的配置"
+    sleep 15
     lxc stop "$name"
-    sleep 2
+    sleep 5
     configure_network_limits
     set_ip_address_binding "$vm_ip"
     configure_port_mapping "$vm_ip" "$ipv4_address"
