@@ -73,10 +73,10 @@ pre_check() {
         chmod 777 config.sh
         dos2unix config.sh
     fi
-    if [ ! -f buildone.sh ]; then
-        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/buildone.sh" -o buildone.sh
-        chmod 777 buildone.sh
-        dos2unix buildone.sh
+    if [ ! -f buildct.sh ]; then
+        curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/buildct.sh" -o buildct.sh
+        chmod 777 buildct.sh
+        dos2unix buildct.sh
     fi
 }
 
@@ -226,7 +226,7 @@ build_new_containers() {
         ssh_port=$(($ssh_port + 1))
         public_port_start=$(($public_port_end + 1))
         public_port_end=$(($public_port_start + 24))
-        ./buildone.sh $container_name $cpu_nums $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums $status_ipv6 $system
+        ./buildct.sh $container_name $cpu_nums $memory_nums $disk_nums $ssh_port $public_port_start $public_port_end $input_nums $output_nums $status_ipv6 $system
         cat "$container_name" >>log
         rm -rf $container_name
     done

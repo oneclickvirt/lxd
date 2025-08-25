@@ -395,7 +395,7 @@ download_preset_files() {
         "https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_bash.sh"
         "https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_sh.sh"
         "https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/config.sh"
-        "https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/buildone.sh"
+        "https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/buildct.sh"
     )
     for file in "${files[@]}"; do
         filename=$(basename "$file")
