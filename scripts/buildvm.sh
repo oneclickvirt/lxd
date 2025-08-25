@@ -335,9 +335,9 @@ create_vm() {
 }
 
 configure_limits() {
-    lxc config set "$name" limits.cpu.priority 0
-    lxc config set "$name" limits.memory.swap true
-    lxc config set "$name" security.secureboot false
+    lxc config set "$name" limits.cpu.allowance 10%
+    lxc config set "$name" limits.memory.enforce hard
+    lxc config set "$name" security.secureboot false || true
 }
 
 setup_vm() {
