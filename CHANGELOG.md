@@ -1,10 +1,8 @@
-## 待解决的问题
-
-- LXC模板构建自定义的模板提前初始化好部分内容并发布到自己的镜像仓库中，避免原始模板过于干净导致初始化时间过长，以及支持一些旧版本的系统(centos7，centos8，debian8，debian9)，相关资料[1](https://github.com/lxc/lxc-ci/tree/main/images)、[2](https://github.com/lxc/distrobuilder)、[3](https://cloud.tencent.com/developer/article/2348016?areaId=106001)
-- 构建WIN的系统镜像，相关资料[1](https://www.microsoft.com/software-download/windows11), [2](https://discourse.ubuntu.com/t/how-to-install-a-windows-11-vm-using-lxd/28940), [3](https://help.aliyun.com/zh/simple-application-server/use-cases/use-vnc-to-build-guis-on-ubuntu-18-04-and-20-04#21e0b772d7fgc)
-- 使得宿主机支持更多的系统，不仅限于ubuntu和debian系做宿主机
-
 ## 更新日志
+
+2025.08.14
+
+- 适配debian13系统的新特征，确保安装和使用不出现异常设置问题
 
 2025.08.03
 
