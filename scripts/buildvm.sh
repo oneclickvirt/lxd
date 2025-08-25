@@ -359,7 +359,6 @@ setup_vm() {
         setup_mirror_and_packages
     fi
     setup_ssh
-    configure_network
 }
 
 setup_mirror_and_packages() {
@@ -421,10 +420,13 @@ setup_ssh_bash() {
 configure_network() {
     lxc restart "$name"
     echo "Waiting for the VM to start. Attempting to retrieve the VM's IP address..."
+    echo "等待虚拟机启动，尝试获取虚拟机IP地址..."
     max_retries=5
     delay=10
+    vm_ip=""
     for ((i=1; i<=max_retries; i++)); do
         echo "Attempt $i: Waiting $delay seconds before retrieving VM info..."
+        echo "尝试 $i: 等待 $delay 秒后获取虚拟机信息..."
         sleep $delay
         vm_ip=$(lxc list "$name" --format json | jq -r '.[0].state.network.enp5s0.addresses[]? | select(.family=="inet") | .address' 2>/dev/null)
         if [[ -z "$vm_ip" ]]; then
@@ -432,18 +434,23 @@ configure_network() {
         fi
         if [[ -n "$vm_ip" ]]; then
             echo "VM IPv4 address: $vm_ip"
+            echo "虚拟机IPv4地址: $vm_ip"
             break
         fi
         delay=$((delay + 5))
     done
     if [[ -z "$vm_ip" ]]; then
         echo "Error: VM failed to start or no IP address was assigned."
+        echo "错误：虚拟机启动失败或未分配IP地址"
         exit 1
     fi
     ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
     echo "Host IPv4 address: $ipv4_address"
+    echo "主机IPv4地址: $ipv4_address"
     if [ -n "$enable_ipv6" ]; then
         if [ "$enable_ipv6" == "y" ]; then
+            echo "Configuring IPv6..."
+            echo "配置IPv6..."
             lxc exec "$name" -- echo '*/1 * * * * curl -m 6 -s ipv6.ip.sb && curl -m 6 -s ipv6.ip.sb' | crontab -
             sleep 1
             if [ ! -f "./build_ipv6_network.sh" ]; then
@@ -453,7 +460,20 @@ configure_network() {
             ./build_ipv6_network.sh "$name"
         fi
     fi
+    configure_firewall_ports
+    lxc stop "$name"
+    sleep 2
+    configure_network_limits
+    set_ip_address_binding "$vm_ip"
+    configure_port_mapping "$vm_ip" "$ipv4_address"
+    lxc start "$name"
+    echo "Network configuration completed successfully!"
+    echo "网络配置成功完成！"
+}
+
+configure_firewall_ports() {
     if command -v firewall-cmd >/dev/null 2>&1; then
+        echo "Configuring firewall-cmd ports..."
         firewall-cmd --permanent --add-port=${sshn}/tcp
         if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
             firewall-cmd --permanent --add-port=${nat1}-${nat2}/tcp
@@ -461,6 +481,7 @@ configure_network() {
         fi
         firewall-cmd --reload
     elif command -v ufw >/dev/null 2>&1; then
+        echo "Configuring ufw ports..."
         ufw allow ${sshn}/tcp
         if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
             ufw allow ${nat1}:${nat2}/tcp
@@ -468,31 +489,51 @@ configure_network() {
         fi
         ufw reload
     fi
-    lxc stop "$name"
-    sleep 0.5
+}
+
+configure_network_limits() {
+    echo "Configuring network speed limits..."
+    echo "配置网络限速..."
     if ((in == out)); then
         speed_limit="$in"
     else
         speed_limit=$(($in > $out ? $in : $out))
     fi
-    lxc config device override "$name" enp5s0 limits.egress="$out"Mbit limits.ingress="$in"Mbit limits.max="$speed_limit"Mbit 2>/dev/null || \
-    lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit limits.max="$speed_limit"Mbit
+    if ! lxc config device override "$name" enp5s0 limits.egress="$out"Mbit limits.ingress="$in"Mbit limits.max="$speed_limit"Mbit 2>/dev/null; then
+        echo "Failed to configure enp5s0, trying eth0..."
+        lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit limits.max="$speed_limit"Mbit
+    fi
+}
+
+set_ip_address_binding() {
+    local vm_ip="$1"
+    echo "Setting IP address binding to $vm_ip..."
+    echo "设置IP地址绑定到 $vm_ip..."
     if ! lxc config device set "$name" enp5s0 ipv4.address "$vm_ip" 2>/dev/null; then
         if ! lxc config device override "$name" enp5s0 ipv4.address="$vm_ip" 2>/dev/null; then
             if ! lxc config device set "$name" eth0 ipv4.address "$vm_ip" 2>/dev/null; then
                 if ! lxc config device override "$name" eth0 ipv4.address="$vm_ip" 2>/dev/null; then
-                    echo "Error: Failed to apply ipv4.address to network device in VM '$name'." >&2
-                    exit 1
+                    echo "Warning: Failed to bind IP address, continuing anyway..."
+                    echo "警告：IP地址绑定失败，继续执行..."
                 fi
             fi
         fi
     fi
-    lxc config device add "$name" ssh-port proxy listen=tcp:$ipv4_address:$sshn connect=tcp:0.0.0.0:22 nat=true
+}
+
+configure_port_mapping() {
+    local vm_ip="$1"
+    local host_ip="$2"
+    echo "Configuring port mapping..."
+    echo "配置端口映射..."
+    echo "Adding SSH port mapping: $host_ip:$sshn -> $vm_ip:22"
+    lxc config device add "$name" ssh-port proxy listen=tcp:$host_ip:$sshn connect=tcp:$vm_ip:22 nat=true
     if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
-        lxc config device add "$name" nattcp-ports proxy listen=tcp:$ipv4_address:$nat1-$nat2 connect=tcp:0.0.0.0:$nat1-$nat2 nat=true
-        lxc config device add "$name" natudp-ports proxy listen=udp:$ipv4_address:$nat1-$nat2 connect=udp:0.0.0.0:$nat1-$nat2 nat=true
+        echo "Adding NAT TCP port mapping: $host_ip:$nat1-$nat2 -> $vm_ip:$nat1-$nat2"
+        lxc config device add "$name" nattcp-ports proxy listen=tcp:$host_ip:$nat1-$nat2 connect=tcp:$vm_ip:$nat1-$nat2 nat=true
+        echo "Adding NAT UDP port mapping: $host_ip:$nat1-$nat2 -> $vm_ip:$nat1-$nat2"
+        lxc config device add "$name" natudp-ports proxy listen=udp:$host_ip:$nat1-$nat2 connect=udp:$vm_ip:$nat1-$nat2 nat=true
     fi
-    lxc start "$name"
 }
 
 cleanup_and_finish() {
@@ -534,6 +575,7 @@ main() {
     create_vm
     configure_limits
     setup_vm
+    configure_network
     cleanup_and_finish
 }
 main "$@"
