@@ -367,23 +367,16 @@ configure_ipv6() {
 wait_for_container_ready_to_shutdown() {
     echo "Waiting for container to complete initialization..."
     echo "等待容器完成初始化配置..."
-    local max_wait=12
+    local max_wait=18
     local check_interval=6
     local waited=0
     while [ $waited -lt $max_wait ]; do
-        if incus exec "$name" -- pgrep -f "apt|yum|pacman|apk|opkg" > /dev/null 2>&1; then
+        if lxc exec "$name" -- pgrep -f "apt|yum|pacman|apk|opkg" > /dev/null 2>&1; then
             echo "Container is executing package management operations, continuing to wait..."
             echo "容器正在执行包管理操作，继续等待..."
-        elif incus exec "$name" -- pgrep -f "ssh|sshd|config" > /dev/null 2>&1; then
+        elif lxc exec "$name" -- pgrep -f "ssh|sshd|config" > /dev/null 2>&1; then
             echo "Container is executing SSH configuration, continuing to wait..."
             echo "容器正在执行SSH配置，继续等待..."
-        else
-            local load_avg=$(incus exec "$name" -- cat /proc/loadavg 2>/dev/null | awk '{print $1}' | cut -d. -f1)
-            if [ -n "$load_avg" ] && [ "$load_avg" -lt 2 ]; then
-                echo "Container load has decreased, preparing to shutdown..."
-                echo "容器负载已降低，准备关机..."
-                break
-            fi
         fi
         sleep $check_interval
         waited=$((waited + check_interval))
@@ -399,11 +392,11 @@ wait_for_container_ready_to_shutdown() {
 safe_shutdown_container() {
     echo "Safely shutting down container..."
     echo "正在安全关闭容器..."
-    incus stop "$name" --timeout=30
+    lxc stop "$name" --timeout=30
     local max_shutdown_wait=30
     local waited=0
     while [ $waited -lt $max_shutdown_wait ]; do
-        local container_status=$(incus info "$name" | grep "Status:" | awk '{print $2}')
+        local container_status=$(lxc info "$name" | grep "Status:" | awk '{print $2}')
         if [ "$container_status" = "STOPPED" ]; then
             echo "Container has been safely stopped"
             echo "容器已安全停止"

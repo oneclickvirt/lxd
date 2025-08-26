@@ -430,13 +430,6 @@ wait_for_vm_ready_to_shutdown() {
         elif lxc exec "$name" -- pgrep -f "ssh|sshd|config" > /dev/null 2>&1; then
             echo "VM is executing SSH configuration, continue waiting..."
             echo "虚拟机正在执行SSH配置，继续等待..."
-        else
-            local load_avg=$(lxc exec "$name" -- cat /proc/loadavg 2>/dev/null | awk '{print $1}' | cut -d. -f1)
-            if [ -n "$load_avg" ] && [ "$load_avg" -lt 2 ]; then
-                echo "VM load has decreased, preparing to shutdown..."
-                echo "虚拟机负载已降低，准备关机..."
-                break
-            fi
         fi
         sleep $check_interval
         waited=$((waited + check_interval))
