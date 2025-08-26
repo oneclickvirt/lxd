@@ -420,11 +420,12 @@ configure_network_speed() {
     else
         speed_limit=$(($in > $out ? $in : $out))
     fi
-    lxc config device override "$name" eth0 limits.egress="$out"Mbit limits.ingress="$in"Mbit limits.max="$speed_limit"Mbit
+    lxc config device set "$name" eth0 limits.egress "$out"Mbit
+    lxc config device set "$name" eth0 limits.ingress "$in"Mbit  
+    lxc config device set "$name" eth0 limits.max "$speed_limit"Mbit
     lxc start "$name"
 }
 
-# 清理和输出结果
 cleanup_and_output() {
     rm -rf ssh_bash.sh config.sh ssh_sh.sh
     if echo "$system" | grep -qiE "alpine"; then
