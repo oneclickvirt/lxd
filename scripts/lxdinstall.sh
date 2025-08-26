@@ -184,21 +184,59 @@ install_lxd() {
 }
 
 configure_resources() {
-    if [ "${noninteractive:-false}" = true ]; then
-        available_space=$(get_available_space)
-        disk_nums=$((available_space - 1))
-    else
-        while true; do
-            _green "How large a storage pool does the host need to open? (Note that it is in GB, enter 10 if you need 10G storage pool):"
-            reading "宿主机需要开设多大的存储池？(注意是GB为单位，需要10G存储池则输入10)：" disk_nums
-            if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
-                break
-            else
-                _yellow "Invalid input, please enter a positive integer."
-                _yellow "输入无效，请输入一个正整数。"
-            fi
-        done
-    fi
+   if [ "${noninteractive:-false}" = true ]; then
+       available_space=$(get_available_space)
+       disk_nums=$((available_space - 1))
+       storage_path=""
+   else
+       while true; do
+           _green "Do you want to specify a custom path for the storage pool? (y/n) [n]:"
+           reading "是否需要指定存储池的自定义路径？(y/n) [n]：" use_custom_path
+           use_custom_path=${use_custom_path:-n}
+           if [[ "$use_custom_path" =~ ^[yYnN]$ ]]; then
+               break
+           else
+               _yellow "Please enter y or n."
+               _yellow "请输入 y 或 n。"
+           fi
+       done
+       if [[ "$use_custom_path" =~ ^[yY]$ ]]; then
+           while true; do
+               _green "Please enter the custom storage path (e.g., /data/lxd-storage):"
+               reading "请输入自定义存储路径 (例如：/data/lxd-storage)：" storage_path
+               if [[ -n "$storage_path" && "$storage_path" =~ ^/.+ ]]; then
+                   if [ ! -d "$storage_path" ]; then
+                       mkdir -p "$storage_path" 2>/dev/null
+                       if [ $? -eq 0 ]; then
+                           _green "Created directory: $storage_path"
+                           _green "已创建目录：$storage_path"
+                           break
+                       else
+                           _yellow "Failed to create directory. Please check permissions or try another path."
+                           _yellow "创建目录失败，请检查权限或尝试其他路径。"
+                       fi
+                   else
+                       break
+                   fi
+               else
+                   _yellow "Please enter a valid absolute path starting with /."
+                   _yellow "请输入以 / 开头的有效绝对路径。"
+               fi
+           done
+       else
+           storage_path=""
+       fi
+       while true; do
+           _green "How large a storage pool does the host need to open? (Note that it is in GB, enter 10 if you need 10G storage pool):"
+           reading "宿主机需要开设多大的存储池？(注意是GB为单位，需要10G存储池则输入10)：" disk_nums
+           if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
+               break
+           else
+               _yellow "Invalid input, please enter a positive integer."
+               _yellow "输入无效，请输入一个正整数。"
+           fi
+       done
+   fi
 }
 
 get_available_space() {
@@ -248,7 +286,11 @@ init_storage_backend() {
         _green "使用默认dir类型无限定存储池大小"
         _green "Using default dir type with unlimited storage pool size"
         echo "dir" >/usr/local/bin/lxd_storage_type
-        /snap/bin/lxd init --storage-backend "$backend" --auto
+        if [ -n "$storage_path" ]; then
+            /snap/bin/lxd init --storage-backend "$backend" --storage-pool-dir "$storage_path" --auto
+        else
+            /snap/bin/lxd init --storage-backend "$backend" --auto
+        fi
         record_tried_storage "$backend"
         return $?
     fi
@@ -303,9 +345,17 @@ init_storage_backend() {
     fi
     local temp
     if [ "$backend" = "lvm" ]; then
-        temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
+        if [ -n "$storage_path" ]; then
+            temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool lvm_pool --auto 2>&1)
+        else
+            temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
+        fi
     else
-        temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+        if [ -n "$storage_path" ]; then
+            temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool default --auto 2>&1)
+        else
+            temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+        fi
     fi
     local status=$?
     _green "Init storage:"
@@ -313,9 +363,17 @@ init_storage_backend() {
     if echo "$temp" | grep -q "lxd.migrate" && [ $status -ne 0 ]; then
         /snap/bin/lxd.migrate
         if [ "$backend" = "lvm" ]; then
-            temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
+            if [ -n "$storage_path" ]; then
+                temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool lvm_pool --auto 2>&1)
+            else
+                temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
+            fi
         else
-            temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+            if [ -n "$storage_path" ]; then
+                temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool default --auto 2>&1)
+            else
+                temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+            fi
         fi
         status=$?
         echo "$temp"
@@ -359,7 +417,11 @@ setup_storage() {
     _yellow "所有存储类型尝试失败，使用 dir 作为备选"
     _yellow "All storage types failed, using dir as fallback"
     echo "dir" >/usr/local/bin/lxd_storage_type
-    /snap/bin/lxd init --storage-backend dir --auto
+    if [ -n "$storage_path" ]; then
+        /snap/bin/lxd init --storage-backend dir --storage-pool-dir "$storage_path" --auto
+    else
+        /snap/bin/lxd init --storage-backend dir --auto
+    fi
 }
 
 configure_lxd_network() {
