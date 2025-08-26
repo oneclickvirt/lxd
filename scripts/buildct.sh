@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2025.08.03
+# 2025.08.26
 
 # 输入
 # ./buildct.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian12)
@@ -364,9 +364,64 @@ configure_ipv6() {
     fi
 }
 
-# 配置网络限速
+wait_for_container_ready_to_shutdown() {
+    echo "Waiting for container to complete initialization..."
+    echo "等待容器完成初始化配置..."
+    local max_wait=12
+    local check_interval=6
+    local waited=0
+    while [ $waited -lt $max_wait ]; do
+        if incus exec "$name" -- pgrep -f "apt|yum|pacman|apk|opkg" > /dev/null 2>&1; then
+            echo "Container is executing package management operations, continuing to wait..."
+            echo "容器正在执行包管理操作，继续等待..."
+        elif incus exec "$name" -- pgrep -f "ssh|sshd|config" > /dev/null 2>&1; then
+            echo "Container is executing SSH configuration, continuing to wait..."
+            echo "容器正在执行SSH配置，继续等待..."
+        else
+            local load_avg=$(incus exec "$name" -- cat /proc/loadavg 2>/dev/null | awk '{print $1}' | cut -d. -f1)
+            if [ -n "$load_avg" ] && [ "$load_avg" -lt 2 ]; then
+                echo "Container load has decreased, preparing to shutdown..."
+                echo "容器负载已降低，准备关机..."
+                break
+            fi
+        fi
+        sleep $check_interval
+        waited=$((waited + check_interval))
+        echo "Waited ${waited} seconds..."
+        echo "已等待 ${waited} 秒..."
+    done
+    if [ $waited -ge $max_wait ]; then
+        echo "Wait timeout, forcing shutdown process..."
+        echo "等待超时，强制继续关机流程..."
+    fi
+}
+
+safe_shutdown_container() {
+    echo "Safely shutting down container..."
+    echo "正在安全关闭容器..."
+    incus stop "$name" --timeout=30
+    local max_shutdown_wait=30
+    local waited=0
+    while [ $waited -lt $max_shutdown_wait ]; do
+        local container_status=$(incus info "$name" | grep "Status:" | awk '{print $2}')
+        if [ "$container_status" = "STOPPED" ]; then
+            echo "Container has been safely stopped"
+            echo "容器已安全停止"
+            return 0
+        fi
+        sleep 2
+        waited=$((waited + 2))
+        echo "Waiting for container to stop... (${waited}/${max_shutdown_wait}s)"
+        echo "等待容器停止... (${waited}/${max_shutdown_wait}秒)"
+    done
+    echo "Warning: Container stop timeout, but continuing configuration process..."
+    echo "警告：容器停止超时，但继续配置流程..."
+    return 1
+}
+
 configure_network_speed() {
-    lxc stop "$name"
+    wait_for_container_ready_to_shutdown
+    safe_shutdown_container
     if ((in == out)); then
         speed_limit="$in"
     else
@@ -381,7 +436,7 @@ cleanup_and_output() {
     rm -rf ssh_bash.sh config.sh ssh_sh.sh
     if echo "$system" | grep -qiE "alpine"; then
         sleep 3
-        lxc stop "$name"
+        lxc stop "$name" --timeout=30
         lxc start "$name"
     fi
     if [ "$nat1" != "0" ] && [ "$nat2" != "0" ]; then
@@ -402,7 +457,6 @@ main() {
     check_china
     cdn_urls=("https://cdn0.spiritlhl.top/" "http://cdn1.spiritlhl.net/" "http://cdn2.spiritlhl.net/" "http://cdn3.spiritlhl.net/" "http://cdn4.spiritlhl.net/")
     check_cdn_file
-    # 解析参数
     name="${1:-test}"
     cpu="${2:-1}"
     memory="${3:-256}"

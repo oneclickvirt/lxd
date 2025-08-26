@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2025.08.25
+# 2025.08.26
 
 
 check_vm_support() {
@@ -417,6 +417,61 @@ setup_ssh_bash() {
     lxc exec "$name" -- history -c
 }
 
+wait_for_vm_ready_to_shutdown() {
+    echo "Waiting for VM to complete initialization..."
+    echo "等待虚拟机完成初始化配置..."
+    local max_wait=18
+    local check_interval=6
+    local waited=0
+    while [ $waited -lt $max_wait ]; do
+        if lxc exec "$name" -- pgrep -f "apt|yum|pacman|apk" > /dev/null 2>&1; then
+            echo "VM is executing package management operations, continue waiting..."
+            echo "虚拟机正在执行包管理操作，继续等待..."
+        elif lxc exec "$name" -- pgrep -f "ssh|sshd|config" > /dev/null 2>&1; then
+            echo "VM is executing SSH configuration, continue waiting..."
+            echo "虚拟机正在执行SSH配置，继续等待..."
+        else
+            local load_avg=$(lxc exec "$name" -- cat /proc/loadavg 2>/dev/null | awk '{print $1}' | cut -d. -f1)
+            if [ -n "$load_avg" ] && [ "$load_avg" -lt 2 ]; then
+                echo "VM load has decreased, preparing to shutdown..."
+                echo "虚拟机负载已降低，准备关机..."
+                break
+            fi
+        fi
+        sleep $check_interval
+        waited=$((waited + check_interval))
+        echo "Waited ${waited} seconds..."
+        echo "已等待 ${waited} 秒..."
+    done
+    if [ $waited -ge $max_wait ]; then
+        echo "Wait timeout, forcing shutdown process..."
+        echo "等待超时，强制继续关机流程..."
+    fi
+}
+
+safe_shutdown_vm() {
+    echo "Safely shutting down VM..."
+    echo "正在安全关闭虚拟机..."
+    lxc stop "$name" --timeout=30
+    local max_shutdown_wait=30
+    local waited=0
+    while [ $waited -lt $max_shutdown_wait ]; do
+        local vm_status=$(lxc info "$name" | grep "Status:" | awk '{print $2}')
+        if [ "$vm_status" = "STOPPED" ]; then
+            echo "VM has been safely stopped"
+            echo "虚拟机已安全停止"
+            return 0
+        fi
+        sleep 2
+        waited=$((waited + 2))
+        echo "Waiting for VM to stop... (${waited}/${max_shutdown_wait}s)"
+        echo "等待虚拟机停止... (${waited}/${max_shutdown_wait}秒)"
+    done
+    echo "Warning: VM shutdown timeout, but continuing configuration process..."
+    echo "警告：虚拟机停止超时，但继续配置流程..."
+    return 1
+}
+
 configure_network() {
     lxc restart "$name"
     echo "Waiting for the VM to start. Attempting to retrieve the VM's IP address..."
@@ -461,11 +516,8 @@ configure_network() {
         fi
     fi
     configure_firewall_ports
-    echo "Will wait 15 seconds for the virtual machine to shut down for subsequent configuration"
-    echo "将等待15秒等待虚拟机关机以进行后续的配置"
-    sleep 15
-    lxc stop "$name"
-    sleep 5
+    wait_for_vm_ready_to_shutdown
+    safe_shutdown_vm
     configure_network_limits
     set_ip_address_binding "$vm_ip"
     configure_port_mapping "$vm_ip" "$ipv4_address"
