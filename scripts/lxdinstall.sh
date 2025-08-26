@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2025.08.14
+# 2025.08.26
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -186,22 +186,11 @@ install_lxd() {
 configure_resources() {
     if [ "${noninteractive:-false}" = true ]; then
         available_space=$(get_available_space)
-        memory_nums=1024
         disk_nums=$((available_space - 1))
     else
         while true; do
-            _green "How much virtual memory does the host need to open? (Virtual memory SWAP will occupy hard disk space, calculate by yourself, note that it is MB as the unit, need 1G virtual memory then enter 1024):"
-            reading "宿主机需要开设多少虚拟内存？(虚拟内存SWAP会占用硬盘空间，自行计算，注意是MB为单位，需要1G虚拟内存则输入1024)：" memory_nums
-            if [[ "$memory_nums" =~ ^[1-9][0-9]*$ ]]; then
-                break
-            else
-                _yellow "Invalid input, please enter a positive integer."
-                _yellow "输入无效，请输入一个正整数。"
-            fi
-        done
-        while true; do
-            _green "How large a storage pool does the host need to open? (The storage pool is the size of the sum of the ct's hard disk, it is recommended that the SWAP and storage pool add up to 95% of the space of the hen's hard disk, note that it is in GB, enter 10 if you need 10G storage pool):"
-            reading "宿主机需要开设多大的存储池？(存储池就是容器硬盘之和的大小，推荐SWAP和存储池加起来达到母鸡硬盘的95%空间，注意是GB为单位，需要10G存储池则输入10)：" disk_nums
+            _green "How large a storage pool does the host need to open? (Note that it is in GB, enter 10 if you need 10G storage pool):"
+            reading "宿主机需要开设多大的存储池？(注意是GB为单位，需要10G存储池则输入10)：" disk_nums
             if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
                 break
             else
@@ -373,13 +362,6 @@ setup_storage() {
     /snap/bin/lxd init --storage-backend dir --auto
 }
 
-setup_swap() {
-    install_package uidmap
-    curl -sLk "${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/swap2.sh" -o swap2.sh && chmod +x swap2.sh
-    ./swap2.sh "$memory_nums"
-    sleep 2
-}
-
 configure_lxd_network() {
     ! lxc -h >/dev/null 2>&1 && echo 'alias lxc="/snap/bin/lxc"' >>/root/.bashrc && source /root/.bashrc
     export PATH=$PATH:/snap/bin
@@ -492,7 +474,6 @@ main() {
     install_lxd
     configure_resources
     setup_storage
-    setup_swap
     configure_lxd_network
     download_preset_files
     configure_system
