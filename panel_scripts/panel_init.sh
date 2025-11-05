@@ -187,7 +187,13 @@ mkdir -p /etc/sysctl.d
 if ! grep -q "^net.ipv4.ip_forward=1" "$SYSCTL_D_CONF" 2>/dev/null; then
     echo "net.ipv4.ip_forward=1" >>"$SYSCTL_D_CONF"
 fi
-${sysctl_path} --system >/dev/null
+# BusyBox sysctl 不支持 --system，使用 -p 代替
+if ${sysctl_path} --system >/dev/null 2>&1; then
+    ${sysctl_path} --system >/dev/null
+else
+    ${sysctl_path} -p /etc/sysctl.conf >/dev/null 2>&1
+    ${sysctl_path} -p "$SYSCTL_D_CONF" >/dev/null 2>&1
+fi
 lxc network set lxdbr0 raw.dnsmasq dhcp-option=6,8.8.8.8,8.8.4.4
 lxc network set lxdbr0 dns.mode managed
 # managed none dynamic

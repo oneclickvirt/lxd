@@ -686,7 +686,13 @@ configure_system() {
     if ! grep -q "^net.ipv4.ip_forward=1" "$SYSCTL_D_CONF" 2>/dev/null; then
         echo "net.ipv4.ip_forward=1" >>"$SYSCTL_D_CONF"
     fi
-    sysctl --system >/dev/null
+    # BusyBox sysctl 不支持 --system，使用 -p 代替
+    if sysctl --system >/dev/null 2>&1; then
+        sysctl --system >/dev/null
+    else
+        sysctl -p "$SYSCTL_CONF" >/dev/null 2>&1
+        sysctl -p "$SYSCTL_D_CONF" >/dev/null 2>&1
+    fi
     lxc network set lxdbr0 raw.dnsmasq dhcp-option=6,8.8.8.8,8.8.4.4
     lxc network set lxdbr0 dns.mode managed
     lxc network set lxdbr0 ipv4.dhcp true
@@ -739,7 +745,25 @@ setup_network_preferences() {
         fi
     fi
     install_package iptables
-    install_package iptables-persistent
+    # iptables-persistent 仅在基于 Debian/Ubuntu 的系统上可用
+    # Alpine 和其他系统使用不同的持久化方式
+    if [ "$SYSTEM" = "Debian" ] || [ "$SYSTEM" = "Ubuntu" ]; then
+        install_package iptables-persistent
+    elif [ "$SYSTEM" = "Alpine" ]; then
+        # Alpine 使用 iptables-save 和 rc-update
+        if command -v rc-update >/dev/null 2>&1; then
+            rc-update add iptables default 2>/dev/null || true
+        fi
+    elif [ "$SYSTEM" = "CentOS" ] || [ "$SYSTEM" = "Fedora" ]; then
+        # RHEL 系列使用 firewalld 或 iptables-services
+        if command -v firewall-cmd >/dev/null 2>&1; then
+            _green "firewall-cmd is available, using firewalld for persistence"
+        else
+            install_package iptables-services 2>/dev/null || true
+        fi
+    else
+        _yellow "Note: iptables persistence may need manual configuration on this system"
+    fi
     iptables -t nat -A POSTROUTING -j MASQUERADE
 }
 
