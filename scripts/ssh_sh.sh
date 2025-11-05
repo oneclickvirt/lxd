@@ -2,6 +2,17 @@
 # by https://github.com/oneclickvirt/lxd
 # 2024.05.13
 
+# sed兼容性函数：自动检测并使用-E或-r参数
+sed_compatible() {
+    # 测试sed是否支持-E参数
+    if echo "test" | sed -E 's/test/ok/' >/dev/null 2>&1; then
+        sed -E "$@"
+    else
+        # 如果-E不支持，尝试使用-r（BusyBox sed等）
+        sed -r "$@"
+    fi
+}
+
 if [ "$(id -u)" -ne 0 ]; then
   echo "This script must be executed with root privileges."
   exit 1
@@ -35,11 +46,11 @@ if [ "$(cat /etc/os-release | grep -E '^ID=' | cut -d '=' -f 2 | tr -d '"')" == 
   sed -i 's/#ListenAddress ::/ListenAddress ::/' /etc/ssh/sshd_config
   sed -i '/^#AddressFamily\|AddressFamily/c AddressFamily any' /etc/ssh/sshd_config
   sed -i "s/^#\?\(Port\).*/\1 22/" /etc/ssh/sshd_config
-  sed -i -E 's/^#?(Port).*/\1 22/' /etc/ssh/sshd_config
+  sed_compatible -i 's/^#?(Port).*/\1 22/' /etc/ssh/sshd_config
   sed -i '/^#UsePAM\|UsePAM/c #UsePAM no' /etc/ssh/sshd_config
-  sed -E -i 's/preserve_hostname:[[:space:]]*false/preserve_hostname: true/g' /etc/cloud/cloud.cfg
-  sed -E -i 's/disable_root:[[:space:]]*true/disable_root: false/g' /etc/cloud/cloud.cfg
-  sed -E -i 's/ssh_pwauth:[[:space:]]*false/ssh_pwauth:   true/g' /etc/cloud/cloud.cfg
+  sed_compatible -i 's/preserve_hostname:[[:space:]]*false/preserve_hostname: true/g' /etc/cloud/cloud.cfg
+  sed_compatible -i 's/disable_root:[[:space:]]*true/disable_root: false/g' /etc/cloud/cloud.cfg
+  sed_compatible -i 's/ssh_pwauth:[[:space:]]*false/ssh_pwauth:   true/g' /etc/cloud/cloud.cfg
   /usr/sbin/sshd
   rc-update add sshd default
   echo root:"$1" | chpasswd root

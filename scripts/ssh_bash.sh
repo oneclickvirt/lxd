@@ -2,6 +2,61 @@
 # by https://github.com/oneclickvirt/lxd
 # 2025.07.11
 
+# 服务管理兼容性函数：支持systemd、OpenRC和传统service命令
+# 策略：尝试所有可用的服务管理工具，确保至少一个成功
+service_manager() {
+    local action=$1
+    local service_name=$2
+    local success=false
+    
+    case "$action" in
+        enable)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl enable "$service_name" 2>/dev/null && success=true
+            fi
+            if command -v rc-update >/dev/null 2>&1; then
+                rc-update add "$service_name" default 2>/dev/null && success=true
+            fi
+            if command -v chkconfig >/dev/null 2>&1; then
+                chkconfig "$service_name" on 2>/dev/null && success=true
+            fi
+            if command -v update-rc.d >/dev/null 2>&1; then
+                update-rc.d "$service_name" defaults 2>/dev/null || update-rc.d "$service_name" enable 2>/dev/null && success=true
+            fi
+            ;;
+        start)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl start "$service_name" 2>/dev/null && success=true
+            fi
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                rc-service "$service_name" start 2>/dev/null && success=true
+            fi
+            if ! $success && command -v service >/dev/null 2>&1; then
+                service "$service_name" start 2>/dev/null && success=true
+            fi
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                /etc/init.d/"$service_name" start 2>/dev/null && success=true
+            fi
+            ;;
+        restart)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl restart "$service_name" 2>/dev/null && success=true
+            fi
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                rc-service "$service_name" restart 2>/dev/null && success=true
+            fi
+            if ! $success && command -v service >/dev/null 2>&1; then
+                service "$service_name" restart 2>/dev/null && success=true
+            fi
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                /etc/init.d/"$service_name" restart 2>/dev/null && success=true
+            fi
+            ;;
+    esac
+    
+    $success && return 0 || return 1
+}
+
 if [ -f "/etc/resolv.conf" ]; then
     cp /etc/resolv.conf /etc/resolv.conf.bak
     echo "nameserver 8.8.8.8" | tee -a /etc/resolv.conf >/dev/null
@@ -9,12 +64,12 @@ if [ -f "/etc/resolv.conf" ]; then
 fi
 
 temp_file_apt_fix="/tmp/apt_fix.txt"
-REGEX=("debian|astra|kali" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "fedora" "arch" "freebsd")
-RELEASE=("Debian" "Ubuntu" "CentOS" "CentOS" "Fedora" "Arch" "FreeBSD")
-PACKAGE_UPDATE=("! apt-get update && apt-get --fix-broken install -y && apt-get update" "apt-get update" "yum -y update" "yum -y update" "yum -y update" "pacman -Sy" "pkg update")
-PACKAGE_INSTALL=("apt-get -y install" "apt-get -y install" "yum -y install" "yum -y install" "yum -y install" "pacman -Sy --noconfirm --needed" "pkg install -y")
-PACKAGE_REMOVE=("apt-get -y remove" "apt-get -y remove" "yum -y remove" "yum -y remove" "yum -y remove" "pacman -Rsc --noconfirm" "pkg delete")
-PACKAGE_UNINSTALL=("apt-get -y autoremove" "apt-get -y autoremove" "yum -y autoremove" "yum -y autoremove" "yum -y autoremove" "" "pkg autoremove")
+REGEX=("debian|astra|kali" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "fedora" "arch|manjaro" "alpine" "freebsd")
+RELEASE=("Debian" "Ubuntu" "CentOS" "CentOS" "Fedora" "Arch" "Alpine" "FreeBSD")
+PACKAGE_UPDATE=("! apt-get update && apt-get --fix-broken install -y && apt-get update" "apt-get update" "yum -y update" "yum -y update" "yum -y update" "pacman -Sy" "apk update" "pkg update")
+PACKAGE_INSTALL=("apt-get -y install" "apt-get -y install" "yum -y install" "yum -y install" "yum -y install" "pacman -Sy --noconfirm --needed" "apk add --no-cache" "pkg install -y")
+PACKAGE_REMOVE=("apt-get -y remove" "apt-get -y remove" "yum -y remove" "yum -y remove" "yum -y remove" "pacman -Rsc --noconfirm" "apk del" "pkg delete")
+PACKAGE_UNINSTALL=("apt-get -y autoremove" "apt-get -y autoremove" "yum -y autoremove" "yum -y autoremove" "yum -y autoremove" "" "" "pkg autoremove")
 CMD=("$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(hostnamectl 2>/dev/null | grep -i system | cut -d : -f2)" "$(lsb_release -sd 2>/dev/null)" "$(grep -i description /etc/lsb-release 2>/dev/null | cut -d \" -f2)" "$(grep . /etc/redhat-release 2>/dev/null)" "$(grep . /etc/issue 2>/dev/null | cut -d \\ -f1 | sed '/^[ ]*$/d')" "$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(uname -s)")
 SYS="${CMD[0]}"
 [[ -n $SYS ]] || exit 1
@@ -50,6 +105,14 @@ checkupdate() {
 install_required_modules() {
     modules=("dos2unix" "wget" "curl" "sudo" "bash" "lsof" "ssh" "sshpass" "openssh-server")
     for module in "${modules[@]}"; do
+        # 特殊处理Alpine系统的包名差异
+        if [ "$SYSTEM" = "Alpine" ]; then
+            case "$module" in
+                "openssh-server") module="openssh" ;;
+                "dos2unix") module="dos2unix" ;; # 如果不存在，会回退到busybox-extras
+            esac
+        fi
+        
         if command -v apt-get >/dev/null 2>&1; then
             if command -v $module >/dev/null 2>&1; then
                 echo "$module is installed!"
@@ -63,11 +126,18 @@ install_required_modules() {
                 echo "$module 已尝试过安装！"
             fi
         else
-            ${PACKAGE_INSTALL[int]} $module
+            ${PACKAGE_INSTALL[int]} $module 2>/dev/null || {
+                # 如果安装失败且是Alpine系统，尝试备选包
+                if [ "$SYSTEM" = "Alpine" ] && [ "$module" = "dos2unix" ]; then
+                    apk add --no-cache busybox-extras
+                fi
+            }
         fi
     done
     if command -v apt-get >/dev/null 2>&1; then
         ${PACKAGE_INSTALL[int]} cron 
+    elif [ "$SYSTEM" = "Alpine" ]; then
+        apk add --no-cache cronie || apk add --no-cache dcron
     else
         ${PACKAGE_INSTALL[int]} cronie
     fi
@@ -86,14 +156,12 @@ remove_duplicate_lines() {
 
 checkupdate
 install_required_modules
-sudo systemctl enable sshd
-sudo systemctl enable ssh
+service_manager enable sshd
+service_manager enable ssh
 sleep 3
 ssh-keygen -A
-sudo service ssh start
-sudo service sshd start
-sudo systemctl start sshd
-sudo systemctl start ssh
+service_manager start ssh
+service_manager start sshd
 if [ -f "/etc/motd" ]; then
     echo '' >/etc/motd
     echo 'Related repo https://github.com/oneclickvirt/lxd' >>/etc/motd
@@ -145,8 +213,6 @@ do
         fi
     fi
 done
-sudo service ssh restart
-sudo service sshd restart
-sudo systemctl restart sshd
-sudo systemctl restart ssh
+service_manager restart ssh
+service_manager restart sshd
 rm -rf "$0"

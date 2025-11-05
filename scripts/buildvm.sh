@@ -86,6 +86,14 @@ detect_os() {
             PACKAGETYPE_REMOVE="pacman -Rsc --noconfirm"
             PACKAGETYPE_ONLY_REMOVE="pacman -Rdd --noconfirm"
             ;;
+        alpine)
+            OS="alpine"
+            VERSION="$VERSION_ID"
+            PACKAGETYPE="apk"
+            PACKAGETYPE_INSTALL="apk add --no-cache"
+            PACKAGETYPE_UPDATE="apk update"
+            PACKAGETYPE_REMOVE="apk del"
+            ;;
         esac
     fi
     if [ -z "${PACKAGETYPE:-}" ]; then
@@ -109,6 +117,11 @@ detect_os() {
             PACKAGETYPE_INSTALL="pacman -S --noconfirm --needed"
             PACKAGETYPE_UPDATE="pacman -Sy"
             PACKAGETYPE_REMOVE="pacman -Rsc --noconfirm"
+        elif command -v apk >/dev/null 2>&1; then
+            PACKAGETYPE="apk"
+            PACKAGETYPE_INSTALL="apk add --no-cache"
+            PACKAGETYPE_UPDATE="apk update"
+            PACKAGETYPE_REMOVE="apk del"
         fi
     fi
 }

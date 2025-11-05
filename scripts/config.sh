@@ -9,6 +9,14 @@ divert_install_script() {
   if [ -x "$(command -v yum)" ]; then
     divert_script="/usr/local/sbin/${package_name}-install"
     install_script="/var/lib/rpm/centos/${package_name}.postinst"
+  elif [ -x "$(command -v apk)" ]; then
+    # Alpine使用不同的路径
+    divert_script="/usr/local/sbin/${package_name}-install"
+    install_script="/var/lib/apk/scripts/${package_name}.post-install"
+  elif [ -x "$(command -v pacman)" ]; then
+    # Arch使用不同的路径
+    divert_script="/usr/local/sbin/${package_name}-install"
+    install_script="/var/lib/pacman/scripts/${package_name}.install"
   fi
   ln -sf "${divert_script}" "${install_script}"
   echo '#!/bin/bash' >"${divert_script}"
@@ -26,6 +34,12 @@ if [ -x "$(command -v apt-get)" ]; then
   sudo apt-get update
 elif [ -x "$(command -v yum)" ]; then
   sudo yum update
+elif [ -x "$(command -v dnf)" ]; then
+  sudo dnf update
+elif [ -x "$(command -v apk)" ]; then
+  sudo apk update
+elif [ -x "$(command -v pacman)" ]; then
+  sudo pacman -Sy
 fi
 
 divert_install_script "zmap"

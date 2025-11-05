@@ -5,8 +5,8 @@
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
 cd /root >/dev/null 2>&1
-REGEX=("debian|astra" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "fedora" "arch" "freebsd")
-RELEASE=("Debian" "Ubuntu" "CentOS" "CentOS" "Fedora" "Arch" "FreeBSD")
+REGEX=("debian|astra" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "fedora" "arch|manjaro" "alpine" "freebsd")
+RELEASE=("Debian" "Ubuntu" "CentOS" "CentOS" "Fedora" "Arch" "Alpine" "FreeBSD")
 CMD=("$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(hostnamectl 2>/dev/null | grep -i system | cut -d : -f2)" "$(lsb_release -sd 2>/dev/null)" "$(grep -i description /etc/lsb-release 2>/dev/null | cut -d \" -f2)" "$(grep . /etc/redhat-release 2>/dev/null)" "$(grep . /etc/issue 2>/dev/null | cut -d \\ -f1 | sed '/^[ ]*$/d')" "$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(uname -s)")
 SYS="${CMD[0]}"
 [[ -n $SYS ]] || exit 1
@@ -27,6 +27,172 @@ _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading() { read -rp "$(_green "$1")" "$2"; }
+
+# sed兼容性函数：自动检测并使用-E或-r参数
+sed_compatible() {
+    # 测试sed是否支持-E参数
+    if echo "test" | sed -E 's/test/ok/' >/dev/null 2>&1; then
+        sed -E "$@"
+    else
+        # 如果-E不支持，尝试使用-r（BusyBox sed等）
+        sed -r "$@"
+    fi
+}
+
+# 服务管理兼容性函数：支持systemd、OpenRC和传统service命令
+# 策略：尝试所有可用的服务管理工具，确保至少一个成功
+service_manager() {
+    local action=$1
+    local service_name=$2
+    local success=false
+    
+    case "$action" in
+        enable)
+            # 尝试systemctl
+            if command -v systemctl >/dev/null 2>&1; then
+                if systemctl enable "$service_name" 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试rc-update（OpenRC）
+            if command -v rc-update >/dev/null 2>&1; then
+                if rc-update add "$service_name" default 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试chkconfig
+            if command -v chkconfig >/dev/null 2>&1; then
+                if chkconfig "$service_name" on 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试update-rc.d（Debian/Ubuntu传统）
+            if command -v update-rc.d >/dev/null 2>&1; then
+                if update-rc.d "$service_name" defaults 2>/dev/null || update-rc.d "$service_name" enable 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            ;;
+        disable)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl disable "$service_name" 2>/dev/null && success=true
+            fi
+            if command -v rc-update >/dev/null 2>&1; then
+                rc-update del "$service_name" default 2>/dev/null && success=true
+            fi
+            if command -v chkconfig >/dev/null 2>&1; then
+                chkconfig "$service_name" off 2>/dev/null && success=true
+            fi
+            if command -v update-rc.d >/dev/null 2>&1; then
+                update-rc.d "$service_name" disable 2>/dev/null && success=true
+            fi
+            ;;
+        start)
+            # 尝试systemctl
+            if command -v systemctl >/dev/null 2>&1; then
+                if systemctl start "$service_name" 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试rc-service（OpenRC）
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                if rc-service "$service_name" start 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试service命令
+            if ! $success && command -v service >/dev/null 2>&1; then
+                if service "$service_name" start 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试直接调用init脚本
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                if /etc/init.d/"$service_name" start 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            ;;
+        stop)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl stop "$service_name" 2>/dev/null && success=true
+            fi
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                rc-service "$service_name" stop 2>/dev/null && success=true
+            fi
+            if ! $success && command -v service >/dev/null 2>&1; then
+                service "$service_name" stop 2>/dev/null && success=true
+            fi
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                /etc/init.d/"$service_name" stop 2>/dev/null && success=true
+            fi
+            ;;
+        restart)
+            # 尝试systemctl
+            if command -v systemctl >/dev/null 2>&1; then
+                if systemctl restart "$service_name" 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试rc-service
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                if rc-service "$service_name" restart 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试service命令
+            if ! $success && command -v service >/dev/null 2>&1; then
+                if service "$service_name" restart 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            # 尝试直接调用init脚本
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                if /etc/init.d/"$service_name" restart 2>/dev/null; then
+                    success=true
+                fi
+            fi
+            ;;
+        daemon-reload)
+            # daemon-reload只对systemd有意义
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl daemon-reload 2>/dev/null && success=true
+            else
+                # 非systemd系统不需要此操作，视为成功
+                success=true
+            fi
+            ;;
+        is-active)
+            # 检查服务是否运行
+            if command -v systemctl >/dev/null 2>&1; then
+                if systemctl is-active --quiet "$service_name" 2>/dev/null; then
+                    return 0
+                fi
+            fi
+            if command -v rc-service >/dev/null 2>&1; then
+                if rc-service "$service_name" status >/dev/null 2>&1; then
+                    return 0
+                fi
+            fi
+            if command -v service >/dev/null 2>&1; then
+                if service "$service_name" status >/dev/null 2>&1; then
+                    return 0
+                fi
+            fi
+            if [ -x "/etc/init.d/$service_name" ]; then
+                if /etc/init.d/"$service_name" status >/dev/null 2>&1; then
+                    return 0
+                fi
+            fi
+            return 1
+            ;;
+    esac
+    
+    # 对于is-active以外的操作，返回成功状态
+    if [ "$action" != "is-active" ]; then
+        $success && return 0 || return 1
+    fi
+}
 
 cdn_urls=("https://cdn0.spiritlhl.top/" "http://cdn1.spiritlhl.net/" "http://cdn2.spiritlhl.net/" "http://cdn3.spiritlhl.net/" "http://cdn4.spiritlhl.net/")
 
@@ -49,9 +215,30 @@ install_package() {
         _green "$package_name has been installed"
         _green "$package_name 已经安装"
     else
-        apt-get install -y $package_name
-        if [ $? -ne 0 ]; then
-            apt-get install -y $package_name --fix-missing
+        # 根据系统类型选择包管理器
+        if [ "$SYSTEM" = "Alpine" ] && command -v apk >/dev/null 2>&1; then
+            apk add --no-cache $package_name
+        elif [ "$SYSTEM" = "Arch" ] && command -v pacman >/dev/null 2>&1; then
+            pacman -S --noconfirm --needed $package_name
+        elif command -v apt-get >/dev/null 2>&1; then
+            apt-get install -y $package_name
+            if [ $? -ne 0 ]; then
+                apt-get install -y $package_name --fix-missing
+            fi
+        elif command -v yum >/dev/null 2>&1; then
+            yum install -y $package_name
+        elif command -v dnf >/dev/null 2>&1; then
+            dnf install -y $package_name
+        elif command -v apk >/dev/null 2>&1; then
+            # 回退到apk如果其他包管理器都不可用
+            apk add --no-cache $package_name
+        elif command -v pacman >/dev/null 2>&1; then
+            # 回退到pacman如果其他包管理器都不可用
+            pacman -S --noconfirm --needed $package_name
+        else
+            _yellow "No supported package manager found"
+            _yellow "未找到支持的包管理器"
+            return 1
         fi
         _green "$package_name has attempted to install"
         _green "$package_name 已尝试安装"
@@ -83,8 +270,16 @@ check_cdn_file() {
 statistics_of_run_times() {
     COUNT=$(curl -4 -ksm1 "https://hits.spiritlhl.net/lxd?action=hit&title=Hits&title_bg=%23555555&count_bg=%2324dde1&edge_flat=false" 2>/dev/null ||
         curl -6 -ksm1 "https://hits.spiritlhl.net/lxd?action=hit&title=Hits&title_bg=%23555555&count_bg=%2324dde1&edge_flat=false" 2>/dev/null)
-    TODAY=$(echo "$COUNT" | grep -oP '"daily":\s*[0-9]+' | sed 's/"daily":\s*\([0-9]*\)/\1/')
-    TOTAL=$(echo "$COUNT" | grep -oP '"total":\s*[0-9]+' | sed 's/"total":\s*\([0-9]*\)/\1/')
+    # 使用grep -E代替grep -P以提高兼容性
+    if echo "" | grep -P "test" >/dev/null 2>&1; then
+        # 如果grep支持-P，使用原有的Perl正则
+        TODAY=$(echo "$COUNT" | grep -oP '"daily":\s*[0-9]+' | sed 's/"daily":[[:space:]]*\([0-9]*\)/\1/')
+        TOTAL=$(echo "$COUNT" | grep -oP '"total":\s*[0-9]+' | sed 's/"total":[[:space:]]*\([0-9]*\)/\1/')
+    else
+        # 如果grep不支持-P，使用-E兼容写法
+        TODAY=$(echo "$COUNT" | grep -oE '"daily":[[:space:]]*[0-9]+' | sed 's/"daily":[[:space:]]*\([0-9]*\)/\1/')
+        TOTAL=$(echo "$COUNT" | grep -oE '"total":[[:space:]]*[0-9]+' | sed 's/"total":[[:space:]]*\([0-9]*\)/\1/')
+    fi
 }
 
 rebuild_cloud_init() {
@@ -93,13 +288,13 @@ rebuild_cloud_init() {
         if grep -q "preserve_hostname: true" "/etc/cloud/cloud.cfg"; then
             :
         else
-            sed -E -i 's/preserve_hostname:[[:space:]]*false/preserve_hostname: true/g' "/etc/cloud/cloud.cfg"
+            sed_compatible -i 's/preserve_hostname:[[:space:]]*false/preserve_hostname: true/g' "/etc/cloud/cloud.cfg"
             echo "change preserve_hostname to true"
         fi
         if grep -q "disable_root: false" "/etc/cloud/cloud.cfg"; then
             :
         else
-            sed -E -i 's/disable_root:[[:space:]]*true/disable_root: false/g' "/etc/cloud/cloud.cfg"
+            sed_compatible -i 's/disable_root:[[:space:]]*true/disable_root: false/g' "/etc/cloud/cloud.cfg"
             echo "change disable_root to false"
         fi
         chattr -i /etc/cloud/cloud.cfg
@@ -112,7 +307,8 @@ rebuild_cloud_init() {
                 echo "$updated_content" >"/etc/cloud/cloud.cfg"
             fi
         fi
-        sed -i '/^\s*- set-passwords/s/^/#/' /etc/cloud/cloud.cfg
+        # 使用[[:space:]]代替\s以兼容BusyBox sed
+        sed -i '/^[[:space:]]*- set-passwords/s/^/#/' /etc/cloud/cloud.cfg
         chattr +i /etc/cloud/cloud.cfg
     fi
 }
@@ -124,16 +320,38 @@ get_available_space() {
 }
 
 install_base_packages() {
-    apt-get update
-    apt-get autoremove -y
+    # 根据不同系统执行update
+    if [ "$SYSTEM" = "Alpine" ] && command -v apk >/dev/null 2>&1; then
+        apk update
+    elif [ "$SYSTEM" = "Arch" ] && command -v pacman >/dev/null 2>&1; then
+        pacman -Sy
+    elif command -v apt-get >/dev/null 2>&1; then
+        apt-get update
+        apt-get autoremove -y
+    elif command -v yum >/dev/null 2>&1; then
+        yum update -y
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf update -y
+    fi
+    
     install_package wget
     install_package curl
     install_package sudo
-    install_package dos2unix
-    install_package ufw
+    # dos2unix在Alpine中可能是不同的包名
+    if [ "$SYSTEM" = "Alpine" ]; then
+        install_package dos2unix || apk add --no-cache busybox-extras
+    else
+        install_package dos2unix
+    fi
+    install_package ufw || _yellow "ufw not available on this system"
     install_package jq
-    install_package uidmap
-    install_package ipcalc
+    install_package uidmap || _yellow "uidmap not available on this system"
+    # ipcalc在不同系统中可能有不同的包名
+    if [ "$SYSTEM" = "Alpine" ]; then
+        install_package ipcalc || apk add --no-cache ipcalc-ng
+    else
+        install_package ipcalc
+    fi
     install_package unzip
 }
 
@@ -156,7 +374,7 @@ install_lxd() {
         _green "lxd已安装"
         lxd_lxc_detect=$(lxc list)
         if [[ "$lxd_lxc_detect" =~ "snap-update-ns failed with code1".* ]]; then
-            systemctl restart apparmor
+            service_manager restart apparmor
             snap restart lxd
         else
             _green "No problems with environmental testing"
@@ -180,7 +398,7 @@ install_lxd() {
     snap set lxd lxcfs.loadavg=true
     snap set lxd lxcfs.pidfd=true
     snap set lxd lxcfs.cfs=true
-    systemctl restart snap.lxd.daemon
+    service_manager restart snap.lxd.daemon
 }
 
 configure_resources() {
@@ -502,16 +720,24 @@ install_dns_check() {
     if [ ! -f /etc/systemd/system/check-dns.service ]; then
         wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
         chmod +x /etc/systemd/system/check-dns.service
-        systemctl daemon-reload
-        systemctl enable check-dns.service
-        systemctl start check-dns.service
+        service_manager daemon-reload
+        service_manager enable check-dns.service
+        service_manager start check-dns.service
     else
         echo "Service already exists. Skipping installation."
     fi
 }
 
 setup_network_preferences() {
-    sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
+    if [ -f /etc/gai.conf ]; then
+        sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf
+        # 重启网络服务（如果存在）
+        if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files | grep -q "networking.service"; then
+            service_manager restart networking
+        elif command -v rc-service >/dev/null 2>&1 && rc-service --list | grep -q "networking"; then
+            service_manager restart networking
+        fi
+    fi
     install_package iptables
     install_package iptables-persistent
     iptables -t nat -A POSTROUTING -j MASQUERADE

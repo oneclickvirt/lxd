@@ -4,6 +4,50 @@
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
 
+# 服务管理兼容性函数
+service_manager() {
+    local action=$1
+    local service_name=$2
+    local success=false
+    
+    case "$action" in
+        daemon-reload)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl daemon-reload 2>/dev/null && success=true
+            else
+                success=true
+            fi
+            ;;
+        enable)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl enable "$service_name" 2>/dev/null && success=true
+            fi
+            if command -v rc-update >/dev/null 2>&1; then
+                rc-update add "$service_name" default 2>/dev/null && success=true
+            fi
+            if command -v update-rc.d >/dev/null 2>&1; then
+                update-rc.d "$service_name" defaults 2>/dev/null && success=true
+            fi
+            ;;
+        start)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl start "$service_name" 2>/dev/null && success=true
+            fi
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                rc-service "$service_name" start 2>/dev/null && success=true
+            fi
+            if ! $success && command -v service >/dev/null 2>&1; then
+                service "$service_name" start 2>/dev/null && success=true
+            fi
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                /etc/init.d/"$service_name" start 2>/dev/null && success=true
+            fi
+            ;;
+    esac
+    
+    $success && return 0 || return 1
+}
+
 # 输出颜色函数
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
@@ -295,9 +339,9 @@ setup_persistence_service() {
     if [ ! -f /etc/systemd/system/add-ipv6.service ]; then
         wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/add-ipv6.service -O /etc/systemd/system/add-ipv6.service
         chmod +x /etc/systemd/system/add-ipv6.service
-        systemctl daemon-reload
-        systemctl enable add-ipv6.service
-        systemctl start add-ipv6.service
+        service_manager daemon-reload
+        service_manager enable add-ipv6.service
+        service_manager start add-ipv6.service
     else
         echo "Service already exists. Skipping installation."
     fi

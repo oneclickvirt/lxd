@@ -24,6 +24,65 @@ _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading() { read -rp "$(_green "$1")" "$2"; }
+
+# 服务管理兼容性函数
+service_manager() {
+    local action=$1
+    local service_name=$2
+    local success=false
+    
+    case "$action" in
+        enable)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl enable "$service_name" 2>/dev/null && success=true
+            fi
+            if command -v rc-update >/dev/null 2>&1; then
+                rc-update add "$service_name" default 2>/dev/null && success=true
+            fi
+            if command -v update-rc.d >/dev/null 2>&1; then
+                update-rc.d "$service_name" defaults 2>/dev/null && success=true
+            fi
+            ;;
+        start)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl start "$service_name" 2>/dev/null && success=true
+            fi
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                rc-service "$service_name" start 2>/dev/null && success=true
+            fi
+            if ! $success && command -v service >/dev/null 2>&1; then
+                service "$service_name" start 2>/dev/null && success=true
+            fi
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                /etc/init.d/"$service_name" start 2>/dev/null && success=true
+            fi
+            ;;
+        restart)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl restart "$service_name" 2>/dev/null && success=true
+            fi
+            if ! $success && command -v rc-service >/dev/null 2>&1; then
+                rc-service "$service_name" restart 2>/dev/null && success=true
+            fi
+            if ! $success && command -v service >/dev/null 2>&1; then
+                service "$service_name" restart 2>/dev/null && success=true
+            fi
+            if ! $success && [ -x "/etc/init.d/$service_name" ]; then
+                /etc/init.d/"$service_name" restart 2>/dev/null && success=true
+            fi
+            ;;
+        daemon-reload)
+            if command -v systemctl >/dev/null 2>&1; then
+                systemctl daemon-reload 2>/dev/null && success=true
+            else
+                success=true
+            fi
+            ;;
+    esac
+    
+    $success && return 0 || return 1
+}
+
 cdn_urls=("https://cdn0.spiritlhl.top/" "http://cdn1.spiritlhl.net/" "http://cdn2.spiritlhl.net/" "http://cdn3.spiritlhl.net/" "http://cdn4.spiritlhl.net/")
 utf8_locale=$(locale -a 2>/dev/null | grep -i -m 1 -E "utf8|UTF-8")
 export DEBIAN_FRONTEND=noninteractive
@@ -76,13 +135,21 @@ check_cdn_file() {
 statistics_of_run_times() {
     COUNT=$(curl -4 -ksm1 "https://hits.spiritlhl.net/lxd?action=hit&title=Hits&title_bg=%23555555&count_bg=%2324dde1&edge_flat=false" 2>/dev/null ||
         curl -6 -ksm1 "https://hits.spiritlhl.net/lxd?action=hit&title=Hits&title_bg=%23555555&count_bg=%2324dde1&edge_flat=false" 2>/dev/null)
-    TODAY=$(echo "$COUNT" | grep -oP '"daily":\s*[0-9]+' | sed 's/"daily":\s*\([0-9]*\)/\1/')
-    TOTAL=$(echo "$COUNT" | grep -oP '"total":\s*[0-9]+' | sed 's/"total":\s*\([0-9]*\)/\1/')
+    # 使用grep -E代替grep -P以提高兼容性（BusyBox等）
+    if echo "" | grep -P "test" >/dev/null 2>&1; then
+        # 如果grep支持-P，使用原有的Perl正则
+        TODAY=$(echo "$COUNT" | grep -oP '"daily":\s*[0-9]+' | sed 's/"daily":[[:space:]]*\([0-9]*\)/\1/')
+        TOTAL=$(echo "$COUNT" | grep -oP '"total":\s*[0-9]+' | sed 's/"total":[[:space:]]*\([0-9]*\)/\1/')
+    else
+        # 如果grep不支持-P，使用-E兼容写法
+        TODAY=$(echo "$COUNT" | grep -oE '"daily":[[:space:]]*[0-9]+' | sed 's/"daily":[[:space:]]*\([0-9]*\)/\1/')
+        TOTAL=$(echo "$COUNT" | grep -oE '"total":[[:space:]]*[0-9]+' | sed 's/"total":[[:space:]]*\([0-9]*\)/\1/')
+    fi
 }
 
 
 lxc config set core.https_address 0.0.0.0:8443
-systemctl restart snap.lxd.daemon
+service_manager restart snap.lxd.daemon
 
 # 设置镜像不更新
 lxc config unset images.auto_update_interval
@@ -156,8 +223,8 @@ tar zxvf vnstat-2.11.tar.gz
 cd vnstat-2.11
 ./configure --prefix=/usr --sysconfdir=/etc && make && make install
 cp -v examples/systemd/vnstat.service /etc/systemd/system/
-systemctl enable vnstat
-systemctl start vnstat
+service_manager enable vnstat
+service_manager start vnstat
 pgrep -c vnstatd
 vnstat -v
 vnstatd -v
@@ -183,14 +250,21 @@ fi
 if [ ! -f /etc/systemd/system/check-dns.service ]; then
     wget ${cdn_success_url}https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/check-dns.service -O /etc/systemd/system/check-dns.service
     chmod +x /etc/systemd/system/check-dns.service
-    systemctl daemon-reload
-    systemctl enable check-dns.service
-    systemctl start check-dns.service
+    service_manager daemon-reload
+    service_manager enable check-dns.service
+    service_manager start check-dns.service
 else
     echo "Service already exists. Skipping installation."
 fi
 # 设置IPV4优先
-sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf && systemctl restart networking
+if [ -f /etc/gai.conf ]; then
+    sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf
+    if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files | grep -q "networking.service"; then
+        service_manager restart networking
+    elif command -v rc-service >/dev/null 2>&1 && rc-service --list | grep -q "networking"; then
+        service_manager restart networking
+    fi
+fi
 lxc remote list
 lxc remote remove spiritlhl
 lxc remote add spiritlhl https://lxdimages.spiritlhl.net --protocol simplestreams --public

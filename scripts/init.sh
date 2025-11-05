@@ -106,16 +106,35 @@ for ((a = 1; a <= "$2"; a++)); do
   ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
   echo "Host IPv4 address: $ipv4_address"
   if [[ "${CN}" == true ]]; then
-    lxc exec "$name" -- yum install -y curl
-    lxc exec "$name" -- apt-get install curl -y --fix-missing
+    if command -v apt-get >/dev/null 2>&1; then
+      lxc exec "$name" -- apt-get update -y
+      lxc exec "$name" -- apt-get install curl -y --fix-missing
+    elif command -v yum >/dev/null 2>&1; then
+      lxc exec "$name" -- yum install -y curl
+    elif command -v apk >/dev/null 2>&1; then
+      lxc exec "$name" -- apk update
+      lxc exec "$name" -- apk add --no-cache curl
+    elif command -v pacman >/dev/null 2>&1; then
+      lxc exec "$name" -- pacman -Sy --noconfirm curl
+    fi
     lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
     lxc exec "$name" -- chmod 777 ChangeMirrors.sh
     lxc exec "$name" -- ./ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --web-protocol http --intranet false --backup true --updata-software false --clean-cache false --ignore-backup-tips
     lxc exec "$name" -- rm -rf ChangeMirrors.sh
   fi
-  lxc exec "$name" -- sudo apt-get update -y
-  lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
-  lxc exec "$name" -- sudo apt-get install -y --fix-missing dos2unix
+  if command -v apt-get >/dev/null 2>&1; then
+    lxc exec "$name" -- sudo apt-get update -y
+    lxc exec "$name" -- sudo apt-get install curl -y --fix-missing
+    lxc exec "$name" -- sudo apt-get install -y --fix-missing dos2unix
+  elif command -v yum >/dev/null 2>&1; then
+    lxc exec "$name" -- sudo yum update -y
+    lxc exec "$name" -- sudo yum install -y curl dos2unix
+  elif command -v apk >/dev/null 2>&1; then
+    lxc exec "$name" -- sudo apk update
+    lxc exec "$name" -- sudo apk add --no-cache curl dos2unix
+  elif command -v pacman >/dev/null 2>&1; then
+    lxc exec "$name" -- sudo pacman -Sy --noconfirm curl dos2unix
+  fi
   lxc file push /root/ssh_bash.sh "$name"/root/
   lxc exec "$name" -- chmod 777 ssh_bash.sh
   lxc exec "$name" -- dos2unix ssh_bash.sh
