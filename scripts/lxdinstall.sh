@@ -505,7 +505,10 @@ init_storage_backend() {
         _green "Using default dir type with unlimited storage pool size"
         echo "dir" >/usr/local/bin/lxd_storage_type
         if [ -n "$storage_path" ]; then
-            /snap/bin/lxd init --storage-backend "$backend" --storage-pool-dir "$storage_path" --auto
+            mkdir -p "$storage_path"
+            /snap/bin/lxd init --auto
+            /snap/bin/lxc storage delete default 2>/dev/null || true
+            /snap/bin/lxc storage create default dir source="$storage_path"
         else
             /snap/bin/lxd init --storage-backend "$backend" --auto
         fi
@@ -564,13 +567,19 @@ init_storage_backend() {
     local temp
     if [ "$backend" = "lvm" ]; then
         if [ -n "$storage_path" ]; then
-            temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool lvm_pool --auto 2>&1)
+            mkdir -p "$storage_path"
+            /snap/bin/lxd init --auto 2>/dev/null || true
+            /snap/bin/lxc storage delete default 2>/dev/null || true
+            temp=$(/snap/bin/lxc storage create lvm_pool lvm size="${disk_nums}GB" source="${storage_path}/lvm.img" 2>&1)
         else
             temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
         fi
     else
         if [ -n "$storage_path" ]; then
-            temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool default --auto 2>&1)
+            mkdir -p "$storage_path"
+            /snap/bin/lxd init --auto 2>/dev/null || true
+            /snap/bin/lxc storage delete default 2>/dev/null || true
+            temp=$(/snap/bin/lxc storage create default "$backend" size="${disk_nums}GB" source="${storage_path}/${backend}.img" 2>&1)
         else
             temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
         fi
@@ -582,13 +591,19 @@ init_storage_backend() {
         /snap/bin/lxd.migrate
         if [ "$backend" = "lvm" ]; then
             if [ -n "$storage_path" ]; then
-                temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool lvm_pool --auto 2>&1)
+                mkdir -p "$storage_path"
+                /snap/bin/lxd init --auto 2>/dev/null || true
+                /snap/bin/lxc storage delete default 2>/dev/null || true
+                temp=$(/snap/bin/lxc storage create lvm_pool lvm size="${disk_nums}GB" source="${storage_path}/lvm.img" 2>&1)
             else
                 temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
             fi
         else
             if [ -n "$storage_path" ]; then
-                temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool-dir "$storage_path" --storage-pool default --auto 2>&1)
+                mkdir -p "$storage_path"
+                /snap/bin/lxd init --auto 2>/dev/null || true
+                /snap/bin/lxc storage delete default 2>/dev/null || true
+                temp=$(/snap/bin/lxc storage create default "$backend" size="${disk_nums}GB" source="${storage_path}/${backend}.img" 2>&1)
             else
                 temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
             fi
@@ -636,7 +651,10 @@ setup_storage() {
     _yellow "All storage types failed, using dir as fallback"
     echo "dir" >/usr/local/bin/lxd_storage_type
     if [ -n "$storage_path" ]; then
-        /snap/bin/lxd init --storage-backend dir --storage-pool-dir "$storage_path" --auto
+        mkdir -p "$storage_path"
+        /snap/bin/lxd init --auto
+        /snap/bin/lxc storage delete default 2>/dev/null || true
+        /snap/bin/lxc storage create default dir source="$storage_path"
     else
         /snap/bin/lxd init --storage-backend dir --auto
     fi
