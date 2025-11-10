@@ -1,6 +1,6 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2025.08.26
+# 2025.11.10
 
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 
@@ -459,29 +459,202 @@ is_storage_installed() {
     return 1
 }
 
+# 创建稀疏文件
+create_sparse_file() {
+    local file_path="$1"
+    local size_gb="$2"
+    if dd if=/dev/zero of="$file_path" bs=1G count=0 seek="${size_gb}" 2>/dev/null; then
+        _green "使用 dd 创建稀疏文件成功: $file_path (${size_gb}GB)"
+        _green "Successfully created sparse file using dd: $file_path (${size_gb}GB)"
+        return 0
+    else
+        _yellow "dd 创建失败，尝试使用 truncate..."
+        _yellow "dd failed, trying truncate..."
+        if command -v truncate >/dev/null 2>&1; then
+            if truncate -s "${size_gb}G" "$file_path" 2>/dev/null; then
+                _green "使用 truncate 创建稀疏文件成功: $file_path (${size_gb}GB)"
+                _green "Successfully created sparse file using truncate: $file_path (${size_gb}GB)"
+                return 0
+            else
+                _red "truncate 创建失败"
+                _red "truncate failed"
+                return 1
+            fi
+        else
+            _red "truncate 命令不可用，无法创建稀疏文件"
+            _red "truncate command not available, cannot create sparse file"
+            return 1
+        fi
+    fi
+}
+
+# 创建和配置存储池（使用自定义路径）
+create_storage_pool_with_custom_path() {
+    local backend="$1"
+    local storage_path="$2"
+    local disk_nums="$3"
+    local loop_file mount_point temp status
+    mkdir -p "$storage_path"
+    if [ "$backend" = "lvm" ]; then
+        loop_file="$storage_path/lvm_pool.img"
+        _green "创建 LVM 存储池..."
+        _green "Creating LVM storage pool..."
+        if [ -f "$loop_file" ]; then
+            _yellow "检测到旧的循环文件，正在清理..."
+            _yellow "Detected old loop file, cleaning up..."
+            vgremove -f lxd_vg 2>/dev/null || true
+            losetup -d $(losetup -j "$loop_file" | cut -d: -f1) 2>/dev/null || true
+            rm -f "$loop_file"
+        fi
+        _green "创建稀疏文件：$loop_file (${disk_nums}GB)..."
+        if ! create_sparse_file "$loop_file" "$disk_nums"; then
+            return 1
+        fi
+        _green "设置循环设备..."
+        loop_dev=$(losetup -f)
+        losetup "$loop_dev" "$loop_file"
+        _green "创建 LVM 物理卷和卷组..."
+        pvcreate "$loop_dev" >/dev/null 2>&1
+        vgcreate lxd_vg "$loop_dev" >/dev/null 2>&1
+        echo "$loop_file" > "$storage_path/lvm_loop_file.txt"
+        temp=$(/snap/bin/lxc storage create default lvm source=lxd_vg 2>&1)
+        status=$?
+    elif [ "$backend" = "btrfs" ]; then
+        loop_file="$storage_path/btrfs_pool.img"
+        mount_point="$storage_path/btrfs_mount"
+        _green "创建 btrfs 存储池..."
+        _green "Creating btrfs storage pool..."
+        if mountpoint -q "$mount_point" 2>/dev/null; then
+            _yellow "检测到旧的挂载点，正在卸载..."
+            _yellow "Detected old mount point, unmounting..."
+            umount "$mount_point" 2>/dev/null || true
+        fi
+        if [ -f "$loop_file" ]; then
+            _yellow "检测到旧的循环文件，正在删除..."
+            _yellow "Detected old loop file, removing..."
+            losetup -d $(losetup -j "$loop_file" | cut -d: -f1) 2>/dev/null || true
+            rm -f "$loop_file"
+        fi
+        mkdir -p "$mount_point"
+        _green "创建稀疏文件：$loop_file (${disk_nums}GB)..."
+        if ! create_sparse_file "$loop_file" "$disk_nums"; then
+            return 1
+        fi
+        _green "格式化为 btrfs..."
+        mkfs.btrfs -f "$loop_file" >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            _red "btrfs 格式化失败"
+            _red "btrfs formatting failed"
+            return 1
+        fi
+        _green "挂载 btrfs 文件系统..."
+        mount -o loop "$loop_file" "$mount_point"
+        if [ $? -ne 0 ]; then
+            _red "挂载失败"
+            _red "Mount failed"
+            return 1
+        fi
+        if ! grep -q "$loop_file" /etc/fstab 2>/dev/null; then
+            echo "$loop_file $mount_point btrfs loop 0 0" >> /etc/fstab
+            _green "已添加到 /etc/fstab 实现开机自动挂载"
+            _green "Added to /etc/fstab for automatic mounting on boot"
+        fi
+        chmod 711 "$mount_point"
+        temp=$(/snap/bin/lxc storage create default btrfs source="$mount_point" 2>&1)
+        status=$?
+    elif [ "$backend" = "zfs" ]; then
+        loop_file="$storage_path/zfs_pool.img"
+        local zpool_name="lxd_zfs_pool"
+        _green "创建 ZFS 存储池..."
+        _green "Creating ZFS storage pool..."
+        if zpool list "$zpool_name" >/dev/null 2>&1; then
+            _yellow "检测到旧的 ZFS pool，正在删除..."
+            _yellow "Detected old ZFS pool, removing..."
+            zpool destroy -f "$zpool_name" 2>/dev/null || true
+        fi
+        if [ -f "$loop_file" ]; then
+            _yellow "检测到旧的循环文件，正在删除..."
+            _yellow "Detected old loop file, removing..."
+            rm -f "$loop_file"
+        fi
+        _green "创建稀疏文件：$loop_file (${disk_nums}GB)..."
+        if ! create_sparse_file "$loop_file" "$disk_nums"; then
+            return 1
+        fi
+        _green "创建 ZFS pool..."
+        zpool create -f "$zpool_name" "$loop_file" >/dev/null 2>&1
+        if ! zpool list "$zpool_name" >/dev/null 2>&1; then
+            _red "ZFS pool 创建失败！"
+            _red "ZFS pool creation failed!"
+            return 1
+        fi
+        temp=$(/snap/bin/lxc storage create default zfs source="$zpool_name" 2>&1)
+        status=$?
+    else
+        _red "不支持的存储后端：$backend"
+        _red "Unsupported storage backend: $backend"
+        return 1
+    fi
+    echo "$temp"
+    return $status
+}
+
 execute_storage_init() {
     local backend="$1"
     local temp
-    if [ "$backend" = "lvm" ]; then
-        if [ -n "$storage_path" ]; then
-            mkdir -p "$storage_path"
-            /snap/bin/lxd init --auto 2>/dev/null || true
-            /snap/bin/lxc storage delete default 2>/dev/null || true
-            temp=$(/snap/bin/lxc storage create lvm_pool lvm size="${disk_nums}GB" source="${storage_path}/lvm.img" 2>&1)
+    local status
+    if [ -n "$storage_path" ]; then
+        /snap/bin/lxd init --auto 2>/dev/null || true
+        _yellow "当前存储池列表："
+        _yellow "Current storage pools:"
+        /snap/bin/lxc storage list 2>/dev/null || true
+        if /snap/bin/lxc storage list 2>/dev/null | grep -q "^| default"; then
+            _yellow "检测到 default 存储池存在，尝试删除..."
+            _yellow "Default storage pool exists, trying to delete..."
+            /snap/bin/lxc storage volume list default 2>/dev/null | awk 'NR>3 {print $2}' | while read vol; do
+                [ -n "$vol" ] && /snap/bin/lxc storage volume delete default "$vol" 2>/dev/null || true
+            done
+            if /snap/bin/lxc storage delete default 2>/dev/null; then
+                _green "成功删除 default 存储池"
+                _green "Successfully deleted default storage pool"
+            else
+                _red "删除 default 存储池失败，存储池可能正在使用中"
+                _red "Failed to delete default storage pool, it may be in use"
+                _yellow "检查正在使用该存储池的配置..."
+                _yellow "Checking profiles using this storage pool..."
+                /snap/bin/lxc profile list 2>/dev/null
+                /snap/bin/lxc profile show default 2>/dev/null | grep -A5 "devices:" || true
+                _yellow "尝试从 default profile 中移除 root 设备..."
+                _yellow "Trying to remove root device from default profile..."
+                /snap/bin/lxc profile device remove default root 2>/dev/null || true
+                if /snap/bin/lxc storage delete default 2>/dev/null; then
+                    _green "成功删除 default 存储池"
+                    _green "Successfully deleted default storage pool"
+                else
+                    _red "仍然无法删除存储池，退出"
+                    _red "Still cannot delete storage pool, exiting"
+                    return 1
+                fi
+            fi
+        fi
+        if create_storage_pool_with_custom_path "$backend" "$storage_path" "$disk_nums"; then
+            temp="Storage pool created successfully"
+            status=0
+            if ! /snap/bin/lxc network list 2>/dev/null | grep -q lxdbr0; then
+                _yellow "网络未初始化，正在初始化网络配置..."
+                _yellow "Network not initialized, initializing network configuration..."
+                /snap/bin/lxd init --auto >/dev/null 2>&1 || true
+            fi
         else
-            temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
+            temp="Failed to create storage pool with custom path"
+            status=1
         fi
     else
-        if [ -n "$storage_path" ]; then
-            mkdir -p "$storage_path"
-            /snap/bin/lxd init --auto 2>/dev/null || true
-            /snap/bin/lxc storage delete default 2>/dev/null || true
-            temp=$(/snap/bin/lxc storage create default "$backend" size="${disk_nums}GB" source="${storage_path}/${backend}.img" 2>&1)
-        else
-            temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
-        fi
+        temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+        status=$?
     fi
     echo "$temp"
+    return $status
 }
 
 init_storage_backend() {

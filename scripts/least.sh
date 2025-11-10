@@ -3,7 +3,7 @@
 # https://github.com/oneclickvirt/lxd
 # cd /root
 # ./least.sh NAT服务器前缀 数量
-# 2025.08.03
+# 2025.11.10
 
 cd /root >/dev/null 2>&1
 if [ ! -d "/usr/local/bin" ]; then
@@ -22,7 +22,7 @@ check_china() {
 
 check_china
 rm -rf log
-lxc init opsmaru:debian/12 "$1" -c limits.cpu=1 -c limits.memory=128MiB
+lxc init opsmaru:debian/12 "$1" -c limits.cpu=1 -c limits.memory=128MiB -s default
 if [ -f /usr/local/bin/lxd_storage_type ]; then
     storage_type=$(cat /usr/local/bin/lxd_storage_type)
 else

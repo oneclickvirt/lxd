@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2025.08.26
+# 2025.11.10
 
 
 check_vm_support() {
@@ -334,11 +334,11 @@ check_standard_images() {
 create_vm() {
     rm -rf "$name"
     if [ -z "$image_download_url" ] && [ "$status_tuna" = true ]; then
-        lxc init opsmaru:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB"
+        lxc init opsmaru:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB" -s default
     elif [ -z "$image_download_url" ]; then
-        lxc init images:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB"
+        lxc init images:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB" -s default
     else
-        lxc init "$system" "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB"
+        lxc init "$system" "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB" -s default
     fi
     if [ $? -ne 0 ]; then
         echo "VM creation failed, please check the previous output message"

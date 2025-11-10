@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # from
 # https://github.com/oneclickvirt/lxd
-# 2025.08.26
+# 2025.11.10
 
 # 输入
 # ./buildct.sh 服务器名称 CPU核数 内存大小 硬盘大小 SSH端口 外网起端口 外网止端口 下载速度 上传速度 是否启用IPV6(Y or N) 系统(留空则为debian12)
@@ -159,11 +159,11 @@ process_opsmaru_repository() {
 create_container() {
     rm -rf "$name"
     if [ -z "$image_download_url" ] && [ "$status_tuna" = true ]; then
-        lxc init opsmaru:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+        lxc init opsmaru:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -s default
     elif [ -z "$image_download_url" ]; then
-        lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+        lxc init images:${system} "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -s default
     else
-        lxc init "$image_name" "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB
+        lxc init "$image_name" "$name" -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -s default
     fi
     if [ $? -ne 0 ]; then
         echo "Container creation failed, please check the previous output message"
