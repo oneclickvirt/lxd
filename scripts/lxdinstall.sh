@@ -28,45 +28,35 @@ _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading() { read -rp "$(_green "$1")" "$2"; }
 
-# sed兼容性函数：自动检测并使用-E或-r参数
 sed_compatible() {
-    # 测试sed是否支持-E参数
     if echo "test" | sed -E 's/test/ok/' >/dev/null 2>&1; then
         sed -E "$@"
     else
-        # 如果-E不支持，尝试使用-r（BusyBox sed等）
         sed -r "$@"
     fi
 }
 
-# 服务管理兼容性函数：支持systemd、OpenRC和传统service命令
-# 策略：尝试所有可用的服务管理工具，确保至少一个成功
 service_manager() {
     local action=$1
     local service_name=$2
     local success=false
-    
     case "$action" in
         enable)
-            # 尝试systemctl
             if command -v systemctl >/dev/null 2>&1; then
                 if systemctl enable "$service_name" 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试rc-update（OpenRC）
             if command -v rc-update >/dev/null 2>&1; then
                 if rc-update add "$service_name" default 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试chkconfig
             if command -v chkconfig >/dev/null 2>&1; then
                 if chkconfig "$service_name" on 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试update-rc.d（Debian/Ubuntu传统）
             if command -v update-rc.d >/dev/null 2>&1; then
                 if update-rc.d "$service_name" defaults 2>/dev/null || update-rc.d "$service_name" enable 2>/dev/null; then
                     success=true
@@ -88,25 +78,21 @@ service_manager() {
             fi
             ;;
         start)
-            # 尝试systemctl
             if command -v systemctl >/dev/null 2>&1; then
                 if systemctl start "$service_name" 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试rc-service（OpenRC）
             if ! $success && command -v rc-service >/dev/null 2>&1; then
                 if rc-service "$service_name" start 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试service命令
             if ! $success && command -v service >/dev/null 2>&1; then
                 if service "$service_name" start 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试直接调用init脚本
             if ! $success && [ -x "/etc/init.d/$service_name" ]; then
                 if /etc/init.d/"$service_name" start 2>/dev/null; then
                     success=true
@@ -128,25 +114,21 @@ service_manager() {
             fi
             ;;
         restart)
-            # 尝试systemctl
             if command -v systemctl >/dev/null 2>&1; then
                 if systemctl restart "$service_name" 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试rc-service
             if ! $success && command -v rc-service >/dev/null 2>&1; then
                 if rc-service "$service_name" restart 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试service命令
             if ! $success && command -v service >/dev/null 2>&1; then
                 if service "$service_name" restart 2>/dev/null; then
                     success=true
                 fi
             fi
-            # 尝试直接调用init脚本
             if ! $success && [ -x "/etc/init.d/$service_name" ]; then
                 if /etc/init.d/"$service_name" restart 2>/dev/null; then
                     success=true
@@ -154,16 +136,13 @@ service_manager() {
             fi
             ;;
         daemon-reload)
-            # daemon-reload只对systemd有意义
             if command -v systemctl >/dev/null 2>&1; then
                 systemctl daemon-reload 2>/dev/null && success=true
             else
-                # 非systemd系统不需要此操作，视为成功
                 success=true
             fi
             ;;
         is-active)
-            # 检查服务是否运行
             if command -v systemctl >/dev/null 2>&1; then
                 if systemctl is-active --quiet "$service_name" 2>/dev/null; then
                     return 0
@@ -187,8 +166,6 @@ service_manager() {
             return 1
             ;;
     esac
-    
-    # 对于is-active以外的操作，返回成功状态
     if [ "$action" != "is-active" ]; then
         $success && return 0 || return 1
     fi
@@ -215,7 +192,6 @@ install_package() {
         _green "$package_name has been installed"
         _green "$package_name 已经安装"
     else
-        # 根据系统类型选择包管理器
         if [ "$SYSTEM" = "Alpine" ] && command -v apk >/dev/null 2>&1; then
             apk add --no-cache $package_name
         elif [ "$SYSTEM" = "Arch" ] && command -v pacman >/dev/null 2>&1; then
@@ -230,10 +206,8 @@ install_package() {
         elif command -v dnf >/dev/null 2>&1; then
             dnf install -y $package_name
         elif command -v apk >/dev/null 2>&1; then
-            # 回退到apk如果其他包管理器都不可用
             apk add --no-cache $package_name
         elif command -v pacman >/dev/null 2>&1; then
-            # 回退到pacman如果其他包管理器都不可用
             pacman -S --noconfirm --needed $package_name
         else
             _yellow "No supported package manager found"
@@ -270,13 +244,10 @@ check_cdn_file() {
 statistics_of_run_times() {
     COUNT=$(curl -4 -ksm1 "https://hits.spiritlhl.net/lxd?action=hit&title=Hits&title_bg=%23555555&count_bg=%2324dde1&edge_flat=false" 2>/dev/null ||
         curl -6 -ksm1 "https://hits.spiritlhl.net/lxd?action=hit&title=Hits&title_bg=%23555555&count_bg=%2324dde1&edge_flat=false" 2>/dev/null)
-    # 使用grep -E代替grep -P以提高兼容性
     if echo "" | grep -P "test" >/dev/null 2>&1; then
-        # 如果grep支持-P，使用原有的Perl正则
         TODAY=$(echo "$COUNT" | grep -oP '"daily":\s*[0-9]+' | sed 's/"daily":[[:space:]]*\([0-9]*\)/\1/')
         TOTAL=$(echo "$COUNT" | grep -oP '"total":\s*[0-9]+' | sed 's/"total":[[:space:]]*\([0-9]*\)/\1/')
     else
-        # 如果grep不支持-P，使用-E兼容写法
         TODAY=$(echo "$COUNT" | grep -oE '"daily":[[:space:]]*[0-9]+' | sed 's/"daily":[[:space:]]*\([0-9]*\)/\1/')
         TOTAL=$(echo "$COUNT" | grep -oE '"total":[[:space:]]*[0-9]+' | sed 's/"total":[[:space:]]*\([0-9]*\)/\1/')
     fi
@@ -307,7 +278,6 @@ rebuild_cloud_init() {
                 echo "$updated_content" >"/etc/cloud/cloud.cfg"
             fi
         fi
-        # 使用[[:space:]]代替\s以兼容BusyBox sed
         sed -i '/^[[:space:]]*- set-passwords/s/^/#/' /etc/cloud/cloud.cfg
         chattr +i /etc/cloud/cloud.cfg
     fi
@@ -320,7 +290,6 @@ get_available_space() {
 }
 
 install_base_packages() {
-    # 根据不同系统执行update
     if [ "$SYSTEM" = "Alpine" ] && command -v apk >/dev/null 2>&1; then
         apk update
     elif [ "$SYSTEM" = "Arch" ] && command -v pacman >/dev/null 2>&1; then
@@ -333,11 +302,9 @@ install_base_packages() {
     elif command -v dnf >/dev/null 2>&1; then
         dnf update -y
     fi
-    
     install_package wget
     install_package curl
     install_package sudo
-    # dos2unix在Alpine中可能是不同的包名
     if [ "$SYSTEM" = "Alpine" ]; then
         install_package dos2unix || apk add --no-cache busybox-extras
     else
@@ -346,7 +313,6 @@ install_base_packages() {
     install_package ufw || _yellow "ufw not available on this system"
     install_package jq
     install_package uidmap || _yellow "uidmap not available on this system"
-    # ipcalc在不同系统中可能有不同的包名
     if [ "$SYSTEM" = "Alpine" ]; then
         install_package ipcalc || apk add --no-cache ipcalc-ng
     else
@@ -493,6 +459,31 @@ is_storage_installed() {
     return 1
 }
 
+execute_storage_init() {
+    local backend="$1"
+    local temp
+    if [ "$backend" = "lvm" ]; then
+        if [ -n "$storage_path" ]; then
+            mkdir -p "$storage_path"
+            /snap/bin/lxd init --auto 2>/dev/null || true
+            /snap/bin/lxc storage delete default 2>/dev/null || true
+            temp=$(/snap/bin/lxc storage create lvm_pool lvm size="${disk_nums}GB" source="${storage_path}/lvm.img" 2>&1)
+        else
+            temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
+        fi
+    else
+        if [ -n "$storage_path" ]; then
+            mkdir -p "$storage_path"
+            /snap/bin/lxd init --auto 2>/dev/null || true
+            /snap/bin/lxc storage delete default 2>/dev/null || true
+            temp=$(/snap/bin/lxc storage create default "$backend" size="${disk_nums}GB" source="${storage_path}/${backend}.img" 2>&1)
+        else
+            temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
+        fi
+    fi
+    echo "$temp"
+}
+
 init_storage_backend() {
     local backend="$1"
     if is_storage_tried "$backend"; then
@@ -565,49 +556,13 @@ init_storage_backend() {
         exit 1
     fi
     local temp
-    if [ "$backend" = "lvm" ]; then
-        if [ -n "$storage_path" ]; then
-            mkdir -p "$storage_path"
-            /snap/bin/lxd init --auto 2>/dev/null || true
-            /snap/bin/lxc storage delete default 2>/dev/null || true
-            temp=$(/snap/bin/lxc storage create lvm_pool lvm size="${disk_nums}GB" source="${storage_path}/lvm.img" 2>&1)
-        else
-            temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
-        fi
-    else
-        if [ -n "$storage_path" ]; then
-            mkdir -p "$storage_path"
-            /snap/bin/lxd init --auto 2>/dev/null || true
-            /snap/bin/lxc storage delete default 2>/dev/null || true
-            temp=$(/snap/bin/lxc storage create default "$backend" size="${disk_nums}GB" source="${storage_path}/${backend}.img" 2>&1)
-        else
-            temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
-        fi
-    fi
+    temp=$(execute_storage_init "$backend")
     local status=$?
     _green "Init storage:"
     echo "$temp"
     if echo "$temp" | grep -q "lxd.migrate" && [ $status -ne 0 ]; then
         /snap/bin/lxd.migrate
-        if [ "$backend" = "lvm" ]; then
-            if [ -n "$storage_path" ]; then
-                mkdir -p "$storage_path"
-                /snap/bin/lxd init --auto 2>/dev/null || true
-                /snap/bin/lxc storage delete default 2>/dev/null || true
-                temp=$(/snap/bin/lxc storage create lvm_pool lvm size="${disk_nums}GB" source="${storage_path}/lvm.img" 2>&1)
-            else
-                temp=$(/snap/bin/lxd init --storage-backend lvm --storage-create-loop "$disk_nums" --storage-pool lvm_pool --auto 2>&1)
-            fi
-        else
-            if [ -n "$storage_path" ]; then
-                mkdir -p "$storage_path"
-                /snap/bin/lxd init --auto 2>/dev/null || true
-                /snap/bin/lxc storage delete default 2>/dev/null || true
-                temp=$(/snap/bin/lxc storage create default "$backend" size="${disk_nums}GB" source="${storage_path}/${backend}.img" 2>&1)
-            else
-                temp=$(/snap/bin/lxd init --storage-backend "$backend" --storage-create-loop "$disk_nums" --storage-pool default --auto 2>&1)
-            fi
-        fi
+        temp=$(execute_storage_init "$backend")
         status=$?
         echo "$temp"
     fi
@@ -704,7 +659,6 @@ configure_system() {
     if ! grep -q "^net.ipv4.ip_forward=1" "$SYSCTL_D_CONF" 2>/dev/null; then
         echo "net.ipv4.ip_forward=1" >>"$SYSCTL_D_CONF"
     fi
-    # BusyBox sysctl 不支持 --system，使用 -p 代替
     if sysctl --system >/dev/null 2>&1; then
         sysctl --system >/dev/null
     else
@@ -755,7 +709,6 @@ install_dns_check() {
 setup_network_preferences() {
     if [ -f /etc/gai.conf ]; then
         sed -i 's/.*precedence ::ffff:0:0\/96.*/precedence ::ffff:0:0\/96  100/g' /etc/gai.conf
-        # 重启网络服务（如果存在）
         if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files | grep -q "networking.service"; then
             service_manager restart networking
         elif command -v rc-service >/dev/null 2>&1 && rc-service --list | grep -q "networking"; then
@@ -763,17 +716,13 @@ setup_network_preferences() {
         fi
     fi
     install_package iptables
-    # iptables-persistent 仅在基于 Debian/Ubuntu 的系统上可用
-    # Alpine 和其他系统使用不同的持久化方式
     if [ "$SYSTEM" = "Debian" ] || [ "$SYSTEM" = "Ubuntu" ]; then
         install_package iptables-persistent
     elif [ "$SYSTEM" = "Alpine" ]; then
-        # Alpine 使用 iptables-save 和 rc-update
         if command -v rc-update >/dev/null 2>&1; then
             rc-update add iptables default 2>/dev/null || true
         fi
     elif [ "$SYSTEM" = "CentOS" ] || [ "$SYSTEM" = "Fedora" ]; then
-        # RHEL 系列使用 firewalld 或 iptables-services
         if command -v firewall-cmd >/dev/null 2>&1; then
             _green "firewall-cmd is available, using firewalld for persistence"
         else
