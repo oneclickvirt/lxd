@@ -323,6 +323,13 @@ check_cdn() {
 
 # 检测CDN可用性
 check_cdn_file() {
+    local withoutcdn_upper
+    withoutcdn_upper=$(printf '%s' "${WITHOUTCDN:-}" | tr '[:lower:]' '[:upper:]')
+    if [ "$withoutcdn_upper" = "TRUE" ]; then
+        export cdn_success_url=""
+        echo "WITHOUTCDN=TRUE, skip CDN acceleration"
+        return
+    fi
     check_cdn "https://raw.githubusercontent.com/spiritLHLS/ecs/main/back/test"
     if [ -n "$cdn_success_url" ]; then
         echo "CDN available, using CDN"
