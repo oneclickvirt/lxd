@@ -1,8 +1,20 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2026.02.28
+# 2026.04.06
 
+# 一键安装（交互式）：
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
+#
+# 一键安装（无交互，环境变量预定义）：
+# NONINTERACTIVE=true DISK_NUMS=40 bash lxdinstall.sh
+# NONINTERACTIVE=true DISK_NUMS=40 STORAGE_PATH=/data/lxd-storage bash lxdinstall.sh
+#
+# 可用环境变量：
+#   NONINTERACTIVE=true        跳过所有交互提示，使用默认值或其他环境变量
+#   DISK_NUMS=<正整数>          存储池大小（单位 GB），如 DISK_NUMS=40
+#   STORAGE_PATH=<绝对路径>     自定义存储路径，如 STORAGE_PATH=/data/lxd-storage
+#   WITHOUTCDN=true            跳过 CDN 加速
+#   CN=true                    强制使用中国镜像
 
 cd /root >/dev/null 2>&1
 REGEX=("debian|astra" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "fedora" "arch|manjaro" "alpine" "freebsd")
@@ -375,59 +387,86 @@ install_lxd() {
 }
 
 configure_resources() {
-   if [ "${noninteractive:-false}" = true ]; then
-       available_space=$(get_available_space)
-       disk_nums=$((available_space - 1))
-       storage_path=""
-   else
-       while true; do
-           _green "Do you want to specify a custom path for the storage pool? (y/n) [n]:"
-           reading "是否需要指定存储池的自定义路径？(y/n) [n]：" use_custom_path
-           use_custom_path=${use_custom_path:-n}
-           if [[ "$use_custom_path" =~ ^[yYnN]$ ]]; then
-               break
-           else
-               _yellow "Please enter y or n."
-               _yellow "请输入 y 或 n。"
-           fi
-       done
-       if [[ "$use_custom_path" =~ ^[yY]$ ]]; then
-           while true; do
-               _green "Please enter the custom storage path (e.g., /data/lxd-storage):"
-               reading "请输入自定义存储路径 (例如：/data/lxd-storage)：" storage_path
-               if [[ -n "$storage_path" && "$storage_path" =~ ^/.+ ]]; then
-                   if [ ! -d "$storage_path" ]; then
-                       mkdir -p "$storage_path" 2>/dev/null
-                       if [ $? -eq 0 ]; then
-                           _green "Created directory: $storage_path"
-                           _green "已创建目录：$storage_path"
-                           break
-                       else
-                           _yellow "Failed to create directory. Please check permissions or try another path."
-                           _yellow "创建目录失败，请检查权限或尝试其他路径。"
-                       fi
-                   else
-                       break
-                   fi
-               else
-                   _yellow "Please enter a valid absolute path starting with /."
-                   _yellow "请输入以 / 开头的有效绝对路径。"
-               fi
-           done
-       else
-           storage_path=""
-       fi
-       while true; do
-           _green "How large a storage pool does the host need to open? (Note that it is in GB, enter 10 if you need 10G storage pool):"
-           reading "宿主机需要开设多大的存储池？(注意是GB为单位，需要10G存储池则输入10)：" disk_nums
-           if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
-               break
-           else
-               _yellow "Invalid input, please enter a positive integer."
-               _yellow "输入无效，请输入一个正整数。"
-           fi
-       done
-   fi
+    # 支持环境变量预定义以实现无交互安装
+    # Support pre-defined environment variables for non-interactive installation:
+    #   NONINTERACTIVE=true        - 跳过所有交互提示 / skip all interactive prompts
+    #   DISK_NUMS=<positive int>   - 存储池大小(GB) / storage pool size in GB
+    #   STORAGE_PATH=<abs path>    - 自定义存储路径 / custom storage pool path
+    local _ni_upper
+    _ni_upper=$(printf '%s' "${NONINTERACTIVE:-}" | tr '[:lower:]' '[:upper:]')
+    if [ "$_ni_upper" = "TRUE" ] || [ -n "${DISK_NUMS:-}" ]; then
+        noninteractive=true
+    fi
+    if [ "${noninteractive:-false}" = true ]; then
+        # 存储路径：优先使用 STORAGE_PATH 环境变量，未设置则留空使用默认
+        storage_path="${STORAGE_PATH:-}"
+        if [ -n "$storage_path" ]; then
+            if [ ! -d "$storage_path" ]; then
+                mkdir -p "$storage_path" 2>/dev/null || true
+            fi
+            _green "Using storage path: $storage_path"
+            _green "使用自定义存储路径：$storage_path"
+        fi
+        # 存储池大小：优先使用 DISK_NUMS 环境变量，否则自动计算（可用空间 - 1GB）
+        if [ -n "${DISK_NUMS:-}" ] && [[ "${DISK_NUMS}" =~ ^[1-9][0-9]*$ ]]; then
+            disk_nums="$DISK_NUMS"
+            _green "Using pre-defined storage pool size: ${disk_nums}GB"
+            _green "使用预定义存储池大小：${disk_nums}GB"
+        else
+            available_space=$(get_available_space)
+            disk_nums=$((available_space - 1))
+            _green "Auto-detected storage pool size: ${disk_nums}GB"
+            _green "自动检测存储池大小：${disk_nums}GB"
+        fi
+    else
+        while true; do
+            _green "Do you want to specify a custom path for the storage pool? (y/n) [n]:"
+            reading "是否需要指定存储池的自定义路径？(y/n) [n]：" use_custom_path
+            use_custom_path=${use_custom_path:-n}
+            if [[ "$use_custom_path" =~ ^[yYnN]$ ]]; then
+                break
+            else
+                _yellow "Please enter y or n."
+                _yellow "请输入 y 或 n。"
+            fi
+        done
+        if [[ "$use_custom_path" =~ ^[yY]$ ]]; then
+            while true; do
+                _green "Please enter the custom storage path (e.g., /data/lxd-storage):"
+                reading "请输入自定义存储路径 (例如：/data/lxd-storage)：" storage_path
+                if [[ -n "$storage_path" && "$storage_path" =~ ^/.+ ]]; then
+                    if [ ! -d "$storage_path" ]; then
+                        mkdir -p "$storage_path" 2>/dev/null
+                        if [ $? -eq 0 ]; then
+                            _green "Created directory: $storage_path"
+                            _green "已创建目录：$storage_path"
+                            break
+                        else
+                            _yellow "Failed to create directory. Please check permissions or try another path."
+                            _yellow "创建目录失败，请检查权限或尝试其他路径。"
+                        fi
+                    else
+                        break
+                    fi
+                else
+                    _yellow "Please enter a valid absolute path starting with /."
+                    _yellow "请输入以 / 开头的有效绝对路径。"
+                fi
+            done
+        else
+            storage_path=""
+        fi
+        while true; do
+            _green "How large a storage pool does the host need to open? (Note that it is in GB, enter 10 if you need 10G storage pool):"
+            reading "宿主机需要开设多大的存储池？(注意是GB为单位，需要10G存储池则输入10)：" disk_nums
+            if [[ "$disk_nums" =~ ^[1-9][0-9]*$ ]]; then
+                break
+            else
+                _yellow "Invalid input, please enter a positive integer."
+                _yellow "输入无效，请输入一个正整数。"
+            fi
+        done
+    fi
 }
 
 get_available_space() {
