@@ -214,8 +214,18 @@ done
 _green "  文件清理完成 / File cleanup done."
 
 # ─── 6. 清理 iptables 规则 ───────────────────────────────────────────────────
-_blue "[6/9] 清理 iptables 规则 / Cleaning up iptables rules..."
+_blue "[6/9] 清理防火墙规则 / Cleaning up firewall rules..."
 
+# 清理 nftables 规则
+if command -v nft >/dev/null 2>&1; then
+    nft delete table inet lxd_nat 2>/dev/null || true
+    nft delete table inet lxd_block 2>/dev/null || true
+    nft delete table ip6 lxd_ipv6_nat 2>/dev/null || true
+    nft list ruleset > /etc/nftables.conf 2>/dev/null || true
+    _green "  nftables 规则已清理 / nftables rules cleaned."
+fi
+
+# 清理 iptables 规则
 if command -v iptables >/dev/null 2>&1; then
     # 移除脚本添加的 MASQUERADE 规则（允许多条）
     while iptables -t nat -D POSTROUTING -j MASQUERADE 2>/dev/null; do :; done

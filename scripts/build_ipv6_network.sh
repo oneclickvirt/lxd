@@ -1,8 +1,53 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
-# 2026.02.28
+# 2026.04.14
 
-# ./build_ipv6_network.sh LXC容器名称 <是否使用iptables进行映射>
+# ./build_ipv6_network.sh LXC容器名称 <是否使用nft/ipt进行映射>
+
+# 检测防火墙后端：优先nftables，回退iptables
+detect_firewall_backend() {
+    FW_BACKEND=""
+    if command -v nft >/dev/null 2>&1; then
+        FW_BACKEND="nft"
+        return 0
+    fi
+    if command -v apt-get >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y nftables >/dev/null 2>&1
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y nftables >/dev/null 2>&1
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y nftables >/dev/null 2>&1
+    elif command -v pacman >/dev/null 2>&1; then
+        pacman -S --noconfirm nftables >/dev/null 2>&1
+    elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache nftables >/dev/null 2>&1
+    fi
+    if command -v nft >/dev/null 2>&1; then
+        FW_BACKEND="nft"
+        return 0
+    fi
+    FW_BACKEND="ipt"
+    if command -v apt-get >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent >/dev/null 2>&1
+    fi
+    return 0
+}
+
+save_firewall_rules() {
+    if [ "$FW_BACKEND" = "nft" ]; then
+        nft list ruleset > /etc/nftables.conf 2>/dev/null
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl enable nftables >/dev/null 2>&1
+        fi
+    else
+        mkdir -p /etc/iptables
+        iptables-save > /etc/iptables/rules.v4 2>/dev/null
+        ip6tables-save > /etc/iptables/rules.v6 2>/dev/null
+        if command -v netfilter-persistent >/dev/null 2>&1; then
+            netfilter-persistent save >/dev/null 2>&1
+        fi
+    fi
+}
 
 # 服务管理兼容性函数
 service_manager() {
@@ -111,7 +156,7 @@ is_private_ipv6() {
     if [[ $address == 2002:* ]]; then
         temp="8"
     fi
-    if [[ $address == 2001:* ]]; then
+    if [[ $address == 2001:0000:* ]] || [[ $address == 2001:0:* ]]; then
         temp="9"
     fi
     if [[ $address == fd42:* ]]; then
@@ -265,9 +310,61 @@ setup_ipv6_cron() {
     fi
 }
 
+# 使用nft/ipt映射IPv6
+setup_firewall_mapping() {
+    detect_firewall_backend
+    if [ "$FW_BACKEND" = "nft" ]; then
+        setup_nft_mapping
+    else
+        install_package netfilter-persistent
+        setup_ipt_mapping
+    fi
+}
+
+# 使用nftables映射IPv6
+setup_nft_mapping() {
+    local found_ipv6=""
+    for i in $(seq 3 65535); do
+        IPV6="${SUBNET_PREFIX}$i"
+        if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
+            continue
+        fi
+        if ip -6 addr show dev "$interface" | grep -q $IPV6; then
+            continue
+        fi
+        if ! ping6 -c1 -w1 -q $IPV6 &>/dev/null; then
+            if ! nft list ruleset 2>/dev/null | grep -q "dnat ip6 to $CONTAINER_IPV6.*$IPV6"; then
+                _green "$IPV6"
+                found_ipv6="$IPV6"
+                break
+            fi
+        fi
+        _yellow "$IPV6"
+    done
+    if [ -z "$found_ipv6" ]; then
+        _red "No IPV6 address available, no auto mapping"
+        _red "无可用 IPV6 地址，不进行自动映射"
+        exit 1
+    fi
+    IPV6="$found_ipv6"
+    ip addr add "$IPV6"/"$ipv6_length" dev "$interface"
+    # 创建nftables IPv6 NAT表
+    nft list table ip6 lxd_ipv6_nat >/dev/null 2>&1 || nft add table ip6 lxd_ipv6_nat
+    nft list chain ip6 lxd_ipv6_nat prerouting >/dev/null 2>&1 || \
+        nft 'add chain ip6 lxd_ipv6_nat prerouting { type nat hook prerouting priority -100; policy accept; }'
+    nft list chain ip6 lxd_ipv6_nat postrouting >/dev/null 2>&1 || \
+        nft 'add chain ip6 lxd_ipv6_nat postrouting { type nat hook postrouting priority 100; policy accept; }'
+    nft add rule ip6 lxd_ipv6_nat prerouting ip6 daddr "$IPV6" dnat to "$CONTAINER_IPV6"
+    nft add rule ip6 lxd_ipv6_nat postrouting ip6 saddr "$CONTAINER_IPV6" snat to "$IPV6"
+    # 持久化
+    setup_persistence_service
+    save_firewall_rules
+    test_ipv6_connectivity "$IPV6"
+    echo "$IPV6" >>"$CONTAINER_NAME"_v6
+}
+
 # 使用iptables映射IPv6
-setup_iptables_mapping() {
-    install_package netfilter-persistent
+setup_ipt_mapping() {
     # 寻找未使用的子网内的一个IPV6地址
     local found_ipv6=""
     for i in $(seq 3 65535); do
@@ -297,10 +394,11 @@ setup_iptables_mapping() {
     # 映射 IPV6 地址到容器的私有 IPV6 地址
     ip addr add "$IPV6"/"$ipv6_length" dev "$interface"
     ip6tables -t nat -A PREROUTING -d $IPV6 -j DNAT --to-destination $CONTAINER_IPV6
+    ip6tables -t nat -A POSTROUTING -s $CONTAINER_IPV6 -j SNAT --to-source $IPV6
     # 设置持久化服务
     setup_persistence_service
     # 保存iptables规则
-    save_iptables_rules
+    save_firewall_rules
     # 测试连通性
     test_ipv6_connectivity "$IPV6"
     # 写入信息
@@ -357,15 +455,9 @@ setup_persistence_service() {
     fi
 }
 
-# 保存iptables规则
+# 保存iptables规则 (已废弃，使用save_firewall_rules替代)
 save_iptables_rules() {
-    if [ ! -f "/etc/iptables/rules.v6" ]; then
-        touch /etc/iptables/rules.v6
-    fi
-    ip6tables-save >/etc/iptables/rules.v6
-    netfilter-persistent save
-    netfilter-persistent reload
-    service netfilter-persistent restart
+    save_firewall_rules
 }
 
 # 测试IPv6连通性
@@ -457,7 +549,7 @@ main() {
     else
         cdn_urls=("https://cdn0.spiritlhl.top/" "http://cdn1.spiritlhl.net/" "http://cdn2.spiritlhl.net/" "http://cdn3.spiritlhl.net/" "http://cdn4.spiritlhl.net/")
         check_cdn_file
-        setup_iptables_mapping
+        setup_firewall_mapping
     fi
 }
 

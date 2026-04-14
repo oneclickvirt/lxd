@@ -10,6 +10,51 @@ if [ ! -d "/usr/local/bin" ]; then
     mkdir -p "/usr/local/bin"
 fi
 
+# 检测防火墙后端：优先nftables，回退iptables
+detect_firewall_backend() {
+    FW_BACKEND=""
+    if command -v nft >/dev/null 2>&1; then
+        FW_BACKEND="nft"
+        return 0
+    fi
+    if command -v apt-get >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y nftables >/dev/null 2>&1
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y nftables >/dev/null 2>&1
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y nftables >/dev/null 2>&1
+    elif command -v pacman >/dev/null 2>&1; then
+        pacman -S --noconfirm nftables >/dev/null 2>&1
+    elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache nftables >/dev/null 2>&1
+    fi
+    if command -v nft >/dev/null 2>&1; then
+        FW_BACKEND="nft"
+        return 0
+    fi
+    FW_BACKEND="ipt"
+    if command -v apt-get >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent >/dev/null 2>&1
+    fi
+    return 0
+}
+
+save_firewall_rules() {
+    if [ "$FW_BACKEND" = "nft" ]; then
+        nft list ruleset > /etc/nftables.conf 2>/dev/null
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl enable nftables >/dev/null 2>&1
+        fi
+    else
+        mkdir -p /etc/iptables
+        iptables-save > /etc/iptables/rules.v4 2>/dev/null
+        ip6tables-save > /etc/iptables/rules.v6 2>/dev/null
+        if command -v netfilter-persistent >/dev/null 2>&1; then
+            netfilter-persistent save >/dev/null 2>&1
+        fi
+    fi
+}
+
 check_china() {
     echo "IP area being detected ......"
     if [[ -z "${CN}" ]]; then
@@ -50,11 +95,26 @@ lxc config set "$1" security.nesting true
 #   lxc config set "$1" security.syscalls.intercept.setxattr true
 # fi
 # 屏蔽端口
+detect_firewall_backend
 blocked_ports=(3389 8888 54321 65432)
-for port in "${blocked_ports[@]}"; do
-    iptables --ipv4 -I FORWARD -o eth0 -p tcp --dport ${port} -j DROP
-    iptables --ipv4 -I FORWARD -o eth0 -p udp --dport ${port} -j DROP
-done
+if [ "$FW_BACKEND" = "nft" ]; then
+    nft list table inet lxd_block >/dev/null 2>&1 || nft add table inet lxd_block
+    nft flush chain inet lxd_block forward_block 2>/dev/null
+    nft list chain inet lxd_block forward_block >/dev/null 2>&1 || \
+        nft 'add chain inet lxd_block forward_block { type filter hook forward priority 0; policy accept; }'
+    for port in "${blocked_ports[@]}"; do
+        nft add rule inet lxd_block forward_block oifname "eth0" tcp dport "$port" drop
+        nft add rule inet lxd_block forward_block oifname "eth0" udp dport "$port" drop
+    done
+else
+    for port in "${blocked_ports[@]}"; do
+        iptables -C FORWARD -o eth0 -p tcp --dport "$port" -j DROP 2>/dev/null || \
+            iptables -I FORWARD -o eth0 -p tcp --dport "$port" -j DROP
+        iptables -C FORWARD -o eth0 -p udp --dport "$port" -j DROP 2>/dev/null || \
+            iptables -I FORWARD -o eth0 -p udp --dport "$port" -j DROP
+    done
+fi
+save_firewall_rules
 if [ ! -f /usr/local/bin/ssh_bash.sh ]; then
     curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/ssh_bash.sh -o /usr/local/bin/ssh_bash.sh
     chmod 777 /usr/local/bin/ssh_bash.sh
@@ -97,7 +157,6 @@ for ((a = 1; a <= "$2"; a++)); do
     ipv4_address=$(ip addr show | awk '/inet .*global/ && !/inet6/ {print $2}' | sed -n '1p' | cut -d/ -f1)
     echo "Host IPv4 address: $ipv4_address"
     if [[ "${CN}" == true ]]; then
-        lxc exec "$name" -- yum install -y curl
         lxc exec "$name" -- apt-get install curl -y --fix-missing
         lxc exec "$name" -- curl -lk https://gitee.com/SuperManito/LinuxMirrors/raw/main/ChangeMirrors.sh -o ChangeMirrors.sh
         lxc exec "$name" -- chmod 777 ChangeMirrors.sh

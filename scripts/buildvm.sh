@@ -5,8 +5,8 @@
 
 
 check_vm_support() {
-    echo "Checking if LXD supports virtual machines..."
-    echo "检查LXD是否支持虚拟机..."
+    echo "Checking VM virtualization support..."
+    echo "检查虚拟机虚拟化支持..."
     if ! command -v lxc >/dev/null 2>&1; then
         echo "Error: LXD is not installed or not in PATH"
         echo "错误：LXD未安装或不在PATH中"
@@ -22,8 +22,21 @@ check_vm_support() {
         echo "此系统仅支持LXC容器"
         exit 1
     fi
-    echo "VM support confirmed - qemu driver is available"
-    echo "已确认支持虚拟机 - qemu驱动可用"
+    # Detect KVM hardware acceleration vs QEMU TCG software emulation
+    VM_ACCEL="tcg"
+    if [ -e /dev/kvm ]; then
+        if [ -w /dev/kvm ]; then
+            VM_ACCEL="kvm"
+            echo "KVM hardware acceleration available - VMs will use KVM nested virtualization"
+            echo "KVM硬件加速可用 - 虚拟机将使用KVM嵌套虚拟化"
+        else
+            echo "Warning: /dev/kvm exists but is not writable, falling back to TCG emulation"
+            echo "警告: /dev/kvm存在但无写入权限，降级为TCG模拟"
+        fi
+    else
+        echo "KVM not available - VMs will use QEMU TCG software emulation (slower)"
+        echo "KVM不可用 - 虚拟机将使用QEMU TCG软件模拟（较慢）"
+    fi
 }
 
 detect_os() {

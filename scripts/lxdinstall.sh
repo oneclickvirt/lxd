@@ -888,6 +888,9 @@ configure_system() {
     lxc network set lxdbr0 dns.mode managed
     lxc network set lxdbr0 ipv4.dhcp true
     lxc network set lxdbr0 ipv6.dhcp true
+    # Ensure root has subuid/subgid entries for unprivileged containers
+    grep -q "^root:" /etc/subuid 2>/dev/null || echo 'root:100000:65536' >>/etc/subuid
+    grep -q "^root:" /etc/subgid 2>/dev/null || echo 'root:100000:65536' >>/etc/subgid
 }
 
 remove_system_limits() {
@@ -934,23 +937,50 @@ setup_network_preferences() {
             service_manager restart networking
         fi
     fi
-    install_package iptables
-    if [ "$SYSTEM" = "Debian" ] || [ "$SYSTEM" = "Ubuntu" ]; then
-        install_package iptables-persistent
-    elif [ "$SYSTEM" = "Alpine" ]; then
-        if command -v rc-update >/dev/null 2>&1; then
-            rc-update add iptables default 2>/dev/null || true
-        fi
-    elif [ "$SYSTEM" = "CentOS" ] || [ "$SYSTEM" = "Fedora" ]; then
-        if command -v firewall-cmd >/dev/null 2>&1; then
-            _green "firewall-cmd is available, using firewalld for persistence"
+    # 优先使用nftables，不可用时降级为iptables
+    local fw_backend=""
+    if command -v nft >/dev/null 2>&1; then
+        fw_backend="nft"
+    else
+        install_package nftables
+        if command -v nft >/dev/null 2>&1; then
+            fw_backend="nft"
         else
-            install_package iptables-services 2>/dev/null || true
+            fw_backend="ipt"
+        fi
+    fi
+    if [ "$fw_backend" = "nft" ]; then
+        nft list table inet lxd_nat >/dev/null 2>&1 || nft add table inet lxd_nat
+        nft flush chain inet lxd_nat postrouting_masq 2>/dev/null
+        nft list chain inet lxd_nat postrouting_masq >/dev/null 2>&1 || \
+            nft 'add chain inet lxd_nat postrouting_masq { type nat hook postrouting priority 100; policy accept; }'
+        nft add rule inet lxd_nat postrouting_masq masquerade
+        nft list ruleset > /etc/nftables.conf 2>/dev/null
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl enable nftables >/dev/null 2>&1
         fi
     else
-        _yellow "Note: iptables persistence may need manual configuration on this system"
+        install_package iptables
+        if [ "$SYSTEM" = "Debian" ] || [ "$SYSTEM" = "Ubuntu" ]; then
+            DEBIAN_FRONTEND=noninteractive install_package iptables-persistent
+        elif [ "$SYSTEM" = "Alpine" ]; then
+            if command -v rc-update >/dev/null 2>&1; then
+                rc-update add iptables default 2>/dev/null || true
+            fi
+        elif [ "$SYSTEM" = "CentOS" ] || [ "$SYSTEM" = "Fedora" ]; then
+            if command -v firewall-cmd >/dev/null 2>&1; then
+                _green "firewall-cmd is available, using firewalld for persistence"
+            else
+                install_package iptables-services 2>/dev/null || true
+            fi
+        fi
+        iptables -t nat -A POSTROUTING -j MASQUERADE
+        mkdir -p /etc/iptables
+        iptables-save > /etc/iptables/rules.v4 2>/dev/null
+        if command -v netfilter-persistent >/dev/null 2>&1; then
+            netfilter-persistent save >/dev/null 2>&1
+        fi
     fi
-    iptables -t nat -A POSTROUTING -j MASQUERADE
 }
 
 show_completion_info() {

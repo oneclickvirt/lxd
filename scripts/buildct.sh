@@ -75,6 +75,7 @@ get_system_arch() {
 process_image() {
     image_download_url=""
     fixed_system=false
+    status_tuna=false
     if [[ "$sys_bit" == "x86_64" || "$sys_bit" == "aarch64" ]]; then
         process_self_fixed_images
     else
