@@ -31,6 +31,15 @@ restore_ipt() {
         echo "No physical network interface found"
         return 1
     fi
+    # 读取存储的前缀长度，回退到64
+    local prefix_len=64
+    if [ -f /usr/local/bin/lxd_ipv6_prefix_len ]; then
+        local stored_len
+        stored_len=$(cat /usr/local/bin/lxd_ipv6_prefix_len)
+        if [[ "$stored_len" =~ ^[0-9]+$ ]] && [ "$stored_len" -ge 1 ] && [ "$stored_len" -le 112 ]; then
+            prefix_len="$stored_len"
+        fi
+    fi
     # 从规则文件中提取需要绑定到接口的IPv6地址（原始逻辑）
     local array=()
     while IFS= read -r line; do
@@ -43,7 +52,7 @@ restore_ipt() {
     if [ ${#array[@]} -gt 0 ]; then
         for parameter in "${array[@]}"; do
             if ! ip -6 addr show dev "$interface" | grep -q "$parameter"; then
-                ip addr add "$parameter"/64 dev "$interface" 2>/dev/null || true
+                ip addr add "$parameter"/"$prefix_len" dev "$interface" 2>/dev/null || true
             fi
         done
     fi
@@ -84,9 +93,18 @@ restore_nft() {
         [ -n "$addr" ] && addrs+=("$addr")
     done < <(grep -oP 'ip6 daddr \K[0-9a-f:]+' /etc/nftables.conf | sort -u)
     if [ ${#addrs[@]} -gt 0 ]; then
+        # 读取存储的前缀长度，回退到64
+        local prefix_len=64
+        if [ -f /usr/local/bin/lxd_ipv6_prefix_len ]; then
+            local stored_len
+            stored_len=$(cat /usr/local/bin/lxd_ipv6_prefix_len)
+            if [[ "$stored_len" =~ ^[0-9]+$ ]] && [ "$stored_len" -ge 1 ] && [ "$stored_len" -le 112 ]; then
+                prefix_len="$stored_len"
+            fi
+        fi
         for addr in "${addrs[@]}"; do
             if ! ip -6 addr show dev "$interface" | grep -q "$addr"; then
-                ip addr add "$addr"/64 dev "$interface" 2>/dev/null || true
+                ip addr add "$addr"/"$prefix_len" dev "$interface" 2>/dev/null || true
             fi
         done
     fi

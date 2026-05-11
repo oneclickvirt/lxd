@@ -264,14 +264,40 @@ setup_network_device_mapping() {
     fi
     _yellow "Local IPV6 address: $ip_network_gam"
     if [ -n "$ip_network_gam" ]; then
+        # 验证子网前缀长度 <= 112，确保有至少16位主机位用于随机分配
+        local nd_prefix_len
+        nd_prefix_len=$(echo "$ip_network_gam" | awk -F '/' '{print $2}')
+        if [ -z "$nd_prefix_len" ] || [ "$nd_prefix_len" -gt 112 ]; then
+            _red "IPv6 prefix length ${nd_prefix_len:-unknown} is too long (max 112) for address allocation"
+            _red "IPv6前缀长度 ${nd_prefix_len:-unknown} 超过112，无法为容器分配地址"
+            return 1
+        fi
         update_sysctl "net.ipv6.conf.${ipv6_network_name}.proxy_ndp=1"
         update_sysctl "net.ipv6.conf.all.forwarding=1"
         update_sysctl "net.ipv6.conf.all.proxy_ndp=1"
         sysctl_path=$(which sysctl)
         ${sysctl_path} -p
-        ipv6_lala=$(sipcalc ${ip_network_gam} | grep "Compressed address" | awk '{print $4}' | awk -F: '{NF--; print}' OFS=:):
-        randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' ')
-        lxc_ipv6="${ipv6_lala%/*}${randbits}"
+        # 计算基于网络地址的112位前缀，避免压缩地址解析错误
+        if command -v python3 >/dev/null 2>&1; then
+            ipv6_lala=$(python3 -c "
+import ipaddress
+iface = ipaddress.ip_interface('${ip_network_gam}')
+net_addr = iface.network.network_address.exploded
+parts = net_addr.split(':')
+print(':'.join(parts[:7]) + ':')
+")
+        else
+            # 回退：sipcalc展开网络地址再取前7组
+            local nd_expanded
+            nd_expanded=$(sipcalc "${ip_network_gam}" | grep 'Expanded Address' | awk '{print $4}')
+            if [ -z "$nd_expanded" ]; then
+                _red "Cannot expand IPv6 address for NDP mapping"
+                return 1
+            fi
+            ipv6_lala=$(echo "$nd_expanded" | cut -d ':' -f1-7):
+        fi
+        randbits=$(od -An -N2 -t x1 /dev/urandom | tr -d ' \n')
+        lxc_ipv6="${ipv6_lala}${randbits}"
         _green "Container $CONTAINER_NAME IPV6:"
         _green "$lxc_ipv6"
         lxc stop "$CONTAINER_NAME"
@@ -324,8 +350,8 @@ setup_firewall_mapping() {
 # 使用nftables映射IPv6
 setup_nft_mapping() {
     local found_ipv6=""
-    for i in $(seq 3 65535); do
-        IPV6="${SUBNET_PREFIX}$i"
+    for ((i=3; i<=65535; i++)); do
+        IPV6="${SUBNET_PREFIX}$(printf '%x' $i)"
         if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
             continue
         fi
@@ -367,8 +393,8 @@ setup_nft_mapping() {
 setup_ipt_mapping() {
     # 寻找未使用的子网内的一个IPV6地址
     local found_ipv6=""
-    for i in $(seq 3 65535); do
-        IPV6="${SUBNET_PREFIX}$i"
+    for ((i=3; i<=65535; i++)); do
+        IPV6="${SUBNET_PREFIX}$(printf '%x' $i)"
         if [[ $IPV6 == $CONTAINER_IPV6 ]]; then
             continue
         fi
@@ -502,10 +528,8 @@ main() {
     fi
     _blue "The container with the name $CONTAINER_NAME has an intranet IPV6 address of $CONTAINER_IPV6"
     _blue "$CONTAINER_NAME 容器的内网IPV6地址为 $CONTAINER_IPV6"
-    # 获取宿主机子网前缀
-    SUBNET_PREFIX=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | awk -F'/' '{print $1}' | head -n 1 | cut -d ':' -f1-5):
-    # 获取宿主机的IPV6地址
-    ipv6_address=$(ip addr show | awk '/inet6.*scope global/ { print $2 }' | head -n 1)
+    # 获取宿主机的IPV6地址（含CIDR）
+    ipv6_address=$(ip -6 addr show | grep -E 'inet6.*global' | awk '{print $2}' | head -n 1)
     if [[ $ipv6_address == */* ]]; then
         ipv6_length=$(echo "$ipv6_address" | awk -F '/' '{ print $2 }')
         _green "subnet size: $ipv6_length"
@@ -514,6 +538,32 @@ main() {
         _green "Subnet size for IPV6 not queried"
         _green "查询不到IPV6的子网大小"
         exit 1
+    fi
+    # 验证子网前缀长度，必须 <= 112 以确保最后16位可用于地址枚举
+    if [ "$ipv6_length" -gt 112 ]; then
+        _red "IPv6 subnet prefix length $ipv6_length exceeds 112, cannot enumerate addresses (need at least 16 host bits)"
+        _red "IPv6子网前缀长度 $ipv6_length 超过112，无法枚举地址（需要至少16位主机位）"
+        exit 1
+    fi
+    # 将前缀长度持久化，供 add-ipv6.sh 重启恢复时使用
+    echo "$ipv6_length" > /usr/local/bin/lxd_ipv6_prefix_len
+    # 计算正确的子网网络前缀（基于网络地址前112位，避免压缩地址解析错误）
+    if command -v python3 >/dev/null 2>&1; then
+        SUBNET_PREFIX=$(python3 -c "
+import ipaddress
+iface = ipaddress.ip_interface('${ipv6_address}')
+net_addr = iface.network.network_address.exploded
+parts = net_addr.split(':')
+print(':'.join(parts[:7]) + ':')
+")
+    else
+        # 回退：使用 sipcalc 展开地址后取前7组
+        expanded=$(sipcalc "${ipv6_address}" | grep 'Expanded Address' | awk '{print $4}')
+        if [ -z "$expanded" ]; then
+            _red "Cannot expand IPv6 address: python3 and sipcalc unavailable"
+            exit 1
+        fi
+        SUBNET_PREFIX=$(echo "$expanded" | cut -d ':' -f1-7):
     fi
     # fe80检测
     output=$(ip -6 route show | awk '/default via/{print $3}')
