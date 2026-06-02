@@ -12,9 +12,26 @@
 
 ## 更新
 
-2026.05.11
+2026.06.02
 
-- 修复V6切分子网可能出现超过协议要求的问题
+- 统一无交互入口为 `export noninteractive=true`，并补齐批量新增、卸载、swap 等脚本的无交互参数校验
+
+## 无交互用法
+
+```shell
+export noninteractive=true
+export DISK_NUMS=40
+bash lxdinstall.sh
+```
+
+如需自定义存储路径：
+
+```shell
+export noninteractive=true
+export DISK_NUMS=40
+export STORAGE_PATH=/data/lxd-storage
+bash lxdinstall.sh
+```
 
 [更新日志](CHANGELOG.md)
 

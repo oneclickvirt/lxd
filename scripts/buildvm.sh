@@ -141,7 +141,7 @@ detect_os() {
 
 install_dependencies() {
     cd /root >/dev/null 2>&1
-    if ! command -v jq; then
+    if ! command -v jq >/dev/null 2>&1; then
         $PACKAGETYPE_INSTALL jq
     fi
 }
@@ -227,6 +227,63 @@ detect_arch() {
     "ppc64le") sys_bit="ppc64le" ;;
     *) sys_bit="amd64" ;;
     esac
+}
+
+validate_positive_int() {
+    [[ "$1" =~ ^[1-9][0-9]*$ ]]
+}
+
+validate_non_negative_int() {
+    [[ "$1" =~ ^[0-9]+$ ]]
+}
+
+validate_positive_number() {
+    [[ "$1" =~ ^[0-9]+([.][0-9]+)?$ ]] && awk -v n="$1" 'BEGIN { exit !(n > 0) }'
+}
+
+validate_port() {
+    validate_non_negative_int "$1" && [ "$1" -le 65535 ]
+}
+
+validate_positive_port() {
+    validate_positive_int "$1" && [ "$1" -le 65535 ]
+}
+
+validate_inputs() {
+    if ! validate_positive_int "$cpu" || ! validate_positive_int "$memory" || ! validate_positive_int "$in" || ! validate_positive_int "$out"; then
+        echo "Error: CPU, memory and speed values must be positive integers."
+        echo "错误：CPU、内存和网速参数必须是正整数。"
+        exit 1
+    fi
+    if ! validate_positive_number "$disk"; then
+        echo "Error: disk size must be a positive number."
+        echo "错误：硬盘大小必须是正数。"
+        exit 1
+    fi
+    if ! validate_positive_port "$sshn" || ! validate_port "$nat1" || ! validate_port "$nat2"; then
+        echo "Error: ports must be integers in range 0-65535, and SSH port must be greater than 0."
+        echo "错误：端口必须是 0-65535 的整数，SSH 端口必须大于 0。"
+        exit 1
+    fi
+    if { [ "$nat1" = "0" ] && [ "$nat2" != "0" ]; } || { [ "$nat1" != "0" ] && [ "$nat2" = "0" ]; }; then
+        echo "Error: NAT port range must either be both 0 or both non-zero."
+        echo "错误：NAT 端口起止必须同时为 0，或同时为非 0。"
+        exit 1
+    fi
+    if [ "$nat1" != "0" ] && [ "$nat2" != "0" ] && [ "$nat1" -gt "$nat2" ]; then
+        echo "Error: NAT start port cannot be greater than NAT end port."
+        echo "错误：NAT 起始端口不能大于结束端口。"
+        exit 1
+    fi
+}
+
+format_disk_size() {
+    if [[ $disk == *.* ]]; then
+        disk_mb=$(awk -v disk="$disk" 'BEGIN { mb = int(disk * 1024); if (mb < 1) mb = 1; printf "%d", mb }')
+        printf '%sMiB' "$disk_mb"
+    else
+        printf '%sGiB' "$disk"
+    fi
 }
 
 get_kvm_images() {
@@ -353,12 +410,13 @@ check_standard_images() {
 
 create_vm() {
     rm -rf "$name"
+    disk_size=$(format_disk_size)
     if [ -z "$image_download_url" ] && [ "$status_tuna" = true ]; then
-        lxc init opsmaru:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB" -s default
+        lxc init opsmaru:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="$disk_size" -s default
     elif [ -z "$image_download_url" ]; then
-        lxc init images:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB" -s default
+        lxc init images:${system} "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="$disk_size" -s default
     else
-        lxc init "$system" "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="${disk}GiB" -s default
+        lxc init "$system" "$name" --vm -c limits.cpu="$cpu" -c limits.memory="$memory"MiB -d root,size="$disk_size" -s default
     fi
     if [ $? -ne 0 ]; then
         echo "VM creation failed, please check the previous output message"
@@ -509,9 +567,10 @@ configure_network() {
         echo "Attempt $i: Waiting $delay seconds before retrieving VM info..."
         echo "尝试 $i: 等待 $delay 秒后获取虚拟机信息..."
         sleep $delay
-        vm_ip=$(lxc list "$name" --format json | jq -r '.[0].state.network.enp5s0.addresses[]? | select(.family=="inet") | .address' 2>/dev/null)
+        vm_info=$(lxc list "$name" --format json 2>/dev/null)
+        vm_ip=$(printf '%s' "$vm_info" | jq -r '.[0].state.network.enp5s0.addresses[]? | select(.family=="inet") | .address' 2>/dev/null)
         if [[ -z "$vm_ip" ]]; then
-            vm_ip=$(lxc list "$name" --format json | jq -r '.[0].state.network.eth0.addresses[]? | select(.family=="inet") | .address' 2>/dev/null)
+            vm_ip=$(printf '%s' "$vm_info" | jq -r '.[0].state.network.eth0.addresses[]? | select(.family=="inet") | .address' 2>/dev/null)
         fi
         if [[ -n "$vm_ip" ]]; then
             echo "VM IPv4 address: $vm_ip"
@@ -648,6 +707,7 @@ main() {
     a="${system%%[0-9]*}"
     b="${system##*[!0-9.]}"
     detect_os
+    validate_inputs
     install_dependencies
     detect_arch
     check_china

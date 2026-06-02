@@ -8,7 +8,7 @@ service_manager() {
     local action=$1
     local service_name=$2
     local success=false
-    
+
     case "$action" in
         enable)
             if command -v systemctl >/dev/null 2>&1; then
@@ -53,7 +53,7 @@ service_manager() {
             fi
             ;;
     esac
-    
+
     $success && return 0 || return 1
 }
 
@@ -112,7 +112,7 @@ install_required_modules() {
                 "dos2unix") module="dos2unix" ;; # 如果不存在，会回退到busybox-extras
             esac
         fi
-        
+
         if command -v apt-get >/dev/null 2>&1; then
             if command -v $module >/dev/null 2>&1; then
                 echo "$module is installed!"
@@ -135,7 +135,7 @@ install_required_modules() {
         fi
     done
     if command -v apt-get >/dev/null 2>&1; then
-        ${PACKAGE_INSTALL[int]} cron 
+        ${PACKAGE_INSTALL[int]} cron
     elif [ "$SYSTEM" = "Alpine" ]; then
         apk add --no-cache cronie || apk add --no-cache dcron
     else

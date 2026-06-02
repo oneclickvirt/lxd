@@ -139,6 +139,7 @@ for ((a = 1; a <= "$2"; a++)); do
     echo "Waiting for the container to start. Attempting to retrieve the container's IP address..."
     max_retries=3
     delay=5
+    container_ip=""
     for ((i=1; i<=max_retries; i++)); do
         echo "Attempt $i: Waiting $delay seconds before retrieving container info..."
         sleep $delay

@@ -3,11 +3,15 @@
 #./swap2.sh 内存大小(以MB计算)
 # 2023.06.29
 
-swapsize="$1"
+swapsize="${1:-${SWAP_SIZE:-}}"
 
 Green="\033[32m"
 Font="\033[0m"
 Red="\033[31m"
+
+validate_swap_size() {
+    [[ "$1" =~ ^[1-9][0-9]*$ ]]
+}
 
 #root权限
 root_need() {
@@ -27,6 +31,11 @@ ovz_no() {
 
 add_swap() {
     #swapsize=$(($(cat /proc/meminfo | grep MemTotal | sed "s/[^0-9]*//g")/1024))
+    if ! validate_swap_size "$swapsize"; then
+        echo -e "${Red}SWAP_SIZE must be a positive integer in MB!${Font}"
+        echo -e "${Red}SWAP_SIZE 必须是以 MB 为单位的正整数！${Font}"
+        exit 1
+    fi
 
     #检查是否存在swapfile
     grep -q "swapfile" /etc/fstab
@@ -34,7 +43,7 @@ add_swap() {
     #如果不存在将为其创建swap
     if [ $? -ne 0 ]; then
         echo -e "${Green}swapfile未发现，正在为其创建swapfile${Font}"
-        fallocate -l ${swapsize}M /swapfile
+        fallocate -l "${swapsize}M" /swapfile
         chmod 600 /swapfile
         mkswap /swapfile
         swapon /swapfile

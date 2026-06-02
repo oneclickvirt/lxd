@@ -6,6 +6,16 @@ Green="\033[32m"
 Font="\033[0m"
 Red="\033[31m"
 
+is_true() {
+    local value
+    value=$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')
+    [ "$value" = "true" ] || [ "$value" = "1" ] || [ "$value" = "yes" ] || [ "$value" = "y" ]
+}
+
+validate_swap_size() {
+    [[ "$1" =~ ^[1-9][0-9]*$ ]]
+}
+
 #root权限
 root_need() {
     if [[ $EUID -ne 0 ]]; then
@@ -23,8 +33,17 @@ ovz_no() {
 }
 
 add_swap() {
-    echo -e "${Green}请输入需要添加的swap，建议为内存的2倍！${Font}"
-    read -p "请输入swap数值:" swapsize
+    if is_true "${noninteractive:-}" || is_true "${NONINTERACTIVE:-}"; then
+        swapsize="${SWAP_SIZE:-${swapsize:-}}"
+    else
+        echo -e "${Green}请输入需要添加的swap，建议为内存的2倍！${Font}"
+        read -p "请输入swap数值:" swapsize
+    fi
+    if ! validate_swap_size "$swapsize"; then
+        echo -e "${Red}SWAP_SIZE must be a positive integer in MB!${Font}"
+        echo -e "${Red}SWAP_SIZE 必须是以 MB 为单位的正整数！${Font}"
+        exit 1
+    fi
 
     #检查是否存在swapfile
     grep -q "swapfile" /etc/fstab
@@ -32,7 +51,7 @@ add_swap() {
     #如果不存在将为其创建swap
     if [ $? -ne 0 ]; then
         echo -e "${Green}swapfile未发现，正在为其创建swapfile${Font}"
-        fallocate -l ${swapsize}M /swapfile
+        fallocate -l "${swapsize}M" /swapfile
         chmod 600 /swapfile
         mkswap /swapfile
         swapon /swapfile
@@ -66,6 +85,22 @@ del_swap() {
 main() {
     root_need
     ovz_no
+    if is_true "${noninteractive:-}" || is_true "${NONINTERACTIVE:-}"; then
+        case "${SWAP_ACTION:-add}" in
+        add)
+            add_swap
+            ;;
+        del | delete | remove)
+            del_swap
+            ;;
+        *)
+            echo -e "${Red}SWAP_ACTION must be add or del!${Font}"
+            echo -e "${Red}SWAP_ACTION 必须是 add 或 del！${Font}"
+            exit 1
+            ;;
+        esac
+        return
+    fi
     clear
     echo -e "———————————————————————————————————————"
     echo -e "${Green}Linux VPS一键添加/删除swap脚本${Font}"

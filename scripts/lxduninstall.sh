@@ -6,11 +6,15 @@
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxduninstall.sh -o lxduninstall.sh && chmod +x lxduninstall.sh && bash lxduninstall.sh
 #
 # 一键卸载（无交互，环境变量预定义）：
-# FORCE=true bash lxduninstall.sh
-# FORCE=true REMOVE_STORAGE=true bash lxduninstall.sh
+# export noninteractive=true
+# bash lxduninstall.sh
+#
+# export noninteractive=true
+# export REMOVE_STORAGE=true
+# bash lxduninstall.sh
 #
 # 可用环境变量：
-#   FORCE=true             跳过确认提示，直接执行卸载 / skip confirmation, uninstall directly
+#   noninteractive=true    跳过确认提示，直接执行卸载 / skip confirmation, uninstall directly
 #   REMOVE_STORAGE=true    同时删除存储后端文件（loop 镜像）/ also remove backing storage files
 
 cd /root >/dev/null 2>&1
@@ -21,11 +25,23 @@ _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading() { read -rp "$(_green "$1")" "$2"; }
 
-FORCE_UPPER=$(printf '%s' "${FORCE:-}" | tr '[:lower:]' '[:upper:]')
-REMOVE_STORAGE_UPPER=$(printf '%s' "${REMOVE_STORAGE:-}" | tr '[:lower:]' '[:upper:]')
+is_true() {
+    local value
+    value=$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')
+    [ "$value" = "true" ] || [ "$value" = "1" ] || [ "$value" = "yes" ] || [ "$value" = "y" ]
+}
+
+if is_true "${noninteractive:-}" || is_true "${NONINTERACTIVE:-}" || is_true "${FORCE:-}"; then
+    noninteractive=true
+fi
+if is_true "${REMOVE_STORAGE:-}"; then
+    REMOVE_STORAGE_UPPER="TRUE"
+else
+    REMOVE_STORAGE_UPPER="FALSE"
+fi
 
 # ─── 确认卸载 ────────────────────────────────────────────────────────────────
-if [ "$FORCE_UPPER" != "TRUE" ]; then
+if ! is_true "${noninteractive:-}"; then
     echo ""
     _red "======================================================"
     _red "  警告：此操作将彻底卸载 LXD 及相关所有组件！"
@@ -159,8 +175,12 @@ if command -v lxc >/dev/null 2>&1 || [ -x /snap/bin/lxc ]; then
         if [ -f /usr/local/bin/lxd_storage_path ]; then
             sp=$(cat /usr/local/bin/lxd_storage_path 2>/dev/null)
             if [ -n "$sp" ] && [ -d "$sp" ]; then
-                _yellow "  删除自定义存储目录 / Removing custom storage dir: $sp"
-                rm -rf "$sp" 2>/dev/null || true
+                if [[ "$sp" =~ ^/.+ ]] && [ "$sp" != "/" ]; then
+                    _yellow "  删除自定义存储目录 / Removing custom storage dir: $sp"
+                    rm -rf "$sp" 2>/dev/null || true
+                else
+                    _yellow "  跳过异常自定义存储路径 / Skipping unsafe storage path: $sp"
+                fi
             fi
         fi
         _green "  存储后端文件已清理 / Backing storage files removed."
@@ -180,16 +200,19 @@ else
     _yellow "  snap 不可用，跳过 / snap not available, skipping."
 fi
 
-# ─── 4. 卸载 check-dns 服务 ──────────────────────────────────────────────────
-_blue "[4/9] 卸载 check-dns 服务 / Removing check-dns service..."
+# ─── 4. 卸载守护服务 ──────────────────────────────────────────────────────────
+_blue "[4/9] 卸载守护服务 / Removing background services..."
 
 if command -v systemctl >/dev/null 2>&1; then
     systemctl stop check-dns.service 2>/dev/null || true
     systemctl disable check-dns.service 2>/dev/null || true
+    systemctl stop add-ipv6.service 2>/dev/null || true
+    systemctl disable add-ipv6.service 2>/dev/null || true
     systemctl daemon-reload 2>/dev/null || true
 fi
 rm -f /etc/systemd/system/check-dns.service
-_green "  check-dns 服务已移除 / check-dns service removed."
+rm -f /etc/systemd/system/add-ipv6.service
+_green "  守护服务已移除 / Background services removed."
 
 # ─── 5. 删除安装的文件 ───────────────────────────────────────────────────────
 _blue "[5/9] 删除安装的文件 / Removing installed files..."
@@ -199,11 +222,17 @@ files_to_remove=(
     /usr/local/bin/ssh_sh.sh
     /usr/local/bin/config.sh
     /usr/local/bin/check-dns.sh
+    /usr/local/bin/add-ipv6.sh
+    /usr/local/bin/remove_route.sh
     /usr/local/bin/lxd_storage_type
     /usr/local/bin/lxd_storage_path
+    /usr/local/bin/lxd_tried_storage
+    /usr/local/bin/lxd_installed_storage
     /usr/local/bin/incus_tried_storage
     /usr/local/bin/incus_installed_storage
     /usr/local/bin/lxd_reboot
+    /usr/local/bin/lxd_check_ipv6
+    /usr/local/bin/lxd_ipv6_prefix_len
     /root/ssh_bash.sh
     /root/ssh_sh.sh
     /root/config.sh

@@ -6,11 +6,17 @@
 # curl -L https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/lxdinstall.sh -o lxdinstall.sh && chmod +x lxdinstall.sh && bash lxdinstall.sh
 #
 # 一键安装（无交互，环境变量预定义）：
-# NONINTERACTIVE=true DISK_NUMS=40 bash lxdinstall.sh
-# NONINTERACTIVE=true DISK_NUMS=40 STORAGE_PATH=/data/lxd-storage bash lxdinstall.sh
+# export noninteractive=true
+# export DISK_NUMS=40
+# bash lxdinstall.sh
+#
+# export noninteractive=true
+# export DISK_NUMS=40
+# export STORAGE_PATH=/data/lxd-storage
+# bash lxdinstall.sh
 #
 # 可用环境变量：
-#   NONINTERACTIVE=true        跳过所有交互提示，使用默认值或其他环境变量
+#   noninteractive=true        跳过所有交互提示，使用默认值或其他环境变量
 #   DISK_NUMS=<正整数>          存储池大小（单位 GB），如 DISK_NUMS=40
 #   STORAGE_PATH=<绝对路径>     自定义存储路径，如 STORAGE_PATH=/data/lxd-storage
 #   WITHOUTCDN=true            跳过 CDN 加速
@@ -28,17 +34,27 @@ for ((int = 0; int < ${#REGEX[@]}; int++)); do
         [[ -n $SYSTEM ]] && break
     fi
 done
-TRIED_STORAGE_FILE="/usr/local/bin/incus_tried_storage"
-INSTALLED_STORAGE_FILE="/usr/local/bin/incus_installed_storage"
+TRIED_STORAGE_FILE="/usr/local/bin/lxd_tried_storage"
+INSTALLED_STORAGE_FILE="/usr/local/bin/lxd_installed_storage"
+LEGACY_TRIED_STORAGE_FILE="/usr/local/bin/incus_tried_storage"
+LEGACY_INSTALLED_STORAGE_FILE="/usr/local/bin/incus_installed_storage"
 if [ ! -d "/usr/local/bin" ]; then
     mkdir -p /usr/local/bin
 fi
+[ ! -f "$TRIED_STORAGE_FILE" ] && [ -f "$LEGACY_TRIED_STORAGE_FILE" ] && cp "$LEGACY_TRIED_STORAGE_FILE" "$TRIED_STORAGE_FILE"
+[ ! -f "$INSTALLED_STORAGE_FILE" ] && [ -f "$LEGACY_INSTALLED_STORAGE_FILE" ] && cp "$LEGACY_INSTALLED_STORAGE_FILE" "$INSTALLED_STORAGE_FILE"
 
 _red() { echo -e "\033[31m\033[01m$@\033[0m"; }
 _green() { echo -e "\033[32m\033[01m$@\033[0m"; }
 _yellow() { echo -e "\033[33m\033[01m$@\033[0m"; }
 _blue() { echo -e "\033[36m\033[01m$@\033[0m"; }
 reading() { read -rp "$(_green "$1")" "$2"; }
+
+is_true() {
+    local value
+    value=$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')
+    [ "$value" = "true" ] || [ "$value" = "1" ] || [ "$value" = "yes" ] || [ "$value" = "y" ]
+}
 
 sed_compatible() {
     if echo "test" | sed -E 's/test/ok/' >/dev/null 2>&1; then
@@ -387,33 +403,49 @@ install_lxd() {
 }
 
 configure_resources() {
-    # 支持环境变量预定义以实现无交互安装
-    # Support pre-defined environment variables for non-interactive installation:
-    #   NONINTERACTIVE=true        - 跳过所有交互提示 / skip all interactive prompts
-    #   DISK_NUMS=<positive int>   - 存储池大小(GB) / storage pool size in GB
-    #   STORAGE_PATH=<abs path>    - 自定义存储路径 / custom storage pool path
-    local _ni_upper
-    _ni_upper=$(printf '%s' "${NONINTERACTIVE:-}" | tr '[:lower:]' '[:upper:]')
-    if [ "$_ni_upper" = "TRUE" ] || [ -n "${DISK_NUMS:-}" ]; then
+    # 支持环境变量预定义以实现无交互安装。
+    if is_true "${noninteractive:-}" || is_true "${NONINTERACTIVE:-}" || [ -n "${DISK_NUMS:-}" ] || [ -n "${STORAGE_PATH:-}" ]; then
         noninteractive=true
     fi
-    if [ "${noninteractive:-false}" = true ]; then
+    if is_true "${noninteractive:-}"; then
         # 存储路径：优先使用 STORAGE_PATH 环境变量，未设置则留空使用默认
         storage_path="${STORAGE_PATH:-}"
         if [ -n "$storage_path" ]; then
-            if [ ! -d "$storage_path" ]; then
-                mkdir -p "$storage_path" 2>/dev/null || true
+            if [[ ! "$storage_path" =~ ^/.+ ]]; then
+                _red "STORAGE_PATH must be an absolute path: $storage_path"
+                _red "STORAGE_PATH 必须是绝对路径：$storage_path"
+                exit 1
             fi
+            if [ ! -d "$storage_path" ]; then
+                if ! mkdir -p "$storage_path" 2>/dev/null; then
+                    _red "Failed to create STORAGE_PATH: $storage_path"
+                    _red "创建 STORAGE_PATH 失败：$storage_path"
+                    exit 1
+                fi
+            fi
+            echo "$storage_path" >/usr/local/bin/lxd_storage_path
             _green "Using storage path: $storage_path"
             _green "使用自定义存储路径：$storage_path"
+        else
+            rm -f /usr/local/bin/lxd_storage_path
         fi
         # 存储池大小：优先使用 DISK_NUMS 环境变量，否则自动计算（可用空间 - 1GB）
-        if [ -n "${DISK_NUMS:-}" ] && [[ "${DISK_NUMS}" =~ ^[1-9][0-9]*$ ]]; then
+        if [ -n "${DISK_NUMS:-}" ]; then
+            if ! [[ "${DISK_NUMS}" =~ ^[1-9][0-9]*$ ]]; then
+                _red "DISK_NUMS must be a positive integer: $DISK_NUMS"
+                _red "DISK_NUMS 必须是正整数：$DISK_NUMS"
+                exit 1
+            fi
             disk_nums="$DISK_NUMS"
             _green "Using pre-defined storage pool size: ${disk_nums}GB"
             _green "使用预定义存储池大小：${disk_nums}GB"
         else
             available_space=$(get_available_space)
+            if ! [[ "$available_space" =~ ^[0-9]+$ ]] || [ "$available_space" -le 1 ]; then
+                _red "Available disk space is insufficient for automatic storage sizing: ${available_space:-unknown}GB"
+                _red "可用磁盘空间不足，无法自动设置存储池大小：${available_space:-unknown}GB"
+                exit 1
+            fi
             disk_nums=$((available_space - 1))
             _green "Auto-detected storage pool size: ${disk_nums}GB"
             _green "自动检测存储池大小：${disk_nums}GB"
@@ -438,6 +470,7 @@ configure_resources() {
                     if [ ! -d "$storage_path" ]; then
                         mkdir -p "$storage_path" 2>/dev/null
                         if [ $? -eq 0 ]; then
+                            echo "$storage_path" >/usr/local/bin/lxd_storage_path
                             _green "Created directory: $storage_path"
                             _green "已创建目录：$storage_path"
                             break
@@ -446,6 +479,7 @@ configure_resources() {
                             _yellow "创建目录失败，请检查权限或尝试其他路径。"
                         fi
                     else
+                        echo "$storage_path" >/usr/local/bin/lxd_storage_path
                         break
                     fi
                 else
@@ -455,6 +489,7 @@ configure_resources() {
             done
         else
             storage_path=""
+            rm -f /usr/local/bin/lxd_storage_path
         fi
         while true; do
             _green "How large a storage pool does the host need to open? (Note that it is in GB, enter 10 if you need 10G storage pool):"
@@ -469,20 +504,31 @@ configure_resources() {
     fi
 }
 
-get_available_space() {
-    local available_space
-    available_space=$(df -BG / | awk 'NR==2 {gsub("G","",$4); print $4}')
-    echo "$available_space"
-}
-
 record_tried_storage() {
     local storage_type="$1"
-    echo "$storage_type" >>"$TRIED_STORAGE_FILE"
+    grep -qxF "$storage_type" "$TRIED_STORAGE_FILE" 2>/dev/null || echo "$storage_type" >>"$TRIED_STORAGE_FILE"
+    is_storage_tried "$storage_type" || TRIED_STORAGE+=("$storage_type")
 }
 
 record_installed_storage() {
     local storage_type="$1"
-    echo "$storage_type" >>"$INSTALLED_STORAGE_FILE"
+    grep -qxF "$storage_type" "$INSTALLED_STORAGE_FILE" 2>/dev/null || echo "$storage_type" >>"$INSTALLED_STORAGE_FILE"
+    is_storage_installed "$storage_type" || INSTALLED_STORAGE+=("$storage_type")
+}
+
+load_storage_state() {
+    TRIED_STORAGE=()
+    INSTALLED_STORAGE=()
+    if [ -f "$TRIED_STORAGE_FILE" ]; then
+        while IFS= read -r storage_type; do
+            [ -n "$storage_type" ] && TRIED_STORAGE+=("$storage_type")
+        done <"$TRIED_STORAGE_FILE"
+    fi
+    if [ -f "$INSTALLED_STORAGE_FILE" ]; then
+        while IFS= read -r storage_type; do
+            [ -n "$storage_type" ] && INSTALLED_STORAGE+=("$storage_type")
+        done <"$INSTALLED_STORAGE_FILE"
+    fi
 }
 
 is_storage_tried() {
@@ -1003,6 +1049,7 @@ main() {
     statistics_of_run_times
     install_lxd
     configure_resources
+    load_storage_state
     setup_storage
     configure_lxd_network
     download_preset_files

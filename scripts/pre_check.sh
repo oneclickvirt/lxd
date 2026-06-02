@@ -39,7 +39,7 @@ openvz) VIRT='openvz' ;;
 lxc) VIRT='lxc' ;;
 *) VIRT='kvm' ;;
 esac
-if [[ $VIRT == @(openvz|lxc) ]]; then
+if [[ "$VIRT" == "openvz" || "$VIRT" == "lxc" ]]; then
     _yellow "openvz or lxc architecture cannot use this set of scripts, please use another virtualized server as a mother hen, such as KVM"
     _yellow "openvz或lxc架构无法使用本套脚本，请使用别的虚拟化的服务器做母鸡，如KVM"
     exit 1
@@ -57,7 +57,7 @@ else
     codename=$(cat /etc/*release | grep -E '^VERSION_CODENAME=' | awk -F= '{ print $2 }' | tr -d \")
 fi
 
-if [[ ! $distro == @(Ubuntu|ubuntu|Debian|debian) ]]; then
+if [[ "$distro" != "Ubuntu" && "$distro" != "ubuntu" && "$distro" != "Debian" && "$distro" != "debian" ]]; then
     _yellow "The local system does not meet the requirements, Ubuntu or Debian 8+ is required"
     _yellow "本机系统不符合要求，需要 Ubuntu 或 Debian 8+"
     exit 1

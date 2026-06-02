@@ -10,7 +10,7 @@
 # 初始化变量和依赖检查
 init_env() {
     cd /root >/dev/null 2>&1
-    if ! command -v jq; then
+    if ! command -v jq >/dev/null 2>&1; then
         apt-get install jq -y
     fi
 }
@@ -69,6 +69,54 @@ get_system_arch() {
     "ppc64le") sys_bit="ppc64le" ;;
     *) sys_bit="x86_64" ;;
     esac
+}
+
+validate_positive_int() {
+    [[ "$1" =~ ^[1-9][0-9]*$ ]]
+}
+
+validate_non_negative_int() {
+    [[ "$1" =~ ^[0-9]+$ ]]
+}
+
+validate_positive_number() {
+    [[ "$1" =~ ^[0-9]+([.][0-9]+)?$ ]] && awk -v n="$1" 'BEGIN { exit !(n > 0) }'
+}
+
+validate_port() {
+    validate_non_negative_int "$1" && [ "$1" -le 65535 ]
+}
+
+validate_positive_port() {
+    validate_positive_int "$1" && [ "$1" -le 65535 ]
+}
+
+validate_inputs() {
+    if ! validate_positive_int "$cpu" || ! validate_positive_int "$memory" || ! validate_positive_int "$in" || ! validate_positive_int "$out"; then
+        echo "Error: CPU, memory and speed values must be positive integers."
+        echo "错误：CPU、内存和网速参数必须是正整数。"
+        exit 1
+    fi
+    if ! validate_positive_number "$disk"; then
+        echo "Error: disk size must be a positive number."
+        echo "错误：硬盘大小必须是正数。"
+        exit 1
+    fi
+    if ! validate_positive_port "$sshn" || ! validate_port "$nat1" || ! validate_port "$nat2"; then
+        echo "Error: ports must be integers in range 0-65535, and SSH port must be greater than 0."
+        echo "错误：端口必须是 0-65535 的整数，SSH 端口必须大于 0。"
+        exit 1
+    fi
+    if { [ "$nat1" = "0" ] && [ "$nat2" != "0" ]; } || { [ "$nat1" != "0" ] && [ "$nat2" = "0" ]; }; then
+        echo "Error: NAT port range must either be both 0 or both non-zero."
+        echo "错误：NAT 端口起止必须同时为 0，或同时为非 0。"
+        exit 1
+    fi
+    if [ "$nat1" != "0" ] && [ "$nat2" != "0" ] && [ "$nat1" -gt "$nat2" ]; then
+        echo "Error: NAT start port cannot be greater than NAT end port."
+        echo "错误：NAT 起始端口不能大于结束端口。"
+        exit 1
+    fi
 }
 
 # 处理镜像
@@ -169,7 +217,7 @@ create_container() {
     # 计算硬盘大小参数
     if [[ $disk == *.* ]]; then
         # 小数硬盘大小，转换为 MiB
-        disk_mb=$(echo "$disk * 1024" | bc | cut -d '.' -f 1)
+        disk_mb=$(awk -v disk="$disk" 'BEGIN { mb = int(disk * 1024); if (mb < 1) mb = 1; printf "%d", mb }')
         disk_param="-d root,size=${disk_mb}MiB"
     else
         # 整数硬盘大小，使用 GiB
@@ -195,7 +243,7 @@ configure_storage() {
     # 硬盘大小已在创建容器时通过 -d root,size=... 参数设置
     # 这里只设置额外的硬盘配额限制
     if [[ $disk == *.* ]]; then
-        disk_mb=$(echo "$disk * 1024" | bc | cut -d '.' -f 1)
+        disk_mb=$(awk -v disk="$disk" 'BEGIN { mb = int(disk * 1024); if (mb < 1) mb = 1; printf "%d", mb }')
         lxc config device set "$name" root limits.max "$disk_mb"MiB
     else
         lxc config device set "$name" root limits.max "$disk"GiB
@@ -331,6 +379,7 @@ configure_port() {
     echo "Waiting for the container to start. Attempting to retrieve the container's IP address..."
     max_retries=3
     delay=5
+    container_ip=""
     for ((i=1; i<=max_retries; i++)); do
         echo "Attempt $i: Waiting $delay seconds before retrieving container info..."
         sleep $delay
@@ -478,6 +527,7 @@ main() {
     system="${11:-debian12}"
     a="${system%%[0-9]*}"
     b="${system##*[!0-9.]}"
+    validate_inputs
     get_system_arch
     process_image
     create_container
