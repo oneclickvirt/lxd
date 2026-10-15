@@ -538,7 +538,8 @@ handle_image() {
         if [ ${#kvm_images[@]} -eq 0 ]; then
             echo "Failed to get KVM images list"
             echo "获取KVM镜像列表失败"
-            return 1
+            check_standard_images || return 1
+            return 0
         fi
         local target_images=()
         local cloud_images=()
