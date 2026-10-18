@@ -317,11 +317,68 @@ PY
 get_container_ipv6() {
     local container_name="$1" value
     value=$(lxc list "$container_name" --format=json | jq -er '
-        [.[0].state.network.eth0.addresses[]? | select(.family == "inet6" and .scope == "global") | .address]
+        [.[0].state.network | to_entries[]? | .value.addresses[]?
+            | select(.family == "inet6" and .scope == "global") | .address]
         | unique
         | if length == 1 then .[0] else error("expected exactly one global IPv6 address") end
     ') || return 1
     normalize_ipv6_address "$value"
+}
+
+is_virtual_machine() {
+    local name="$1" type
+    type=$(lxc info "$name" 2>/dev/null | awk -F': *' '$1 == "Type" {print $2; exit}')
+    [ "$type" = "virtual-machine" ]
+}
+
+configure_vm_guest_ipv6() {
+    local address="$1" guest_mac script unit
+    is_virtual_machine "$CONTAINER_NAME" || return 0
+    guest_mac=$(lxc config get "$CONTAINER_NAME" volatile.eth1.hwaddr 2>/dev/null || true)
+    guest_mac=$(printf '%s' "$guest_mac" | tr '[:upper:]' '[:lower:]')
+    [[ "$guest_mac" =~ ^[0-9a-f]{2}(:[0-9a-f]{2}){5}$ ]] || return 1
+    address=$(normalize_ipv6_address "$address") || return 1
+    script=$(cat <<EOF
+#!/bin/sh
+set -eu
+TARGET_MAC='$guest_mac'
+TARGET_ADDRESS='$address'
+TARGET_GATEWAY='fe80::1'
+iface=''
+for path in /sys/class/net/*; do
+    [ -e "\$path/address" ] || continue
+    mac=\$(cat "\$path/address" 2>/dev/null || true)
+    if [ "\$(printf '%s' "\$mac" | tr '[:upper:]' '[:lower:]')" = "\$TARGET_MAC" ]; then
+        iface=\$(basename "\$path")
+        break
+    fi
+done
+[ -n "\$iface" ] || exit 1
+ip link set dev "\$iface" up
+ip -6 addr replace "\$TARGET_ADDRESS/128" dev "\$iface"
+ip -6 route replace default via "\$TARGET_GATEWAY" dev "\$iface" metric 50
+EOF
+)
+    unit=$(cat <<'EOF'
+[Unit]
+Description=OneClickVirt routed IPv6 guest address
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/oneclickvirt-routed-ipv6
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+)
+    printf '%s\n' "$script" | lxc exec "$CONTAINER_NAME" -- sh -c 'cat > /usr/local/sbin/oneclickvirt-routed-ipv6' || return 1
+    printf '%s\n' "$unit" | lxc exec "$CONTAINER_NAME" -- sh -c 'cat > /etc/systemd/system/oneclickvirt-routed-ipv6.service' || return 1
+    lxc exec "$CONTAINER_NAME" -- chmod 0755 /usr/local/sbin/oneclickvirt-routed-ipv6 || return 1
+    lxc exec "$CONTAINER_NAME" -- systemctl daemon-reload || return 1
+    lxc exec "$CONTAINER_NAME" -- systemctl enable --now oneclickvirt-routed-ipv6.service || return 1
 }
 
 get_host_ipv6_interface() {
@@ -861,6 +918,26 @@ setup_network_device_mapping() {
         fi
         sleep 3
         lxc start "$CONTAINER_NAME" || return 1
+        # Routed NICs on LXD VMs are visible to the guest but do not receive
+        # an address from LXD. Install a small guest-side systemd unit so the
+        # address and route survive VM reboot and stop/start cycles. LXC
+        # containers keep their existing runtime-managed configuration.
+        if is_virtual_machine "$CONTAINER_NAME"; then
+            if ! configure_vm_guest_ipv6 "$lxc_ipv6"; then
+                # Generic cloud VM images may not include the LXD guest agent;
+                # without it there is no safe post-boot channel to configure
+                # the routed NIC. Remove the unusable device and keep IPv6
+                # egress through the managed NAT66 network as a bounded fallback.
+                _yellow "LXD VM agent unavailable; falling back to managed IPv6 NAT"
+                _yellow "LXD 虚拟机代理不可用，回退到受管 IPv6 NAT"
+                lxc stop "$CONTAINER_NAME" 2>/dev/null || true
+                wait_for_container_status "$CONTAINER_NAME" "STOPPED" 24 || return 1
+                lxc config device remove "$CONTAINER_NAME" eth1 2>/dev/null || true
+                lxc start "$CONTAINER_NAME" || return 1
+                configure_ipv6_nat66_fallback || return 1
+                return 0
+            fi
+        fi
         handle_fe80_gateway "$ipv6_gateway_fe80" "$ipv6_network_name"
         setup_ipv6_cron || return 1
         write_atomic_scalar "${CONTAINER_NAME}_v6" "$lxc_ipv6" || return 1
