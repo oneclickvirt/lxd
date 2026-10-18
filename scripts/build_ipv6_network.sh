@@ -331,6 +331,19 @@ is_virtual_machine() {
     [ "$type" = "virtual-machine" ]
 }
 
+wait_for_vm_guest_agent() {
+    local attempt
+    # A running VM is not necessarily ready for exec yet. Bound each probe as
+    # well as the number of probes so an unavailable agent cannot hang setup.
+    for ((attempt = 0; attempt < 24; attempt++)); do
+        if timeout 5 lxc exec "$CONTAINER_NAME" -- true >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
 configure_vm_guest_ipv6() {
     local address="$1" guest_mac script unit
     is_virtual_machine "$CONTAINER_NAME" || return 0
@@ -338,6 +351,7 @@ configure_vm_guest_ipv6() {
     guest_mac=$(printf '%s' "$guest_mac" | tr '[:upper:]' '[:lower:]')
     [[ "$guest_mac" =~ ^[0-9a-f]{2}(:[0-9a-f]{2}){5}$ ]] || return 1
     address=$(normalize_ipv6_address "$address") || return 1
+    wait_for_vm_guest_agent || return 1
     script=$(cat <<EOF
 #!/bin/sh
 set -eu
@@ -928,14 +942,16 @@ setup_network_device_mapping() {
                 # without it there is no safe post-boot channel to configure
                 # the routed NIC. Remove the unusable device and keep IPv6
                 # egress through the managed NAT66 network as a bounded fallback.
-                _yellow "LXD VM agent unavailable; falling back to managed IPv6 NAT"
-                _yellow "LXD 虚拟机代理不可用，回退到受管 IPv6 NAT"
+                _yellow "Routed IPv6 guest configuration failed; falling back to managed IPv6 NAT"
+                _yellow "独立 IPv6 客体配置失败，回退到受管 IPv6 NAT"
                 lxc stop "$CONTAINER_NAME" 2>/dev/null || true
                 wait_for_container_status "$CONTAINER_NAME" "STOPPED" 24 || return 1
                 lxc config device remove "$CONTAINER_NAME" eth1 2>/dev/null || true
                 lxc start "$CONTAINER_NAME" || return 1
                 configure_ipv6_nat66_fallback || return 1
-                return 0
+                _red "Managed NAT restored, but the requested independent IPv6 was not configured" >&2
+                _red "已恢复受管 NAT，但请求的独立 IPv6 未配置成功" >&2
+                return 1
             fi
         fi
         handle_fe80_gateway "$ipv6_gateway_fe80" "$ipv6_network_name"
