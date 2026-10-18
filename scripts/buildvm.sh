@@ -687,7 +687,7 @@ configure_limits() {
 setup_vm() {
     ori=$(date | md5sum)
     passwd=${ori:2:9}
-    if ! lxc start "$name"; then
+    if ! start_lxd_instance "$name"; then
         echo "VM start failed: $name" >&2
         echo "虚拟机启动失败：$name" >&2
         return 1
@@ -872,7 +872,7 @@ configure_network() {
     configure_network_limits || return 1
     set_ip_address_binding "$vm_ip" || return 1
     configure_port_mapping "$vm_ip" "$ipv4_address" || return 1
-    lxc start "$name" || return 1
+    start_lxd_instance "$name" || return 1
     echo "Network configuration completed successfully!"
     echo "网络配置成功完成！"
 }
@@ -967,6 +967,26 @@ cleanup_and_finish() {
     fi
     printf '%s\n' "$record"
     return 0
+}
+
+
+# LXD 5.21 can briefly retain a routed VM tap route after stop completes.
+# Retry only that reported conflict; never delete a route owned by the daemon.
+start_lxd_instance() {
+    local attempt output status
+    for attempt in 1 2 3; do
+        if output=$(timeout 60 lxc start "$1" 2>&1); then
+            [ -z "$output" ] || printf '%s\n' "$output"
+            return 0
+        else
+            status=$?
+        fi
+        printf '%s\n' "$output" >&2
+        if [[ "$output" != *"Failed adding host route"* || "$output" != *"File exists"* || "$attempt" = 3 ]]; then
+            return "$status"
+        fi
+        sleep "$((attempt * 3))"
+    done
 }
 
 main() {

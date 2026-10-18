@@ -84,6 +84,8 @@ jobs:
           bash tests/build_ipv6_network_test.sh
           bash tests/test_ipv6_network.sh
           bash tests/build_failure_control_flow_test.sh
+          bash tests/routed_start_retry_test.sh
+          bash tests/vm_agent_ready_test.sh
           bash tests/image_source_test.sh
           bash tests/retry_curl_sete_test.sh
           bash tests/fixed_image_handoff_test.sh

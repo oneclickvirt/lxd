@@ -495,10 +495,15 @@ download_file() {
 }
 
 ensure_lxc_path() {
-    if ! lxc -h >/dev/null 2>&1; then
-        grep -qxF 'alias lxc="/snap/bin/lxc"' /root/.bashrc 2>/dev/null || echo 'alias lxc="/snap/bin/lxc"' >>/root/.bashrc
+    # SSH commands and services do not load interactive aliases or snap's
+    # login profile. Install a stable CLI entry point without replacing any
+    # existing administrator/package-owned command.
+    if [ -x /snap/bin/lxc ] && [ ! -e /usr/local/bin/lxc ] && [ ! -L /usr/local/bin/lxc ]; then
+        mkdir -p /usr/local/bin || return 1
+        ln -s /snap/bin/lxc /usr/local/bin/lxc || return 1
     fi
     export PATH="$PATH:/snap/bin"
+    lxc -h >/dev/null 2>&1
 }
 
 statistics_of_run_times() {

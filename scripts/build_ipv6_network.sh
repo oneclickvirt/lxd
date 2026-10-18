@@ -931,7 +931,7 @@ setup_network_device_mapping() {
             return 1
         fi
         sleep 3
-        lxc start "$CONTAINER_NAME" || return 1
+        start_lxd_instance "$CONTAINER_NAME" || return 1
         # Routed NICs on LXD VMs are visible to the guest but do not receive
         # an address from LXD. Install a small guest-side systemd unit so the
         # address and route survive VM reboot and stop/start cycles. LXC
@@ -947,7 +947,7 @@ setup_network_device_mapping() {
                 lxc stop "$CONTAINER_NAME" 2>/dev/null || true
                 wait_for_container_status "$CONTAINER_NAME" "STOPPED" 24 || return 1
                 lxc config device remove "$CONTAINER_NAME" eth1 2>/dev/null || true
-                lxc start "$CONTAINER_NAME" || return 1
+                start_lxd_instance "$CONTAINER_NAME" || return 1
                 configure_ipv6_nat66_fallback || return 1
                 _red "Managed NAT restored, but the requested independent IPv6 was not configured" >&2
                 _red "已恢复受管 NAT，但请求的独立 IPv6 未配置成功" >&2
@@ -1209,6 +1209,26 @@ test_ipv6_connectivity() {
         _red "映射失败"
         exit 1
     fi
+}
+
+
+# LXD 5.21 can briefly retain a routed VM tap route after stop completes.
+# Retry only that reported conflict; never delete a route owned by the daemon.
+start_lxd_instance() {
+    local attempt output status
+    for attempt in 1 2 3; do
+        if output=$(timeout 60 lxc start "$1" 2>&1); then
+            [ -z "$output" ] || printf '%s\n' "$output"
+            return 0
+        else
+            status=$?
+        fi
+        printf '%s\n' "$output" >&2
+        if [[ "$output" != *"Failed adding host route"* || "$output" != *"File exists"* || "$attempt" = 3 ]]; then
+            return "$status"
+        fi
+        sleep "$((attempt * 3))"
+    done
 }
 
 main() {
