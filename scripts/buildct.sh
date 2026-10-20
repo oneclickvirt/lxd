@@ -14,7 +14,9 @@ load_instance_ownership() {
         if [ -f "$helper" ]; then
             # shellcheck source=/dev/null
             . "$helper" || return 1
-            return 0
+            if declare -F ocv_import_split_image >/dev/null && declare -F ocv_image_alias_target >/dev/null; then
+                return 0
+            fi
         fi
     done
     temporary=$(mktemp "${TMPDIR:-/tmp}/lxd-ownership.XXXXXX") || return 1
@@ -26,7 +28,8 @@ load_instance_ownership() {
     . "$temporary"
     local status=$?
     rm -f -- "$temporary"
-    return "$status"
+    [ "$status" -eq 0 ] || return "$status"
+    declare -F ocv_import_split_image >/dev/null && declare -F ocv_image_alias_target >/dev/null
 }
 load_instance_ownership || { echo "Missing instance_ownership.sh; download it with this script." >&2; exit 1; }
 OCV_SCRIPT_RUNTIME=lxd
@@ -494,8 +497,8 @@ use_fixed_image() {
     image_name="$1"
     fixed_system=true
     image_download_url="https://github.com/oneclickvirt/lxd_images/releases/download/${a}/${image_name}"
-    image_alias_output=$(lxc image alias list)
-    if [[ "$image_alias_output" != *"$image_name"* ]]; then
+    image_alias_output=$(ocv_image_alias_target "$image_name") || return 1
+    if [ -z "$image_alias_output" ]; then
         if ! wget "${cdn_success_url}${image_download_url}"; then
             echo "Failed to download image: ${image_download_url}"
             echo "镜像下载失败：${image_download_url}"
@@ -509,7 +512,7 @@ use_fixed_image() {
             return 1
         fi
         rm -f -- "$image_name"
-        if ! lxc image import lxd.tar.xz rootfs.squashfs --alias "$image_name"; then
+        if ! ocv_import_split_image lxd.tar.xz rootfs.squashfs "$image_name"; then
             rm -f -- lxd.tar.xz rootfs.squashfs
             echo "Failed to import image: ${image_name}"
             echo "镜像导入失败：${image_name}"

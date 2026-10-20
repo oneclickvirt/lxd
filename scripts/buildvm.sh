@@ -11,7 +11,9 @@ load_instance_ownership() {
         if [ -f "$helper" ]; then
             # shellcheck source=/dev/null
             . "$helper" || return 1
-            return 0
+            if declare -F ocv_import_split_image >/dev/null && declare -F ocv_image_alias_target >/dev/null; then
+                return 0
+            fi
         fi
     done
     temporary=$(mktemp "${TMPDIR:-/tmp}/lxd-ownership.XXXXXX") || return 1
@@ -23,7 +25,8 @@ load_instance_ownership() {
     . "$temporary"
     local status=$?
     rm -f -- "$temporary"
-    return "$status"
+    [ "$status" -eq 0 ] || return "$status"
+    declare -F ocv_import_split_image >/dev/null && declare -F ocv_image_alias_target >/dev/null
 }
 load_instance_ownership || { echo "Missing instance_ownership.sh; download it with this script." >&2; exit 1; }
 OCV_SCRIPT_RUNTIME=lxd
@@ -569,9 +572,9 @@ handle_image() {
         if [ -n "$selected_image" ]; then
             fixed_system=true
             image_download_url="https://github.com/oneclickvirt/lxd_images/releases/download/kvm_images/${selected_image}"
-            image_alias_output=$(lxc image alias list)
+            image_alias_output=$(ocv_image_alias_target "${a}${b}") || return 1
             local short_alias="${a}${b}"
-            if [[ "$image_alias_output" != *"$short_alias"* ]]; then
+            if [ -z "$image_alias_output" ]; then
                 import_image "$selected_image" "$image_download_url" || return 1
                 echo "A matching image exists and will be created using ${image_download_url}"
                 echo "匹配的镜像存在，将使用 ${image_download_url} 进行创建"
@@ -589,7 +592,9 @@ import_image() {
     local image_name="$1"
     local image_url="$2"
     local short_alias="${a}${b}"
-    if lxc image list --format csv | grep -q "^$short_alias,"; then
+    local cached_target
+    cached_target=$(ocv_image_alias_target "$short_alias") || return 1
+    if [ -n "$cached_target" ]; then
         echo "Image $short_alias already exists, skipping import"
         echo "镜像 $short_alias 已存在，跳过导入"
         system="$short_alias"
@@ -608,7 +613,7 @@ import_image() {
         return 1
     fi
     rm -f -- "$image_name"
-    if ! lxc image import lxd.tar.xz disk.qcow2 --alias "$short_alias"; then
+    if ! ocv_import_split_image lxd.tar.xz disk.qcow2 "$short_alias"; then
         rm -f -- lxd.tar.xz disk.qcow2
         echo "Failed to import image: $short_alias"
         echo "镜像导入失败：$short_alias"

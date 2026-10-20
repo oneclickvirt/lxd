@@ -111,3 +111,47 @@ ocv_remove_owned_instance() {
     # must not concurrently delete/recreate names belonging to an active run.
     "$OCV_INSTANCE_CLI" delete --force "$instance_name"
 }
+
+
+# Image identity is independent of aliases: the panel and CLI installers may
+# cache exactly the same image under different names. Reuse that fingerprint
+# while retaining unrelated aliases, including a concurrent caller's alias.
+ocv_image_alias_target() {
+    local alias="$1" data target
+    data=$("$OCV_INSTANCE_CLI" image alias list --format=json) || return 1
+    target=$(jq -er --arg alias "$alias" '
+        [.[]? | select(.name == $alias) | .target] |
+        if length > 1 then error("duplicate image alias") else .[0] // "" end
+    ' <<<"$data") || return 1
+    [ -z "$target" ] || [[ "$target" =~ ^[0-9a-f]{64}$ ]] || return 1
+    printf '%s\n' "$target"
+}
+
+ocv_import_split_image() {
+    local metadata="$1" rootfs="$2" alias="$3" fingerprint target
+    fingerprint=$(set -o pipefail; cat -- "$metadata" "$rootfs" | sha256sum) || return 1
+    fingerprint=${fingerprint%% *}
+    [[ "$fingerprint" =~ ^[0-9a-f]{64}$ ]] || return 1
+    target=$(ocv_image_alias_target "$alias") || return 1
+    if [ -n "$target" ] && [ "$target" != "$fingerprint" ]; then
+        printf 'Refusing to replace an image alias owned by another fingerprint: %s\n' "$alias" >&2
+        return 1
+    fi
+    if ! "$OCV_INSTANCE_CLI" image show "$fingerprint" >/dev/null 2>&1; then
+        if ! "$OCV_INSTANCE_CLI" image import "$metadata" "$rootfs" --alias "$alias"; then
+            # Another process may have imported the same fingerprint after
+            # the probe. Only a verified cached image permits this recovery.
+            "$OCV_INSTANCE_CLI" image show "$fingerprint" >/dev/null 2>&1 || return 1
+        fi
+    fi
+    target=$(ocv_image_alias_target "$alias") || return 1
+    if [ -z "$target" ]; then
+        "$OCV_INSTANCE_CLI" image alias create "$alias" "$fingerprint" || {
+            target=$(ocv_image_alias_target "$alias") || return 1
+            [ "$target" = "$fingerprint" ] || return 1
+        }
+    fi
+    target=$(ocv_image_alias_target "$alias") || return 1
+    [ "$target" = "$fingerprint" ] || return 1
+    "$OCV_INSTANCE_CLI" image show "$fingerprint" >/dev/null 2>&1
+}

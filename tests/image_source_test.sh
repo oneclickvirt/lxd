@@ -2,7 +2,10 @@
 set -euo pipefail
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 eval "$(awk '/^handle_image\(\)/ {p=1} p {print} p && /^}/ {exit}' "$repo_root/scripts/buildvm.sh")"
-lxc() { [[ "$*" == 'image alias list' ]]; }
+# shellcheck source=/dev/null
+. "$repo_root/scripts/instance_ownership.sh"
+OCV_INSTANCE_CLI=lxc
+lxc() { [[ "$*" == 'image alias list --format=json' ]] && printf '[]\n'; }
 import_image() { imported="$1"; imported_url="$2"; [[ "$import_ok" == true ]]; }
 check_standard_images() { fallback=true; [[ "$fallback_ok" == true ]]; }
 get_kvm_images() { printf '%s\n' "$metadata"; }
