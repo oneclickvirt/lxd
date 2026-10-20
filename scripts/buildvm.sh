@@ -827,8 +827,43 @@ safe_shutdown_vm() {
     return 1
 }
 
+wait_for_instance_ssh_ready() {
+    local max_wait="${1:-180}" interval=3 waited=0 started elapsed budget delay
+    [[ "$max_wait" =~ ^[0-9]+$ ]] || max_wait=180
+    while ((waited < max_wait)); do
+        budget=$((max_wait - waited))
+        ((budget <= 15)) || budget=15
+        started=$SECONDS
+        if timeout -k 2 "$budget" lxc exec "$name" -- sh -c 'awk '\''NR > 1 && $2 ~ /:0016$/ && $4 == "0A" { found=1 } END { exit !found }'\'' /proc/net/tcp /proc/net/tcp6' >/dev/null 2>&1; then
+            return 0
+        fi
+        elapsed=$((SECONDS - started))
+        ((elapsed > 0)) || elapsed=1
+        waited=$((waited + elapsed))
+        ((waited < max_wait)) || break
+        delay=$interval
+        ((waited + delay <= max_wait)) || delay=$((max_wait - waited))
+        sleep "$delay" || return 1
+        waited=$((waited + delay))
+    done
+    echo "Error: SSH server inside '$name' did not become ready within ${max_wait}s." >&2
+    return 1
+}
+
+# Interface names differ between images and daemon versions. Accept one
+# unambiguous global IPv4 from this exact instance, excluding loopback.
+vm_ipv4_from_state() {
+    jq -er --arg name "$name" '
+        [.[] | select(.name == $name) | (.state.network // {}) | to_entries[] |
+         select(.key != "lo") | .value.addresses[]? |
+         select(.family == "inet" and (.scope // "global") == "global") | .address] |
+        unique | if length == 1 then .[0] else error("guest IPv4 is absent or ambiguous") end
+    '
+}
+
 configure_network() {
     lxc restart "$name" || return 1
+    wait_for_instance_ssh_ready || return 1
     echo "Waiting for the VM to start. Attempting to retrieve the VM's IP address..."
     echo "等待虚拟机启动，尝试获取虚拟机IP地址..."
     max_retries=5
@@ -838,10 +873,9 @@ configure_network() {
         echo "Attempt $i: Waiting $delay seconds before retrieving VM info..."
         echo "尝试 $i: 等待 $delay 秒后获取虚拟机信息..."
         sleep $delay
-        vm_info=$(lxc list "$name" --format json 2>/dev/null)
-        vm_ip=$(printf '%s' "$vm_info" | jq -r '.[0].state.network.enp5s0.addresses[]? | select(.family=="inet") | .address' 2>/dev/null)
-        if [[ -z "$vm_ip" ]]; then
-            vm_ip=$(printf '%s' "$vm_info" | jq -r '.[0].state.network.eth0.addresses[]? | select(.family=="inet") | .address' 2>/dev/null)
+        vm_ip=""
+        if vm_info=$(lxc list "$name" --format json 2>/dev/null); then
+            vm_ip=$(vm_ipv4_from_state <<<"$vm_info" 2>/dev/null) || vm_ip=""
         fi
         if [[ -n "$vm_ip" ]]; then
             echo "VM IPv4 address: $vm_ip"
@@ -878,6 +912,7 @@ configure_network() {
     set_ip_address_binding "$vm_ip" || return 1
     configure_port_mapping "$vm_ip" "$ipv4_address" || return 1
     start_lxd_instance "$name" || return 1
+    wait_for_instance_ssh_ready || return 1
     echo "Network configuration completed successfully!"
     echo "网络配置成功完成！"
 }

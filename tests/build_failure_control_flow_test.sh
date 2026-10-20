@@ -158,6 +158,7 @@ run_stop_timeout_test() {
         configure_port() { :; }
         configure_firewall_ports() { :; }
         wait_for_container_ready_to_shutdown() { :; }
+        wait_for_instance_ssh_ready() { :; }
         wait_for_vm_ready_to_shutdown() { :; }
 
         if main "$record" 1 256 2 20001 0 0 100 100 N debian12 >output 2>&1; then
