@@ -898,6 +898,7 @@ configure_network() {
                 chmod +x build_ipv6_network.sh || return 1
             fi
             ./build_ipv6_network.sh "$name" || return 1
+            wait_for_instance_ssh_ready || return 1
         fi
     fi
     configure_firewall_ports

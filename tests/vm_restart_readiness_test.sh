@@ -35,3 +35,48 @@ prefix=${flow%%echo *}
 [[ "$prefix" == *'lxc restart "$name" || return 1'* ]]
 [[ "$prefix" == *'wait_for_instance_ssh_ready || return 1'* ]]
 echo 'VM post-restart readiness, renamed interfaces and bounded failure passed'
+
+# The IPv6 helper also stops and starts the VM. Its fresh boot must become
+# ready before the following shutdown, not only after the first restart.
+workdir=$(mktemp -d)
+trap 'rm -rf -- "$workdir"' EXIT
+(
+    cd "$workdir"
+    export ONECLICKVIRT_TESTING=1
+    source "$root/scripts/buildvm.sh"
+    name=vm-fixture enable_ipv6=y sshn=20001 nat1=0 nat2=0
+    trace="$workdir/trace"
+    export trace
+    cat >build_ipv6_network.sh <<'HELPER'
+#!/bin/sh
+printf 'helper-started-new-boot\n' >>"$trace"
+HELPER
+    chmod +x build_ipv6_network.sh
+    lxc() {
+        case "$1" in
+            list) printf '%s\n' '[{"name":"vm-fixture","state":{"network":{"ens19":{"addresses":[{"family":"inet","address":"192.0.2.2","scope":"global"}]}}}}]' ;;
+            restart) printf 'first-restart\n' >>"$trace" ;;
+            *) return 1 ;;
+        esac
+    }
+    ip() { printf '    inet 192.0.2.1/24 scope global eth0\n'; }
+    firewall-cmd() { :; }
+    configure_firewall_ports() { :; }
+    wait_for_instance_ssh_ready() { printf 'guest-ready\n' >>"$trace"; }
+    ensure_container_ipv6_cron() { :; }
+    refresh_ipv6_helper() { :; }
+    wait_for_vm_ready_to_shutdown() { :; }
+    safe_shutdown_vm() {
+        [[ "$(tail -n 1 "$trace")" == guest-ready ]] || {
+            echo 'Shutdown raced the boot performed by the IPv6 helper' >&2
+            exit 7
+        }
+        printf 'shutdown-after-ready\n' >>"$trace"
+        return 1 # stop here without configuring devices or launching a guest
+    }
+    if configure_network; then
+        echo 'The fixture unexpectedly configured a real guest' >&2; exit 1
+    fi
+    [[ "$(cat "$trace")" == $'first-restart\nguest-ready\nhelper-started-new-boot\nguest-ready\nshutdown-after-ready' ]]
+)
+echo 'IPv6 helper reboot must become ready before shutdown: passed'
