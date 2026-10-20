@@ -74,6 +74,8 @@ fi
 state_path=$(state_file lxd_check_ipv6)
 write_atomic_scalar "$state_path" "2001:db8::2"
 assert_eq "2001:db8::2" "$(read_strict_ipv6_file "$state_path")" "read strict state"
+grep -Fq 'oneclickvirt-lxd-ipv6-proxy-ndp.service' "$ROOT_DIR/scripts/build_ipv6_network.sh" ||
+    fail "host proxy-NDP sysctl persistence service is missing"
 printf '2001:db8::2\n2001:db8::3\n' >"$state_path"
 if read_strict_ipv6_file "$state_path"; then
     fail "multi-line cached IPv6 state must be rejected"
