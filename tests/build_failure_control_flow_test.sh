@@ -121,7 +121,11 @@ run_stop_timeout_test() {
             return 0
         }
         sleep() { :; }
+        if [[ "$kind" == vm ]]; then
+            vm_ipv4_from_state() { printf '192.0.2.2\n'; }
+        else
         jq() { printf '192.0.2.2\n'; }
+        fi
         ip() { printf '2: eth0 inet 192.0.2.1/24 scope global eth0\n'; }
         init_env() { :; }
         ensure_lxd_ready() { :; }

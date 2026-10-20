@@ -155,3 +155,20 @@ ocv_import_split_image() {
     [ "$target" = "$fingerprint" ] || return 1
     "$OCV_INSTANCE_CLI" image show "$fingerprint" >/dev/null 2>&1
 }
+
+
+# Daemon versions differ in status capitalization and API envelope layout.
+# A command timeout can also race a successfully completed shutdown.
+ocv_instance_is_stopped() {
+    local data
+    data=$("$OCV_INSTANCE_CLI" query "/1.0/instances/$1") || return 1
+    jq -se '
+        length == 1 and (.[0] | if type != "object" then false else
+            (.metadata // .) | if type != "object" then false else
+                if .status_code != null then
+                    (.status_code | tostring) == "102" and
+                    ((.status // "stopped") | ascii_downcase) == "stopped"
+                else ((.status // "") | ascii_downcase) == "stopped" end
+            end end)
+    ' <<<"$data" >/dev/null
+}

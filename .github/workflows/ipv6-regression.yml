@@ -102,6 +102,7 @@ jobs:
           bash tests/instance_ownership_test.sh
           bash tests/image_cache_import_test.sh
           bash tests/vm_restart_readiness_test.sh
+          bash tests/vm_shutdown_budget_test.sh
           bash tests/masquerade_failure_test.sh
           bash tests/firewall_persistence_test.sh
           bash tests/firewalld_failure_test.sh
