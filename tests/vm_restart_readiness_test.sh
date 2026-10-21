@@ -32,7 +32,7 @@ done
 # real guest-agent/SSH probe. A cached daemon address alone is insufficient.
 flow=$(awk '/^configure_network\(\) \{/ {p=1} p {print} p && /^}$/ {exit}' "$root/scripts/buildvm.sh")
 prefix=${flow%%echo *}
-[[ "$prefix" == *'lxc restart "$name" || return 1'* ]]
+[[ "$prefix" == *'restart_lxd_instance "$name" || return 1'* ]]
 [[ "$prefix" == *'wait_for_instance_ssh_ready || return 1'* ]]
 echo 'VM post-restart readiness, renamed interfaces and bounded failure passed'
 
@@ -59,6 +59,7 @@ HELPER
             *) return 1 ;;
         esac
     }
+    restart_lxd_instance() { lxc restart "$1"; }
     ip() { printf '    inet 192.0.2.1/24 scope global eth0\n'; }
     firewall-cmd() { :; }
     configure_firewall_ports() { :; }

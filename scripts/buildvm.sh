@@ -3,6 +3,8 @@
 # https://github.com/oneclickvirt/lxd
 # 2026.08.30
 
+OCV_BUILDVM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)" || exit 1
+
 # Load before changing directory or touching shared downloads and logs.
 load_instance_ownership() {
     local script_dir helper temporary
@@ -687,6 +689,7 @@ create_vm() {
 
 configure_limits() {
     lxc config set "$name" security.secureboot false || return 1
+    lxc config set "$name" boot.autostart true || return 1
 }
 
 setup_vm() {
@@ -856,8 +859,34 @@ vm_ipv4_from_state() {
     '
 }
 
+refresh_ipv6_helper() {
+    local target="${1:-./build_ipv6_network.sh}" source_path script_path temporary
+    local marker='# oneclickvirt-ipv6-helper-version: 2026.10.21.3'
+    script_path="${OCV_BUILDVM_DIR:-}"
+    source_path="$script_path/build_ipv6_network.sh"
+    if [ -f "$source_path" ] && grep -Fqx "$marker" "$source_path"; then
+        if ! cmp -s "$source_path" "$target"; then
+            cp -f -- "$source_path" "$target" || return 1
+        fi
+        chmod +x "$target" || return 1
+        return 0
+    fi
+    if [ -f "$target" ] && grep -Fqx "$marker" "$target"; then
+        chmod +x "$target" || return 1
+        return 0
+    fi
+    temporary=$(mktemp "${target}.tmp.XXXXXX") || return 1
+    if ! download_host_file "https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/build_ipv6_network.sh" "$temporary" ||
+       ! grep -Fqx "$marker" "$temporary"; then
+        rm -f -- "$temporary"
+        echo "Error: downloaded IPv6 helper is missing the expected version marker." >&2
+        return 1
+    fi
+    chmod +x "$temporary" && mv -f -- "$temporary" "$target"
+}
+
 configure_network() {
-    lxc restart "$name" || return 1
+    restart_lxd_instance "$name" || return 1
     wait_for_instance_ssh_ready || return 1
     echo "Waiting for the VM to start. Attempting to retrieve the VM's IP address..."
     echo "等待虚拟机启动，尝试获取虚拟机IP地址..."
@@ -893,10 +922,7 @@ configure_network() {
             echo "配置IPv6..."
             ensure_container_ipv6_cron || return 1
             sleep 1
-            if [ ! -f "./build_ipv6_network.sh" ]; then
-                download_host_file "https://raw.githubusercontent.com/oneclickvirt/lxd/main/scripts/build_ipv6_network.sh" build_ipv6_network.sh || return 1
-                chmod +x build_ipv6_network.sh || return 1
-            fi
+            refresh_ipv6_helper ./build_ipv6_network.sh || return 1
             ./build_ipv6_network.sh "$name" || return 1
             wait_for_instance_ssh_ready || return 1
         fi
@@ -1023,6 +1049,31 @@ start_lxd_instance() {
         fi
         sleep "$((attempt * 3))"
     done
+}
+
+restart_lxd_instance() {
+    local instance_name="$1" attempt output status current
+    if output=$(timeout -k 5 150 lxc restart "$instance_name" --timeout 120 2>&1); then
+        [ -z "$output" ] || printf '%s\n' "$output"
+        return 0
+    else
+        status=$?
+    fi
+    printf '%s\n' "$output" >&2
+    # LXD 5.21 can reject the start half of a restart while QEMU teardown
+    # briefly exposes Error. Recover only this known transition, checking
+    # the exact instance's structured state before a bounded normal start.
+    [[ "$output" == *"cannot be started as in Error status"* ]] || return "$status"
+    for attempt in 1 2 3; do
+        current=$(lxc list "$instance_name" --format json | jq -er --arg name "$instance_name" '
+            [.[] | select(.name == $name) | .status_code] |
+            if length == 1 then .[0] else error("ambiguous instance state") end') || return 1
+        [ "$current" != 103 ] || return 0
+        if [ "$current" = 102 ] && start_lxd_instance "$instance_name"; then return 0; fi
+        case "$current" in 102|112) ;; *) return 1 ;; esac
+        sleep "$((attempt * 3))"
+    done
+    return "$status"
 }
 
 main() {

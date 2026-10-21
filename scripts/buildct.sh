@@ -328,7 +328,7 @@ PY
 # download and validate the current marker before replacing the cached copy.
 refresh_ipv6_helper() {
     local target="${1:-./build_ipv6_network.sh}" source_path script_path temporary
-    local marker='# oneclickvirt-ipv6-helper-version: 2026.09.20'
+    local marker='# oneclickvirt-ipv6-helper-version: 2026.10.21.3'
     script_path="${OCV_BUILDCT_DIR:-}"
     source_path="$script_path/build_ipv6_network.sh"
     if [ -f "$source_path" ] && grep -Fqx "$marker" "$source_path"; then
@@ -636,6 +636,7 @@ configure_memory() {
 # 配置安全设置
 configure_security() {
     lxc config set "$name" security.nesting true || return 1
+    lxc config set "$name" boot.autostart true || return 1
 }
 
 # 安装和配置系统

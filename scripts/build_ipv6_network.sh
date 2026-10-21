@@ -1,7 +1,7 @@
 #!/bin/bash
 # by https://github.com/oneclickvirt/lxd
 # 2026.08.26
-# oneclickvirt-ipv6-helper-version: 2026.09.20
+# oneclickvirt-ipv6-helper-version: 2026.10.21.3
 
 # ./build_ipv6_network.sh LXC容器名称 <是否使用nft/ipt进行映射>
 
@@ -345,7 +345,7 @@ wait_for_vm_guest_agent() {
 }
 
 configure_vm_guest_ipv6() {
-    local address="$1" guest_mac script unit
+    local address="$1" guest_mac script unit network_setup
     is_virtual_machine "$CONTAINER_NAME" || return 0
     guest_mac=$(lxc config get "$CONTAINER_NAME" volatile.eth1.hwaddr 2>/dev/null || true)
     guest_mac=$(printf '%s' "$guest_mac" | tr '[:upper:]' '[:lower:]')
@@ -373,11 +373,46 @@ ip -6 addr replace "\$TARGET_ADDRESS/128" dev "\$iface"
 ip -6 route replace default via "\$TARGET_GATEWAY" dev "\$iface" metric 50
 EOF
 )
+    network_setup=$(cat <<'GUEST_NETWORK'
+set -eu
+mac="$1"
+address="$2"
+if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet systemd-networkd.service; then
+    mkdir -p /etc/systemd/network
+    target="/etc/systemd/network/00-oneclickvirt-routed-$(printf '%s' "$mac" | tr -d ':').network"
+    test ! -L "$target"
+    cat > "$target.tmp.$$" <<NETWORK
+[Match]
+MACAddress=$mac
+[Link]
+RequiredForOnline=yes
+[Network]
+DHCP=no
+IPv6AcceptRA=no
+LinkLocalAddressing=ipv6
+Address=$address/128
+[Route]
+Destination=::/0
+Gateway=fe80::1
+GatewayOnLink=yes
+Metric=50
+NETWORK
+    chmod 0644 "$target.tmp.$$"
+    mv -f "$target.tmp.$$" "$target"
+    # A minimal image can lack a system D-Bus socket; next boot still reads
+    # this file and the address service configures the current network.
+    networkctl reload >/dev/null 2>&1 || true
+fi
+GUEST_NETWORK
+)
+    timeout -k 3 20 lxc exec "$CONTAINER_NAME" -- sh -ceu "$network_setup" sh "$guest_mac" "$address" || return 1
     unit=$(cat <<'EOF'
 [Unit]
 Description=OneClickVirt routed IPv6 guest address
-After=network-online.target
-Wants=network-online.target
+DefaultDependencies=no
+After=local-fs.target network.target
+Before=network-online.target shutdown.target
+Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
@@ -854,7 +889,7 @@ update_sysctl() {
 
 persist_proxy_ndp_sysctl() {
     local interface="$1" unit_path="/etc/systemd/system/oneclickvirt-lxd-ipv6-proxy-ndp.service"
-    local sysctl_bin unit_tmp
+    local sysctl_bin unit_tmp network_file network_name directory daemon
     [[ "$interface" =~ ^[[:alnum:]_.:-]{1,15}$ ]] || return 1
     command -v systemctl >/dev/null 2>&1 || return 0
     sysctl_bin=$(command -v sysctl) || return 1
@@ -866,9 +901,11 @@ persist_proxy_ndp_sysctl() {
 Description=OneClickVirt LXD IPv6 proxy NDP readiness
 After=network-online.target
 Wants=network-online.target
+Before=incus.service incus-daemon.service lxd.service snap.lxd.daemon.service snap.incus.daemon.service
 
 [Service]
 Type=oneshot
+ExecStart=$sysctl_bin -w net.ipv6.conf.default.proxy_ndp=1
 ExecStart=$sysctl_bin -w net.ipv6.conf.all.proxy_ndp=1
 ExecStart=$sysctl_bin -w net.ipv6.conf.$interface.proxy_ndp=1
 ExecStart=$sysctl_bin -w net.ipv6.conf.all.forwarding=1
@@ -885,6 +922,30 @@ EOF
         rm -f -- "$unit_tmp"
         return 1
     fi
+    # networkd reapplies its own per-link default after systemd-sysctl.
+    if command -v networkctl >/dev/null 2>&1 && systemctl is-active --quiet systemd-networkd.service; then
+        network_file=$(LC_ALL=C SYSTEMD_COLORS=0 networkctl status --no-pager "$interface" 2>/dev/null | sed -n 's/^[[:space:]]*Network File: //p')
+        network_name=${network_file##*/}
+        case "$network_name" in
+            ''|*[!a-zA-Z0-9_.:-]*) ;;
+            *.network)
+                directory="/etc/systemd/network/$network_name.d"
+                mkdir -p "$directory" || return 1
+                [ ! -L "$directory/99-oneclickvirt-ipv6.conf" ] || return 1
+                printf '[Network]\nIPv6ProxyNDP=yes\n' > "$directory/99-oneclickvirt-ipv6.conf.tmp.$$" || return 1
+                chmod 0644 "$directory/99-oneclickvirt-ipv6.conf.tmp.$$" || return 1
+                mv -f "$directory/99-oneclickvirt-ipv6.conf.tmp.$$" "$directory/99-oneclickvirt-ipv6.conf" || return 1
+                ;;
+        esac
+        networkctl reload || return 1
+    fi
+    for daemon in incus.service incus-daemon.service lxd.service snap.lxd.daemon.service snap.incus.daemon.service; do
+        if [ "$(systemctl show "$daemon" -p LoadState --value 2>/dev/null)" = loaded ]; then
+            directory="/etc/systemd/system/$daemon.d"
+            mkdir -p "$directory" || return 1
+            printf '[Unit]\nRequires=%s\nAfter=%s\n' "oneclickvirt-lxd-ipv6-proxy-ndp.service" "oneclickvirt-lxd-ipv6-proxy-ndp.service" > "$directory/99-oneclickvirt-ipv6-script.conf" || return 1
+        fi
+    done
     systemctl daemon-reload || return 1
     systemctl enable oneclickvirt-lxd-ipv6-proxy-ndp.service >/dev/null 2>&1 || return 1
     systemctl start oneclickvirt-lxd-ipv6-proxy-ndp.service || return 1
@@ -958,7 +1019,7 @@ setup_network_device_mapping() {
         }
         _green "Container $CONTAINER_NAME IPV6:"
         _green "$lxc_ipv6"
-        if ! lxc stop "$CONTAINER_NAME" 2>/dev/null; then
+        if ! stop_lxd_instance "$CONTAINER_NAME" 2>/dev/null; then
             [ "$(lxd_container_status_code "$CONTAINER_NAME")" = 102 ] || return 1
         fi
         sleep 3
@@ -983,7 +1044,7 @@ setup_network_device_mapping() {
                 # egress through the managed NAT66 network as a bounded fallback.
                 _yellow "Routed IPv6 guest configuration failed; falling back to managed IPv6 NAT"
                 _yellow "独立 IPv6 客体配置失败，回退到受管 IPv6 NAT"
-                lxc stop "$CONTAINER_NAME" 2>/dev/null || true
+                stop_lxd_instance "$CONTAINER_NAME" 2>/dev/null || return 1
                 wait_for_container_status "$CONTAINER_NAME" "STOPPED" 24 || return 1
                 lxc config device remove "$CONTAINER_NAME" eth1 2>/dev/null || true
                 start_lxd_instance "$CONTAINER_NAME" || return 1
@@ -1253,6 +1314,21 @@ test_ipv6_connectivity() {
 
 # LXD 5.21 can briefly retain a routed VM tap route after stop completes.
 # Retry only that reported conflict; never delete a route owned by the daemon.
+# A daemon restart can leave an old CLI operation waiting indefinitely.
+# Bound both the RPC and graceful shutdown, and force only a still-running
+# instance whose structured state was just checked.
+stop_lxd_instance() {
+    local instance_name="$1" current
+    if timeout -k 5 50 lxc stop "$instance_name" --timeout 40; then
+        return 0
+    fi
+    current=$(lxd_container_status_code "$instance_name") || return 1
+    [ "$current" != 102 ] || return 0
+    [ "$current" = 103 ] || return 1
+    timeout -k 5 25 lxc stop "$instance_name" --force || return 1
+    [ "$(lxd_container_status_code "$instance_name")" = 102 ]
+}
+
 start_lxd_instance() {
     local attempt output status
     for attempt in 1 2 3; do

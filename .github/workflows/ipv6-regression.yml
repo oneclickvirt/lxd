@@ -82,9 +82,11 @@ jobs:
         run: |
           set -euo pipefail
           bash tests/build_ipv6_network_test.sh
+          bash tests/proxy_ndp_boot_test.sh
           bash tests/test_ipv6_network.sh
           bash tests/build_failure_control_flow_test.sh
           bash tests/routed_start_retry_test.sh
+          bash tests/routed_stop_budget_test.sh
           bash tests/vm_agent_ready_test.sh
           bash tests/image_source_test.sh
           bash tests/retry_curl_sete_test.sh
@@ -102,7 +104,10 @@ jobs:
           bash tests/instance_ownership_test.sh
           bash tests/image_cache_import_test.sh
           bash tests/vm_restart_readiness_test.sh
+          bash tests/vm_restart_recovery_test.sh
+          bash tests/vm_ipv6_helper_refresh_test.sh
           bash tests/vm_shutdown_budget_test.sh
+          bash tests/autostart_test.sh
           bash tests/masquerade_failure_test.sh
           bash tests/firewall_persistence_test.sh
           bash tests/firewalld_failure_test.sh

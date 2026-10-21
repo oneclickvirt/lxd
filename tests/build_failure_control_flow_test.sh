@@ -108,6 +108,13 @@ run_stop_timeout_test() {
 
         local lxc_log="$workdir/lxc.log"
         local record="stop-case-${kind}"
+        # Keep bounded CLI calls inside this shell so the fixture's lxc
+        # implementation also covers the VM restart before the stop check.
+        timeout() {
+            if [ "${1:-}" = -k ]; then shift 2; fi
+            shift
+            "$@"
+        }
         lxc() {
             printf '%s\n' "$*" >>"$lxc_log"
             case "${1:-}" in
