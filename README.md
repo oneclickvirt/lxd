@@ -16,28 +16,6 @@
 
 ## 更新
 
-2026.08.30
-
-- 安装器不再删除或改写既有 `default`、用户创建和已记录的存储池；新建自管存储使用独立的 `oneclickvirt` 池，保留原有实例和数据卷
-- CT、VM 与批量创建改为失败即回滚本次新建实例和暂存日志，不会误删既有同名实例；IPv6 转发仍只在真实上联网卡启用 NDP 代理
-
-## 无交互用法
-
-```shell
-export noninteractive=true
-export DISK_NUMS=40
-bash lxdinstall.sh
-```
-
-如需自定义存储路径：
-
-```shell
-export noninteractive=true
-export DISK_NUMS=40
-export STORAGE_PATH=/data/lxd-storage
-bash lxdinstall.sh
-```
-
 [更新日志](CHANGELOG.md)
 
 ## 说明文档
