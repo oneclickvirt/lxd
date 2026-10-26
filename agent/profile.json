@@ -1,0 +1,45 @@
+{
+  "repository": "oneclickvirt/lxd",
+  "branch": "main",
+  "skill_name": "oneclickvirt-lxd",
+  "purpose": "Operate and troubleshoot lxd instances deployed with the OneClickVirt scripts.",
+  "notes": [
+    "Read the platform precheck and installation pages before changing a host.",
+    "Use the existing host runtime and its credentials. Instance IDs and names remain the native runtime identifiers.",
+    "MCP starts read-only. Set ONECLICKVIRT_MCP_ALLOW_WRITE=1 on the intended host to expose start, graceful stop and restart; deletion, reinstall and arbitrary shell commands are not exposed.",
+    "Use the lxc client for LXD. Do not substitute the incus daemon."
+  ],
+  "guide": "https://www.spiritlhl.net/guide/agent_integrations.html",
+  "releases": false,
+  "runtime": "lxd",
+  "binary": "lxc",
+  "platform_guide": "https://www.spiritlhl.net/guide/lxd/lxd_precheck.html",
+  "mcp": true,
+  "source_files": [
+    "panel_scripts/modify.sh",
+    "panel_scripts/panel_init.sh",
+    "scripts/add-ipv6.sh",
+    "scripts/add_more.sh",
+    "scripts/backend.sh",
+    "scripts/build_ipv6_network.sh",
+    "scripts/build_monitor.sh",
+    "scripts/buildct.sh",
+    "scripts/buildvm.sh",
+    "scripts/check-dns.sh",
+    "scripts/config.sh",
+    "scripts/init.sh",
+    "scripts/instance_ownership.sh",
+    "scripts/least.sh",
+    "scripts/lxdinstall.sh",
+    "scripts/lxduninstall.sh",
+    "scripts/monitor.sh",
+    "scripts/pre_check.sh"
+  ],
+  "purpose_zh": "管理和排查 LXD 实例、节点运行环境及 OneClickVirt 部署。",
+  "notes_zh": [
+    "变更宿主机前，先阅读平台准备和安装页。",
+    "使用本机已有运行环境及凭据；实例名称和 ID 保持原运行环境的标识。",
+    "MCP 默认只读。在目标主机设置 ONECLICKVIRT_MCP_ALLOW_WRITE=1 后才提供启动、正常关机和重启；不提供删除、重装或任意 Shell 执行。",
+    "使用 LXD 的 lxc 客户端，不混用 Incus 守护进程。"
+  ]
+}
